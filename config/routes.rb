@@ -1,0 +1,25 @@
+Rails.application.routes.draw do
+  namespace :admin do
+    namespace :v1 do
+      # services
+      get '/services', to: 'services#index'
+      get '/services/:service_name', to: 'services#show', constraints: { :service_name => /[0-z\.]+/ }
+      get '/services/:service_name/overview', to: 'subscriptions#show', constraints: { :service_name => /[0-z\.]+/ } # this is correct path
+
+      # versions
+      get '/services/:service_name/version', to: 'versions#show', constraints: { :service_name => /[0-z\.]+/ }
+      put '/services/:service_name/version', to: 'versions#create', constraints: { :service_name => /[0-z\.]+/ }
+      get '/services/:service_name/versions', to: 'versions#downgrade_versions', constraints: { :service_name => /[0-z\.]+/ }
+
+      #updates
+      put '/services/:service_name/update', to: 'updates#create', constraints: { :service_name => /[0-z\.]+/ }
+      get '/services/:service_name/update', to: 'updates#show', constraints: { :service_name => /[0-z\.]+/ }
+
+      #releases
+      put '/services/:service_name/release', to: 'releases#create', constraints: { :service_name => /[0-z\.]+/ }
+      get '/services/:service_name/release', to: 'releases#show', constraints: { :service_name => /[0-z\.]+/ }
+    end
+  end
+
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+end
