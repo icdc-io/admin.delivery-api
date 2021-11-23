@@ -17,4 +17,9 @@ class Admin::V1::VersionsController < ApplicationController
     stream_hash = image_stream_by_service(params[:service_name])
     render json: choose_version_to_downgrade(stream_hash)
   end
+
+  def installed_github_versions
+    stream_hash = image_stream_by_service(params[:service_name])
+    render json: service_versions(stream_hash)
+  end
 end

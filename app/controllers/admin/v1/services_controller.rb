@@ -9,12 +9,31 @@ class Admin::V1::ServicesController < ApplicationController
       begin
         data = image_stream(name)
         data['json'] = name
-        services << {name: image_stream_name(data), release_version:release_version(data)}, update_version:update_version(data), installed_version:installed_version(data)}
+        services << {name: image_stream_name(data), release_version:release_version(data), update_version:updated_version(data), installed_version:installed_version(data)}
       rescue => err
         next
-      #  raise "#{err}__#{name}"
       end
     end
     render json:services
+  end
+
+  def show
+    is = image_stream_by_service(params[:service_name])
+    property = 'install' unless is
+    property = 'upgrade' if is
+    render json: {property:property, image_stream:is} #image_stream_by_service(params[:service_name])
+  end
+
+  def overview
+    metadata = find_metadata(params[:service_name])
+    result = {}
+    result[:service_name] = metadata.dig('metadata','annotations','openshift.io/display-name')
+    result[:description]  = metadata.dig('metadata','annotations','description')
+    result[:documentation_url] = metadata.dig('metadata','annotations','openshift.io/documentation-url')
+    render json:result
+  end
+
+  def create
+    
   end
 end

@@ -4,7 +4,7 @@ class Admin::V1::UpdatesController < ApplicationController
 
   def show
     stream_hash = image_stream_by_service(params[:service_name])
-    render json: update_version(stream_hash)
+    render json: updated_version(stream_hash)
   end
 
   def create

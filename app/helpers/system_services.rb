@@ -19,14 +19,13 @@ module SystemServices
   end
 
   def release_version(stream_hash) # tbd : add more params
-    version = image_stream_version(stream_hash)
-    {
-      installed_service_version:installed_service_version(stream_hash["metadata"]),
-      installed_release_version:installed_release_version(stream_hash["metadata"]),
-      available_release_version:version,
-      available_service_version:service_version_of_release(stream_hash, version),
-      service_version_change_log:changelog_version(stream_hash)
-    }
+    installed_service_version = installed_service_version(stream_hash["metadata"])
+    available_release_version = image_stream_version(stream_hash)
+    available_service_version = service_version_of_release(stream_hash, available_release_version)
+    return {
+       available_service_version:available_service_version,
+       service_version_change_log:changelog_version(stream_hash)
+    } if available_service_version != installed_service_version
   end
 
   def installed_version(stream_hash)
@@ -36,21 +35,30 @@ module SystemServices
     }
   end
 
-  def update_version(stream_hash)
-    version = image_stream_version(stream_hash)
-    {
-       installed_service_version:installed_service_version(stream_hash["metadata"]), #tbd :add info from OS
-       installed_release_version:installed_release_version(stream_hash["metadata"]),
-       available_service_version:service_version_of_release(stream_hash, version),
+  def updated_version(stream_hash)
+    installed_service_version = installed_service_version(stream_hash["metadata"])
+    installed_release_version = installed_release_version(stream_hash["metadata"])
+    available_service_version = service_version_of_release(stream_hash, installed_release_version)
+    return {
+       available_service_version:available_service_version,
        service_version_change_log:changelog_version(stream_hash)
-    }
+    } if available_service_version != installed_service_version
   end
 
-  def update_service_version(stream_hash, version)
-    is = installed_version(stream_hash)
-    sr = service_repository(stream_hash["metadata"], version)
-    create_image_stream_tag(stream_hash["metadata"]["name"], version, sr)
-    set_image_tag(stream_hash["metadata"], version)
+  def update_service_version(stream_hash)
+    up = updated_version(stream_hash)&[:available_service_version]
+    return "No available version for update." unless up
+    sr = service_repository(stream_hash, up)
+    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr)
+    set_image_tag(stream_hash["metadata"], up)
+  end
+
+  def upgrade_service_version(stream_hash)
+    up = release_version(stream_hash).dig(:available_service_version)
+    return "No available version for upgrade." unless up
+    sr = service_repository(stream_hash, up)
+    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr)
+    set_image_tag(stream_hash["metadata"], up)
   end
 
   def service_version_of_release(stream_hash, release_version)

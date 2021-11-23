@@ -2,7 +2,7 @@ module GithubHelper
   include RequestHelper
 
   def service_repository(data, version)
-    request_raw_github("imagestreams/#{name}")["spec"]["tags"].select { |d| d["name"] == version }.first["from"]["name"]
+    data["spec"]["tags"].select { |d| d["name"] == version }.first["from"]["name"]
   end
 
   def list_images
@@ -47,5 +47,9 @@ module GithubHelper
 
   def find_metadata(service_name)
     request_raw_github("templates/#{find_template_name(service_name)}")
+  end
+
+  def service_versions(data)
+    data["spec"]["tags"].select { |d| d.dig("from", "kind") == "DockerImage" }.first.dig("name")
   end
 end

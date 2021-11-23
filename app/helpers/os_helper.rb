@@ -7,11 +7,11 @@ module OsHelper
   end
 
   def installed_service_version(data)
-    get_request_api_os("apis/image.openshift.io/v1/namespaces/test/imagestreams/#{data["name"]}")["spec"]["tags"].select{ |d| d["name"] == "latest"}.first["from"]["name"].split(':').last
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/test/imagestreams/#{data["name"]}")["spec"]["tags"].select{ |d| d["name"] == "latest"}.first["from"]["name"]
   end
 
   def installed_release_version(data)
-    installed_service_version(data)#  cut -d. -f-2
+    installed_service_version(data)[0..2]#  cut -d. -f-2
   end
 
   def all_installed_version(data)
@@ -19,7 +19,7 @@ module OsHelper
   end
 
   def set_image_tag(data, version)
-    put_request_api_os("apis/image.openshift.io/v1/namespaces/test/imagestreamtags/#{data["name"]}:latest", set_latest_image_stream_tag(data["name"], version))
+    put_request_api_os("apis/image.openshift.io/v1/namespaces/test/imagestreamtags/#{data["name"]}:latest", set_latest_image_stream_tag(data["name"], version))["tag"]["from"]["name"]
   end
 
   def create_image_stream_tag(name, version, repository)
