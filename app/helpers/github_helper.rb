@@ -36,7 +36,6 @@ module GithubHelper
   end
 
   def find_template_name(service_name)
-    test = {}
     available_templates.each do |template_name|
        path_to_template = request_api_github("repos/dmemekh/icdc/contents/templates/#{template_name}","ref=main")['download_url'].split('/').last(2).join('/')
       metadata = request_raw_github(path_to_template)
@@ -45,8 +44,12 @@ module GithubHelper
     return nil
   end
 
-  def find_metadata(service_name)
+  def find_template(service_name)
     request_raw_github("templates/#{find_template_name(service_name)}")
+  end
+
+  def get_application_domain(template_hash)
+    template_hash.dig("parameters").select { |d| d.dig("name") == "APPLICATION_DOMAIN" }.first.dig("value")
   end
 
   def service_versions(data)

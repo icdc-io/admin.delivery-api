@@ -25,7 +25,7 @@ class Admin::V1::ServicesController < ApplicationController
   end
 
   def overview
-    metadata = find_metadata(params[:service_name])
+    metadata = find_template(params[:service_name])
     result = {}
     result[:service_name] = metadata.dig('metadata','annotations','openshift.io/display-name')
     result[:description]  = metadata.dig('metadata','annotations','description')
@@ -34,6 +34,9 @@ class Admin::V1::ServicesController < ApplicationController
   end
 
   def create
-    
+    stream_hash = image_stream_by_service(params[:service_name])
+    sr = service_repository(stream_hash, params[:version])
+    create_image_stream_tag(stream_hash["metadata"]["name"], params[:version], sr)
+    set_image_tag(stream_hash["metadata"], params[:version])
   end
 end
