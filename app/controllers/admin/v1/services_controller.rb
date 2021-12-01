@@ -34,9 +34,22 @@ class Admin::V1::ServicesController < ApplicationController
   end
 
   def create
+    #name = "test"
+    #memory = '64Mi'
+   # application_domain = 'test'
+   # description = 'test'
+    #version = '1.0.1'
+    #json_from_file = File.read  File.dirname(__FILE__) + "/../../../helpers/template2.json"
+    #hash = JSON.parse(json_from_file)
+    #hash["metadata"]["name"] = name
     stream_hash = image_stream_by_service(params[:service_name])
     sr = service_repository(stream_hash, params[:version])
-    create_image_stream_tag(stream_hash["metadata"]["name"], params[:version], sr)
-    set_image_tag(stream_hash["metadata"], params[:version])
+    create_image_stream_tag(stream_hash['metadata']['name'], params[:version], sr)
+    set_image_tag(stream_hash['metadata'], params[:version])
+    template = find_template(params[:service_name])
+    template = update_template(template, params)
+test =    generate_service_template(template)
+    raise "#{template.to_json}____________ #{test}"
+    
   end
 end

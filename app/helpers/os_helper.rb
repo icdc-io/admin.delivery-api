@@ -26,6 +26,10 @@ module OsHelper
     put_request_api_os("apis/image.openshift.io/v1/namespaces/test/imagestreamtags", image_stream_tag_body(name, version, repository))
   end
 
+  def generate_service_template(template)
+    post_request_api_os("apis/image.openshift.io/v1/namespaces/test/processedtemplates", template.to_json)
+  end
+
   private
   def set_latest_image_stream_tag(name, version)
     {

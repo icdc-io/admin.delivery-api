@@ -95,7 +95,7 @@ module RequestHelper
 
     data = JSON.parse(response.body)
     return data if response.code == '200'
-    return response.code
+    return data#response.code
   end
 
   def req_options

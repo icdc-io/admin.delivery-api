@@ -2,7 +2,8 @@ module GithubHelper
   include RequestHelper
 
   def service_repository(data, version)
-    data["spec"]["tags"].select { |d| d["name"] == version }.first["from"]["name"]
+#    raise "#{version}_________#{data.dig("spec","tags").collect { |d| d["name"] }}"
+    data.dig("spec","tags").select { |d| d["name"] == version }.first.dig("from","name")
   end
 
   def list_images
@@ -54,5 +55,13 @@ module GithubHelper
 
   def service_versions(data)
     data["spec"]["tags"].select { |d| d.dig("from", "kind") == "DockerImage" }.first.dig("name")
+  end
+
+  def update_template(template, params)
+    template['parameters'].select { |tm| tm.dig('name').eql?('VERSION') }.first['value'] = params[:version]
+    template['parameters'].select { |tm| tm.dig('name').eql?('NAME') }.first['value'] = params[:service_name]
+    template['parameters'].select { |tm| tm.dig('name').eql?('MEMORY_LIMIT') }.first['value'] = params[:memory_limit]
+    template['parameters'].select { |tm| tm.dig('name').eql?('APPLICATION_DOMAIN') }.first['value'] = get_application_domain(template)
+    template
   end
 end
