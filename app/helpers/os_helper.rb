@@ -27,7 +27,39 @@ module OsHelper
   end
 
   def generate_service_template(template)
-    post_request_api_os("apis/image.openshift.io/v1/namespaces/test/processedtemplates", template.to_json)
+    test = post_request_api_os("apis/template.openshift.io/v1/namespaces/test/processedtemplates", template.to_json)
+  end
+
+  def create_service
+    post_request_api_os("api/v1/namespaces/test/services", create_service_body)
+  end
+
+  def create_deployment_config
+    post_request_api_os("/apis/apps.openshift.io/v1/namespaces/test/deploymentconfigs", create_deployment_config_body)
+  end
+
+  def create_deployment
+    post_request_api_os("/apis/apps/v1/namespaces/test/deployments", create_deployment_body)
+  end
+
+  def create_route
+    post_request_api_os("/apis/route.openshift.io/v1/namespaces/test/routes", create_route_body)
+  end
+
+  def create_secret
+    post_request_api_os("api/v1/namespaces/test/secrets", create_secret_body)
+  end
+
+  def create_service_account
+    post_request_api_os("api/v1/namespaces/test/serviceaccounts", create_service_account_body)
+  end
+
+  def create_configmap
+    post_request_api_os("api/v1/namespaces/test/configmaps", create_configmap_body)
+  end
+
+  def create_pvc
+    post_request_api_os("api/v1/namespaces/test/persistentvolumeclaims", create_pvc_body)
   end
 
   private
@@ -80,5 +112,93 @@ module OsHelper
       }
     }.to_json
   end
+
+  def create_service_body
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {
+          "description": "#{desc}",
+          "openshift.io/generated-by": "OpenShiftNewApp"
+        },
+        "creationTimestamp": nil,
+        "labels": {
+          "app": "#{name}",
+          "template": "#{name}"
+        },
+        "name": "#{name}",
+      "spec": {
+        "selector":
+          "name": "#{name}"
+      }
+    }.to_json
+  end
+
+  def create_deployment_config_body
+    {
+      "apiVersion": "v1",
+      "kind": "DeploymentConfig"
+    }.to_json
+  end
+
+  def create_deployment_body
+    {
+      "apiVersion": "v1",
+      "kind": "Deployment"
+    }.to_json
+  end
+
+  def create_route_body
+    {
+      "apiVersion": "v1",
+      "kind": "Route"
+    }.to_json
+  end
+
+  def create_secret_body
+    {
+      "apiVersion": "v1",
+      "kind": "Secret",
+      "metadata": {
+        "name": "#{name}-secrets"
+      }
+    }.to_json
+  end
+
+  def create_service_account_body
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata":{
+        "creationTimestamp": nil,
+        "name": "#{account_name}" # <--- ask Danat
+      }
+    }.to_json
+  end
+
+  def create_configmap_body
+    {
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {
+          "openshift.io/generated-by": "OpenShiftNewApp"
+        },
+        "creationTimestamp": nil,
+        "labels": {
+          "app": "#{name}",
+          "template": "#{name}"
+        },
+        "name": "#{name}-config"
+       }
+    }.to_json
+  end
+
+  def create_pvc_body
+    {
+      "kind": "PersistentVolumeClaim"
+    }.to_json
+  end
+
 end
 

@@ -18,7 +18,7 @@ module SystemServices
     stream_hash.dig('spec','tags').select { |tag| tag['name'] == 'latest' }.first.dig('from','name')
   end
 
-  def release_version(stream_hash) # tbd : add more params
+  def release_version(stream_hash) 
     installed_service_version = installed_service_version(stream_hash["metadata"])
     available_release_version = image_stream_version(stream_hash)
     available_service_version = service_version_of_release(stream_hash, available_release_version)

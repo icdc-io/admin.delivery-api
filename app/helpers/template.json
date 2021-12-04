@@ -5,7 +5,7 @@
       "app": "httpd",
       "template": "httpd"
    },
-   "message": "The following service(s) have been created in your project: ${NAME}.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/sclorg/httpd-ex/blob/master/README.md.",
+   "message": "The following service(s) have been created in your project: #{name}.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/sclorg/httpd-ex/blob/master/README.md.",
    "metadata": {
       "annotations": {
          "description": "An example Apache HTTP Server (httpd) application that serves static content. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/httpd-ex/blob/master/README.md.",
@@ -22,7 +22,7 @@
       "labels": {
          "samples.operator.openshift.io/managed": "true"
       },
-      "name": "httpd1"
+      "name": "#{name}"
    },
    "objects": [
       {
@@ -30,7 +30,7 @@
          "kind": "Service",
          "metadata": {
             "annotations": {
-               "description": "Exposes and load balances the application pods"
+               "description": "#{description}"
             },
             "name": "#{name}"
          },
@@ -99,7 +99,7 @@
                            "initialDelaySeconds": 30,
                            "timeoutSeconds": 3
                         },
-                        "name": "httpd",
+                        "name": "#{name}",
                         "ports": [
                            {
                               "containerPort": 8080
@@ -115,7 +115,7 @@
                         },
                         "resources": {
                            "limits": {
-                              "memory": ""
+                              "memory": "#{memory}"
                            }
                         }
                      }
