@@ -11,7 +11,7 @@ module OsHelper
   end
 
   def installed_release_version(data)
-    installed_service_version(data)[0..2]#  cut -d. -f-2
+    installed_service_version(data)[0..2]
   end
 
   def all_installed_version(data)
@@ -27,41 +27,52 @@ module OsHelper
   end
 
   def generate_service_template(template)
-    test = post_request_api_os("apis/template.openshift.io/v1/namespaces/test/processedtemplates", template.to_json)
+    post_request_api_os("apis/template.openshift.io/v1/namespaces/test/processedtemplates", template.to_json)
   end
 
-  def create_service
-    post_request_api_os("api/v1/namespaces/test/services", create_service_body)
+  def install_service(source)
+    create_service(source)
+    create_deployment_config(source)
+    create_deployment(source)
+    create_route(source)
+    create_secret(source)
+    create_service_account(source)
+    create_configmap(source)
+    create_pvc(source)
   end
 
-  def create_deployment_config
-    post_request_api_os("/apis/apps.openshift.io/v1/namespaces/test/deploymentconfigs", create_deployment_config_body)
+  def create_service(source)
+    post_request_api_os("api/v1/namespaces/test/services", source["objects"].select { |s| s["kind"].eql?("Service") }.first.to_json)
   end
 
-  def create_deployment
-    post_request_api_os("/apis/apps/v1/namespaces/test/deployments", create_deployment_body)
+  def create_deployment_config(source)
+    post_request_api_os("/apis/apps.openshift.io/v1/namespaces/test/deploymentconfigs", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json))
   end
 
-  def create_route
-    post_request_api_os("/apis/route.openshift.io/v1/namespaces/test/routes", create_route_body)
+  def create_deployment(source)
+    post_request_api_os("/apis/apps/v1/namespaces/test/deployments", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json))
   end
 
-  def create_secret
-    post_request_api_os("api/v1/namespaces/test/secrets", create_secret_body)
+  def create_route(source)
+    post_request_api_os("/apis/route.openshift.io/v1/namespaces/test/routes", source["objects"].select { |s| s["kind"].eql?("Route") }.first.to_json))
   end
 
-  def create_service_account
-    post_request_api_os("api/v1/namespaces/test/serviceaccounts", create_service_account_body)
+  def create_secret(source)
+    post_request_api_os("api/v1/namespaces/test/secrets", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json))
   end
 
-  def create_configmap
-    post_request_api_os("api/v1/namespaces/test/configmaps", create_configmap_body)
+  def create_service_account(source)
+    post_request_api_os("api/v1/namespaces/test/serviceaccounts", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json))
   end
 
-  def create_pvc
-    post_request_api_os("api/v1/namespaces/test/persistentvolumeclaims", create_pvc_body)
+  def create_configmap(source)
+    post_request_api_os("api/v1/namespaces/test/configmaps", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json))
   end
 
+  def create_pvc(source)
+    post_request_api_os("api/v1/namespaces/test/persistentvolumeclaims", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json))
+  end
+  
   private
   def set_latest_image_stream_tag(name, version)
     {
@@ -112,6 +123,8 @@ module OsHelper
       }
     }.to_json
   end
+
+=begin
 
   def create_service_body
     {
@@ -199,6 +212,6 @@ module OsHelper
       "kind": "PersistentVolumeClaim"
     }.to_json
   end
-
+=end
 end
 

@@ -42,6 +42,7 @@ class Admin::V1::ServicesController < ApplicationController
     set_image_tag(stream_hash['metadata'], params[:version])
     template = find_template(params[:service_name])
     template = update_template(template, params)
-    generate_service_template(template)
+    source_hash = generate_service_template(template)
+    install_service(source_hash)
   end
 end
