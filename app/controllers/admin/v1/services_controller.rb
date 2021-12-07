@@ -3,6 +3,10 @@ require 'yaml'
 class Admin::V1::ServicesController < ApplicationController
   include SystemServices 
   before_action :login
+  before_action -> {
+   $NAMESPACE = "icdc-#{params[:service_name]}"
+  }
+  #before_action :generate_namespace(params[:service_name])
 
   def index
     image_names = list_images

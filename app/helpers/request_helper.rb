@@ -44,7 +44,7 @@ module RequestHelper
     request["Accept"] = "application/json"
     request.body = body
 
-    test = do_request(request)
+    do_request(request)
   end
 
   def put_request_api_os(resource, body)
