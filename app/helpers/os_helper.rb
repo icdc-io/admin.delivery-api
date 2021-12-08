@@ -31,7 +31,6 @@ module OsHelper
   end
 
   def install_service(source)
-    raise "#{$NAMESPACE}"
     create_service(source)
     create_deployment_config(source)
     create_deployment(source)
@@ -43,35 +42,43 @@ module OsHelper
   end
 
   def create_service(source)
-    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/services", source["objects"].select { |s| s["kind"].eql?("Service") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("Service") }.first
+    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/services", body.to_json) if body
   end
 
   def create_deployment_config(source)
-    post_request_api_os("/apis/apps.openshift.io/v1/namespaces/#{$NAMESPACE}/deploymentconfigs", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    post_request_api_os("/apis/apps.openshift.io/v1/namespaces/#{$NAMESPACE}/deploymentconfigs", body.to_json) if body
   end
 
   def create_deployment(source)
-    post_request_api_os("/apis/apps/v1/namespaces/#{$NAMESPACE}/deployments", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    post_request_api_os("/apis/apps/v1/namespaces/#{$NAMESPACE}/deployments", body.to_json) if body
   end
 
   def create_route(source)
-    post_request_api_os("/apis/route.openshift.io/v1/namespaces/#{$NAMESPACE}/routes", source["objects"].select { |s| s["kind"].eql?("Route") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("Route") }.first
+    post_request_api_os("/apis/route.openshift.io/v1/namespaces/#{$NAMESPACE}/routes", body.to_json) if body
   end
 
   def create_secret(source)
-    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/secrets", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/secrets", body.to_json) if body
   end
 
   def create_service_account(source)
-    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/serviceaccounts", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/serviceaccounts", body.to_json) if body
   end
 
   def create_configmap(source)
-    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/configmaps", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/configmaps", body.to_json) if body
   end
 
   def create_pvc(source)
-    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims", source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first.to_json)
+    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims", body.to_json) if body
   end
   
   private
@@ -124,95 +131,5 @@ module OsHelper
       }
     }.to_json
   end
-
-=begin
-
-  def create_service_body
-    {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "annotations": {
-          "description": "#{desc}",
-          "openshift.io/generated-by": "OpenShiftNewApp"
-        },
-        "creationTimestamp": nil,
-        "labels": {
-          "app": "#{name}",
-          "template": "#{name}"
-        },
-        "name": "#{name}",
-      "spec": {
-        "selector":
-          "name": "#{name}"
-      }
-    }.to_json
-  end
-
-  def create_deployment_config_body
-    {
-      "apiVersion": "v1",
-      "kind": "DeploymentConfig"
-    }.to_json
-  end
-
-  def create_deployment_body
-    {
-      "apiVersion": "v1",
-      "kind": "Deployment"
-    }.to_json
-  end
-
-  def create_route_body
-    {
-      "apiVersion": "v1",
-      "kind": "Route"
-    }.to_json
-  end
-
-  def create_secret_body
-    {
-      "apiVersion": "v1",
-      "kind": "Secret",
-      "metadata": {
-        "name": "#{name}-secrets"
-      }
-    }.to_json
-  end
-
-  def create_service_account_body
-    {
-      "apiVersion": "v1",
-      "kind": "ServiceAccount",
-      "metadata":{
-        "creationTimestamp": nil,
-        "name": "#{account_name}" # <--- ask Danat
-      }
-    }.to_json
-  end
-
-  def create_configmap_body
-    {
-      "kind": "ConfigMap",
-      "metadata": {
-        "annotations": {
-          "openshift.io/generated-by": "OpenShiftNewApp"
-        },
-        "creationTimestamp": nil,
-        "labels": {
-          "app": "#{name}",
-          "template": "#{name}"
-        },
-        "name": "#{name}-config"
-       }
-    }.to_json
-  end
-
-  def create_pvc_body
-    {
-      "kind": "PersistentVolumeClaim"
-    }.to_json
-  end
-=end
 end
 

@@ -4,7 +4,7 @@ class Admin::V1::ServicesController < ApplicationController
   include SystemServices 
   before_action :login
   before_action -> {
-   $NAMESPACE = "icdc-#{params[:service_name]}"
+   $NAMESPACE = "test"#"icdc-#{params[:service_name]}"
   }
   #before_action :generate_namespace(params[:service_name])
 
