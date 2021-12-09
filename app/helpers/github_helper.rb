@@ -2,7 +2,6 @@ module GithubHelper
   include RequestHelper
 
   def service_repository(data, version)
-#    raise "#{version}_________#{data.dig("spec","tags").collect { |d| d["name"] }}"
     data.dig("spec","tags").select { |d| d["name"] == version }.first.dig("from","name")
   end
 

@@ -6,7 +6,6 @@ class Admin::V1::ServicesController < ApplicationController
   before_action -> {
    $NAMESPACE = "test"#"icdc-#{params[:service_name]}"
   }
-  #before_action :generate_namespace(params[:service_name])
 
   def index
     image_names = list_images
@@ -48,5 +47,9 @@ class Admin::V1::ServicesController < ApplicationController
     template = update_template(template, params)
     source_hash = generate_service_template(template)
     install_service(source_hash)
+  end
+
+  def delete
+    delete_service(params[:service_name]) 
   end
 end

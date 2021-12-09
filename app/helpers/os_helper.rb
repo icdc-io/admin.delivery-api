@@ -41,6 +41,18 @@ module OsHelper
     create_pvc(source)
   end
 
+  def delete_service(service_name)
+    delete_image_stream(service_name)
+    delete_os_service(service_name)
+    delete_deployment_config(service_name)
+    delete_deployment(service_name)
+    delete_route(service_name)
+    delete_secret(service_name)
+    delete_service_account(service_name)
+    delete_config_map(service_name)
+    delete_pvc(service_name)
+  end
+
   def create_service(source)
     body = source["objects"].select { |s| s["kind"].eql?("Service") }.first
     post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/services", body.to_json) if body
@@ -80,7 +92,43 @@ module OsHelper
     body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
     post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims", body.to_json) if body
   end
-  
+ 
+  def delete_image_stream(service_name)
+    delete_request_api_os("/apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreams/#{service_name}")
+  end
+
+  def delete_os_service(service_name)
+    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/services/#{service_name}")
+  end
+ 
+  def delete_deployment_config(service_name)
+    delete_request_api_os("/apis/apps.openshift.io/v1/namespaces/#{$NAMESPACE}/deploymentconfigs/#{service_name}")
+  end
+
+  def delete_deployment(service_name)
+    delete_request_api_os("/apis/apps/v1/namespaces/#{$NAMESPACE}/deployments/#{service_name}")
+  end
+
+  def delete_route(service_name)
+    delete_request_api_os("/apis/route.openshift.io/v1/namespaces/#{$NAMESPACE}/routes/#{service_name}")
+  end
+
+  def delete_secret(service_name)
+    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/secrets/#{service_name}")
+  end
+
+  def delete_service_account(service_name)
+    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/serviceaccounts/#{service_name}")
+  end
+
+  def delete_config_map(service_name)
+    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/configmaps/#{service_name}")
+  end
+
+  def delete_pvc(service_name)
+    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims/#{service_name}")
+  end
+
   private
   def set_latest_image_stream_tag(name, version)
     {
