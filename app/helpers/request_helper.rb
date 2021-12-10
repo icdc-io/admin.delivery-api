@@ -43,7 +43,7 @@ module RequestHelper
     request["Authorization"] = "Bearer #{os_creds['token']}"
     request["Accept"] = "application/json"
     request.body = body
-
+    
     do_request(request)
   end
 
@@ -84,7 +84,7 @@ module RequestHelper
     raise "#{response.body}__#{response.code} __#{uri}"
     end
 #    raise "#{response.body}__#{response.code}"
-    return full_data if response.code == '200'
+    return full_data if response.code[0] == '2'
     return response.code
   end
 
@@ -92,10 +92,9 @@ module RequestHelper
     response = Net::HTTP.start(@uri.hostname, @uri.port, req_options) do |http|
       http.request(request)
     end
-
     data = JSON.parse(response.body)
-    return data if response.code == '200'
-    return data#response.code
+    return data if response.code[0] == '2'
+    return {code:response.code, body:response.body} # response.code
   end
 
   def req_options

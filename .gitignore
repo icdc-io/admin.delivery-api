@@ -20,3 +20,4 @@
 /vendor/
 Gemfile.lock
 /node_modules/
+config/master.key

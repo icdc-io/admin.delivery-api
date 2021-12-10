@@ -4,7 +4,7 @@ class Admin::V1::ServicesController < ApplicationController
   include SystemServices 
   before_action :login
   before_action -> {
-   $NAMESPACE = "test"#"icdc-#{params[:service_name]}"
+   $NAMESPACE = "icdc-#{params[:service_name]}"
   }
 
   def index
@@ -39,6 +39,7 @@ class Admin::V1::ServicesController < ApplicationController
   end
 
   def create
+    create_namespace
     stream_hash = image_stream_by_service(params[:service_name])
     sr = service_repository(stream_hash, params[:version])
     create_image_stream_tag(stream_hash['metadata']['name'], params[:version], sr)

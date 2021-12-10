@@ -92,44 +92,63 @@ module OsHelper
     body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
     post_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims", body.to_json) if body
   end
+
+  def create_namespace
+    post_request_api_os("apis/project.openshift.io/v1/projects", create_namespace_body)
+    
+  end
  
   def delete_image_stream(service_name)
-    delete_request_api_os("/apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreams/#{service_name}")
+    delete_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreams/#{service_name}")
   end
 
   def delete_os_service(service_name)
-    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/services/#{service_name}")
+    delete_request_api_os("api/v1/namespaces/#{$NAMESPACE}/services/#{service_name}")
   end
  
   def delete_deployment_config(service_name)
-    delete_request_api_os("/apis/apps.openshift.io/v1/namespaces/#{$NAMESPACE}/deploymentconfigs/#{service_name}")
+    delete_request_api_os("apis/apps.openshift.io/v1/namespaces/#{$NAMESPACE}/deploymentconfigs/#{service_name}")
   end
 
   def delete_deployment(service_name)
-    delete_request_api_os("/apis/apps/v1/namespaces/#{$NAMESPACE}/deployments/#{service_name}")
+    delete_request_api_os("apis/apps/v1/namespaces/#{$NAMESPACE}/deployments/#{service_name}")
   end
 
   def delete_route(service_name)
-    delete_request_api_os("/apis/route.openshift.io/v1/namespaces/#{$NAMESPACE}/routes/#{service_name}")
+    delete_request_api_os("apis/route.openshift.io/v1/namespaces/#{$NAMESPACE}/routes/#{service_name}")
   end
 
   def delete_secret(service_name)
-    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/secrets/#{service_name}")
+    delete_request_api_os("api/v1/namespaces/#{$NAMESPACE}/secrets/#{service_name}")
   end
 
   def delete_service_account(service_name)
-    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/serviceaccounts/#{service_name}")
+    delete_request_api_os("api/v1/namespaces/#{$NAMESPACE}/serviceaccounts/#{service_name}")
   end
 
   def delete_config_map(service_name)
-    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/configmaps/#{service_name}")
+    delete_request_api_os("api/v1/namespaces/#{$NAMESPACE}/configmaps/#{service_name}")
   end
 
   def delete_pvc(service_name)
-    delete_request_api_os("/api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims/#{service_name}")
+    delete_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims/#{service_name}")
   end
 
   private
+  def create_namespace_body
+    {
+      "apiVersion": "project.openshift.io/v1",
+      "kind": "Project",
+      "metadata": {
+        "annotations": {
+          "openshift.io/display-name": "#{$NAMESPACE}",
+        },
+        "name": "#{$NAMESPACE}"
+      }
+   }.to_json
+  end
+
+
   def set_latest_image_stream_tag(name, version)
     {
       "kind": "ImageStreamTag",
