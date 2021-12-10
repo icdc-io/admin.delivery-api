@@ -14,13 +14,16 @@ Rails.application.routes.draw do
       get '/services/:service_name/installed_versions', to: 'versions#downgrade_versions', constraints: { :service_name => /[0-z\.]+/ }
       get '/services/:service_name/service_versions', to: 'versions#installed_github_versions', constraints: { :service_name => /[0-z\.]+/ }
 
-      #updates
+      # updates
       put '/services/:service_name/update', to: 'updates#create', constraints: { :service_name => /[0-z\.]+/ }
       get '/services/:service_name/update', to: 'updates#show', constraints: { :service_name => /[0-z\.]+/ }
 
-      #releases
+      # releases
       put '/services/:service_name/release', to: 'releases#create', constraints: { :service_name => /[0-z\.]+/ }
       get '/services/:service_name/release', to: 'releases#show', constraints: { :service_name => /[0-z\.]+/ }
+
+      # status
+      get '/services/:service_name/status', to: 'releases#show', constraints: { :service_name => /[0-z\.]+/ }
     end
   end
 
