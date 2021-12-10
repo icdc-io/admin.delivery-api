@@ -59,7 +59,6 @@ module GithubHelper
   def update_template(template, params)
     template['parameters'].select { |tm| tm.dig('name').eql?('VERSION') }.first['value'] = params[:version]
     template['parameters'].select { |tm| tm.dig('name').eql?('NAME') }.first['value'] = params[:service_name]
-    template['parameters'].select { |tm| tm.dig('name').eql?('MEMORY_LIMIT') }.first['value'] = params[:memory_limit]
     template['parameters'].select { |tm| tm.dig('name').eql?('APPLICATION_DOMAIN') }.first['value'] = get_application_domain(template)
     template
   end
