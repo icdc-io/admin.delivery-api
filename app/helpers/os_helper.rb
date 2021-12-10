@@ -41,7 +41,7 @@ module OsHelper
     create_pvc(source)
   end
 
-  def delete_service(service_name)
+  def delete_service(service_name, delete_persistent_data)
     delete_image_stream(service_name)
     delete_os_service(service_name)
     delete_deployment_config(service_name)
@@ -50,7 +50,8 @@ module OsHelper
     delete_secret(service_name)
     delete_service_account(service_name)
     delete_config_map(service_name)
-    delete_pvc(service_name)
+    delete_pvc(service_name) if delete_persistent_data
+    delete_namespace if delete_persistent_data
   end
 
   def create_service(source)
@@ -95,7 +96,10 @@ module OsHelper
 
   def create_namespace
     post_request_api_os("apis/project.openshift.io/v1/projects", create_namespace_body)
-    
+  end
+
+  def delete_namespace
+    delete_request_api_os("apis/project.openshift.io/v1/projects/#{$NAMESPACE}")
   end
  
   def delete_image_stream(service_name)

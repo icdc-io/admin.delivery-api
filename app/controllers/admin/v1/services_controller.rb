@@ -51,6 +51,7 @@ class Admin::V1::ServicesController < ApplicationController
   end
 
   def delete
-    delete_service(params[:service_name]) 
+raise "#{params[:delete_persistent_data]}"
+    delete_service(params[:service_name], params[:delete_persistent_data]) 
   end
 end

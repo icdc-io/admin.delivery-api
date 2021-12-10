@@ -77,13 +77,9 @@ module RequestHelper
   end 
 
   def get_request_api_github(uri)
-    begin 
     response = Net::HTTP.get_response(uri)
     full_data = JSON.parse(response.body)
-    rescue => err
-    raise "#{response.body}__#{response.code} __#{uri}"
-    end
-#    raise "#{response.body}__#{response.code}"
+    
     return full_data if response.code[0] == '2'
     return response.code
   end
@@ -94,7 +90,7 @@ module RequestHelper
     end
     data = JSON.parse(response.body)
     return data if response.code[0] == '2'
-    return {code:response.code, body:response.body} # response.code
+    return response.code
   end
 
   def req_options
