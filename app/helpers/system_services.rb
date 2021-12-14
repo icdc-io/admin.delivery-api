@@ -76,4 +76,32 @@ module SystemServices
     downgraded = all - installed
   end
 
+  def check_status(zone, service_name, option)
+    case option
+    when 'check'
+      check_service_access(zone, service_name)
+    when 'update'
+      check_updated_status(service_name)
+    when 'install'
+      check_installed_status(service_name)
+    when 'delete'
+      check_deleted_status(service_name)
+    end
+  end
+
+  def check_service_access(zone, service_name)
+    template_hash = find_template(params[:service_name])
+    domain = get_application_domain(template_hash, zone)
+    url = service_name + '.' + domain
+    test = check_service_accessibility("https://www.onliner.by/")
+    raise "#{test}_______#{url}"
+  end
+
+  def check_istalled_status(zone,service_name)
+    stream_hash = image_stream_by_service(params[:service_name])
+    revision = get_deployment_config_revision(stream_hash["metadata"]["name"])
+    status = get_replication_controller_status(stream_hash["metadata"]["name"], revision)
+    check_service_access(zone, service_name) if status.eql?('Complete')
+    # what shold be done ic case of 'Running'?
+  end
 end

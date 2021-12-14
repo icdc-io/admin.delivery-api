@@ -23,7 +23,7 @@ Rails.application.routes.draw do
       get '/services/:service_name/release', to: 'releases#show', constraints: { :service_name => /[0-z\.]+/ }
 
       # status
-      get '/services/:service_name/status', to: 'releases#show', constraints: { :service_name => /[0-z\.]+/ }
+      get '/services/:service_name/status', to: 'statuses#show', constraints: { :service_name => /[0-z\.]+/ }
     end
   end
 

@@ -30,6 +30,14 @@ module OsHelper
     post_request_api_os("apis/template.openshift.io/v1/namespaces/#{$NAMESPACE}/processedtemplates", template.to_json)
   end
 
+  def get_deployment_config_revision(image_stream_name)
+    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{$NAMESPACE}/deploymentconfigs/#{image_stream_name}").dig('status', 'latestVersion')
+  end
+
+  def get_replication_controller_status(image_stream_name, revision)
+    get_request_api_os("api/v1/namespaces/#{$NAMESPACE}/replicationcontrollers/#{image_stream_name}-#{revision}").dig('metadata','annotations','openshift.io/deployment.phase')
+  end
+
   def install_service(source)
     create_service(source)
     create_deployment_config(source)
@@ -52,6 +60,19 @@ module OsHelper
     delete_config_map(service_name)
     delete_pvc(service_name) if delete_persistent_data
     delete_namespace if delete_persistent_data
+  end
+
+   def check_deletedstatus(service_name, delete_persistent_data)
+    check_image_stream(service_name)
+    check_os_service(service_name)
+    check_deployment_config(service_name)
+    check_deployment(service_name)
+    check_route(service_name)
+    check_secret(service_name)
+    check_service_account(service_name)
+    check_config_map(service_name)
+    check_pvc(service_name) if delete_persistent_data
+    check_namespace if delete_persistent_data
   end
 
   def create_service(source)
@@ -136,6 +157,46 @@ module OsHelper
 
   def delete_pvc(service_name)
     delete_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims/#{service_name}")
+  end
+
+  def check_namespace
+    get_request_api_os("apis/project.openshift.io/v1/projects/#{$NAMESPACE}")
+  end
+
+  def check_image_stream(service_name)
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreams/#{service_name}")
+  end
+
+  def check_os_service(service_name)
+    get_request_api_os("api/v1/namespaces/#{$NAMESPACE}/services/#{service_name}")
+  end
+
+  def check_deployment_config(service_name)
+    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{$NAMESPACE}/deploymentconfigs/#{service_name}")
+  end
+
+  def check_deployment(service_name)
+    get_request_api_os("apis/apps/v1/namespaces/#{$NAMESPACE}/deployments/#{service_name}")
+  end
+
+  def check_route(service_name)
+    get_request_api_os("apis/route.openshift.io/v1/namespaces/#{$NAMESPACE}/routes/#{service_name}")
+  end
+
+  def check_secret(service_name)
+    get_request_api_os("api/v1/namespaces/#{$NAMESPACE}/secrets/#{service_name}")
+  end
+
+  def check_service_account(service_name)
+    get_request_api_os("api/v1/namespaces/#{$NAMESPACE}/serviceaccounts/#{service_name}")
+  end
+
+  def check_config_map(service_name)
+    get_request_api_os("api/v1/namespaces/#{$NAMESPACE}/configmaps/#{service_name}")
+  end
+
+  def check_pvc(service_name)
+    get_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims/#{service_name}")
   end
 
   private
