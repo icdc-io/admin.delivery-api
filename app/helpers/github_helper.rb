@@ -48,19 +48,19 @@ module GithubHelper
     request_raw_github("templates/#{find_template_name(service_name)}")
   end
 
-  def get_application_domain(template_hash, zone)
+  def get_application_domain(template_hash, location)
      source_appl_domain = template_hash.dig("parameters").select { |d| d.dig("name") == "APPLICATION_DOMAIN" }.first.dig("value").split('.').drop(1).join('.')
-     zone + '.' + source_appl_domain
+     location + '.' + source_appl_domain
   end
 
   def service_versions(data)
     data["spec"]["tags"].select { |d| d.dig("from", "kind") == "DockerImage" }.first.dig("name")
   end
 
-  def update_template(template, params)
+  def update_template(template, params, location)
     template['parameters'].select { |tm| tm.dig('name').eql?('VERSION') }.first['value'] = params[:version]
     template['parameters'].select { |tm| tm.dig('name').eql?('NAME') }.first['value'] = params[:service_name]
-    template['parameters'].select { |tm| tm.dig('name').eql?('APPLICATION_DOMAIN') }.first['value'] = get_application_domain(template,params[:zone])
+    template['parameters'].select { |tm| tm.dig('name').eql?('APPLICATION_DOMAIN') }.first['value'] = get_application_domain(template, location)
     template
   end
 end

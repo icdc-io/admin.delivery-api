@@ -45,7 +45,7 @@ class Admin::V1::ServicesController < ApplicationController
     create_image_stream_tag(stream_hash['metadata']['name'], params[:version], sr)
     set_image_tag(stream_hash['metadata'], params[:version])
     template = find_template(params[:service_name])
-    template = update_template(template, params)
+    template = update_template(template, params, request.headers['x-icdc-location'])
     source_hash = generate_service_template(template)
     install_service(source_hash)
   end
