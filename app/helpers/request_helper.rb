@@ -26,9 +26,12 @@ module RequestHelper
     url = os_creds['url']
     url = "#{url}/#{resource}?#{options}"
     @uri = URI.parse(url)
+    begin
     request = Net::HTTP::Get.new(@uri)
     request["Authorization"] = "Bearer #{os_creds['token']}"
-
+    rescue => err
+     raise "#{err}___#{resource}__#{url}"
+    end
     do_request(request)
   end
 

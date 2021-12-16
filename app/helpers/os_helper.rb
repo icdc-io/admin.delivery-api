@@ -7,7 +7,7 @@ module OsHelper
   end
 
   def installed_service_version(data)
-    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreams/#{data["name"]}")["spec"]["tags"].select{ |d| d["name"] == "latest"}.first["from"]["name"]
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{generate_namespace(data["name"])}/imagestreams/#{data["name"]}")["spec"]["tags"].select{ |d| d["name"] == "latest"}.first["from"]["name"]
   end
 
   def installed_release_version(data)
@@ -200,6 +200,10 @@ module OsHelper
   end
 
   private
+  def generate_namespace(service_name)
+    "icdc-#{service_name}"
+  end
+
   def create_namespace_body
     {
       "apiVersion": "project.openshift.io/v1",
