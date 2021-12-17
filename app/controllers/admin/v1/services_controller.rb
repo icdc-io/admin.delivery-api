@@ -26,7 +26,7 @@ class Admin::V1::ServicesController < ApplicationController
     is = image_stream_by_service(params[:service_name])
     property = 'install' unless is
     property = 'upgrade' if is
-    render json: {property:property, image_stream:is} #image_stream_by_service(params[:service_name])
+    render json: {property:property, image_stream:is.dig('metadata','name')} 
   end
 
   def overview

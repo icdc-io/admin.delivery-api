@@ -89,7 +89,7 @@ module SystemServices
     downgraded = all - installed
   end
 
-  def check_status(location, service_name, option)
+  def check_status(location, service_name, option, delete_persistent_data)
     case option
     when 'check'
       check_service_access(location, service_name)
@@ -98,7 +98,7 @@ module SystemServices
     when 'install'
       check_installed_status(location, service_name)
     when 'delete'
-      check_deleted_status(service_name)
+      check_deleted_status(service_name,delete_persistent_data)
     end
   end
 

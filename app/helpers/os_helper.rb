@@ -62,17 +62,20 @@ module OsHelper
     delete_namespace if delete_persistent_data
   end
 
-   def check_deletedstatus(service_name, delete_persistent_data)
-    check_image_stream(service_name)
-    check_os_service(service_name)
-    check_deployment_config(service_name)
-    check_deployment(service_name)
-    check_route(service_name)
-    check_secret(service_name)
-    check_service_account(service_name)
-    check_config_map(service_name)
-    check_pvc(service_name) if delete_persistent_data
-    check_namespace if delete_persistent_data
+   def check_deleted_status(service_name, delete_persistent_data)
+    return_codes = []
+    return_codes << check_image_stream(service_name)
+    return_codes << check_os_service(service_name)
+    return_codes << check_deployment_config(service_name)
+    return_codes << check_deployment(service_name)
+    return_codes << check_route(service_name)
+    return_codes << check_secret(service_name)
+    return_codes << check_service_account(service_name)
+    return_codes << check_config_map(service_name)
+    return_codes << check_pvc(service_name) if delete_persistent_data
+    return_codes << check_namespace if delete_persistent_data
+    return true if return_codes.uniq.count > 1
+    return true
   end
 
   def create_service(source)
@@ -164,7 +167,8 @@ module OsHelper
   end
 
   def check_image_stream(service_name)
-    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreams/#{service_name}")
+    is_name = image_stream_by_service(service_name).dig('metadata', 'name')
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreams/#{is_name}")
   end
 
   def check_os_service(service_name)

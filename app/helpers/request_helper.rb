@@ -2,7 +2,6 @@ require 'net/http'
 require 'uri'
 require 'openssl'
 
-
 module RequestHelper
   include Authenticator
 
@@ -10,6 +9,7 @@ module RequestHelper
     url = service_creds('github_api')[:url]
     url = "#{url}/#{resource}?#{options}"
     uri = URI.parse(url)
+
     get_request_api_github(uri)
   end
 
@@ -23,15 +23,11 @@ module RequestHelper
 
   def get_request_api_os(resource, options = nil)
     os_creds = service_creds('os_api')
-    url = os_creds['url']
+    url = os_creds[:url]
     url = "#{url}/#{resource}?#{options}"
     @uri = URI.parse(url)
-    begin
     request = Net::HTTP::Get.new(@uri)
-    request["Authorization"] = "Bearer #{os_creds['token']}"
-    rescue => err
-     raise "#{err}___#{resource}__#{url}"
-    end
+    request["Authorization"] = "Bearer #{os_creds[:token]}"
     do_request(request)
   end
 
