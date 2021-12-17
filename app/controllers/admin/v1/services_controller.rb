@@ -53,10 +53,4 @@ class Admin::V1::ServicesController < ApplicationController
   def delete
     delete_service(params[:service_name], params[:delete_persistent_data]) 
   end
-
-private
-  def service_params
-    raise "Missing option version" unless params[:version]
-    params.require('version').permit!
-  end
 end
