@@ -19,30 +19,43 @@ module SystemServices
   end
 
   def release_version(stream_hash) 
-    installed_service_version = installed_service_version(stream_hash["metadata"])
-    available_release_version = image_stream_version(stream_hash)
-    available_service_version = service_version_of_release(stream_hash, available_release_version)
-    return {
-       available_service_version:available_service_version,
-       service_version_change_log:changelog_version(stream_hash)
-    } if available_service_version != installed_service_version
+    begin
+      installed_service_version = installed_service_version(stream_hash["metadata"])
+      available_release_version = image_stream_version(stream_hash)
+      available_service_version = service_version_of_release(stream_hash, available_release_version)
+      return {
+        available_service_version:available_service_version,
+        service_version_change_log:changelog_version(stream_hash)
+      } if available_service_version != installed_service_version
+    rescue
+    end
+    {}
   end
 
   def installed_version(stream_hash)
-    {
-       installed_service_version:installed_service_version(stream_hash["metadata"]), #tbd :add info from OS
-       service_version_change_log:changelog_version(stream_hash)
-    }
+    begin 
+      {
+         installed_service_version:installed_service_version(stream_hash["metadata"]), #tbd :add info from OS
+         service_version_change_log:changelog_version(stream_hash)
+      }
+    rescue
+      {}
+    end
+    
   end
 
   def updated_version(stream_hash)
-    installed_service_version = installed_service_version(stream_hash["metadata"])
-    installed_release_version = installed_release_version(stream_hash["metadata"])
-    available_service_version = service_version_of_release(stream_hash, installed_release_version)
-    return {
-       available_service_version:available_service_version,
-       service_version_change_log:changelog_version(stream_hash)
-    } if available_service_version != installed_service_version
+    begin
+      installed_service_version = installed_service_version(stream_hash["metadata"])
+      installed_release_version = installed_release_version(stream_hash["metadata"])
+      available_service_version = service_version_of_release(stream_hash, installed_release_version)
+      return {
+        available_service_version:available_service_version,
+        service_version_change_log:changelog_version(stream_hash)
+      } if available_service_version != installed_service_version
+    rescue
+    end
+    {}
   end
 
   def update_service_version(stream_hash)

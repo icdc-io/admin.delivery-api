@@ -22,4 +22,10 @@ class Admin::V1::VersionsController < ApplicationController
     stream_hash = image_stream_by_service(params[:service_name])
     render json: service_versions(stream_hash)
   end
+
+private
+  def version_params
+    raise "Missing option version" unless params[:version]
+    params.require('version').permit!
+  end 
 end
