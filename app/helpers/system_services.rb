@@ -113,8 +113,6 @@ module SystemServices
   def check_istalled_status(location,service_name)
     stream_hash = image_stream_by_service(params[:service_name])
     revision = get_deployment_config_revision(stream_hash["metadata"]["name"])
-    status = get_replication_controller_status(stream_hash["metadata"]["name"], revision)
-    check_service_access(location, service_name) if status.eql?('Complete')
-    # what shold be done ic case of 'Running'?
+    get_replication_controller_status(stream_hash["metadata"]["name"], revision)
   end
 end
