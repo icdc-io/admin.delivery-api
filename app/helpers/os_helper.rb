@@ -19,7 +19,7 @@ module OsHelper
   end
 
   def set_image_tag(data, version)
-    put_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreamtags/#{data["name"]}:latest", set_latest_image_stream_tag(data["name"], version))["tag"]["from"]["name"]
+    put_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreamtags/#{data["name"]}:latest", set_latest_image_stream_tag(data["name"], version)).dig('tag','from','name')
   end
 
   def create_image_stream_tag(name, version, repository)

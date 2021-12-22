@@ -1,6 +1,9 @@
 class Admin::V1::ReleasesController < ApplicationController
   include SystemServices
   before_action :login
+  before_action -> {
+   $NAMESPACE = "icdc-#{params[:service_name]}"
+  }
 
   def show
     stream_hash = image_stream_by_service(params[:service_name])

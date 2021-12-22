@@ -59,7 +59,7 @@ module SystemServices
   end
 
   def update_service_version(stream_hash)
-    up = updated_version(stream_hash)&[:available_service_version]
+    up = updated_version(stream_hash).dig('available_service_version')
     return "No available version for update." unless up
     sr = service_repository(stream_hash, up)
     create_image_stream_tag(stream_hash["metadata"]["name"], up, sr)

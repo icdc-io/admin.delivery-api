@@ -1,6 +1,9 @@
 class Admin::V1::VersionsController < ApplicationController
   include SystemServices
   before_action :login
+  before_action -> {
+   $NAMESPACE = "icdc-#{params[:service_name]}"
+  }
   
   def show
     stream_hash = image_stream_by_service(params[:service_name])
@@ -10,7 +13,7 @@ class Admin::V1::VersionsController < ApplicationController
   def create
     stream_hash = image_stream_by_service(params[:service_name])
     stream_hash[:version] = params[:version]
-    render json:  downgrade_service_version(stream_hash)["tag"]["from"]["name"]
+    render json:  downgrade_service_version(stream_hash)
   end
 
   def downgrade_versions
