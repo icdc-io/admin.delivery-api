@@ -84,21 +84,22 @@ module RequestHelper
   end
 
   def check_service_accessibility(url)
-    uri = URI.parse(url)
-    response = Net::HTTP.get_response(uri)
-    full_data = JSON.parse(response.body)
+    @uri = URI.parse(url)
+    request = Net::HTTP::Head.new(@uri)
+    request_result = do_request(request)
 
-    return 'OK' if response.code[0] == '2'
-    return 'FAIL'
+    return 'FAIL' if request_result.class.eql?('String')
+    return 'OK' if request_result 
   end
 
   def do_request(request)
     response = Net::HTTP.start(@uri.hostname, @uri.port, req_options) do |http|
       http.request(request)
     end
-    data = JSON.parse(response.body)
-    return data if response.code[0] == '2'
+    return JSON.parse(response.body) if response.code[0] == '2'
     return response.code
+  rescue 
+    return '400'    
   end
 
   def req_options

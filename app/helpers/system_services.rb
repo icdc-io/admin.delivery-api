@@ -29,7 +29,7 @@ module SystemServices
       } if available_service_version != installed_service_version
     rescue
     end
-    {}
+    return "No version for release"
   end
 
   def installed_version(stream_hash)
@@ -55,7 +55,7 @@ module SystemServices
       } if available_service_version != installed_service_version
     rescue
     end
-    {}
+    return "No version for updating"
   end
 
   def update_service_version(stream_hash)
@@ -87,6 +87,7 @@ module SystemServices
     installed << installed_service_version(stream_hash["metadata"])
     all = all_installed_version(stream_hash["metadata"])
     downgraded = all - installed
+    return "No version to downgrade" if downgraded.empty?
   end
 
   def check_status(location, service_name, option, delete_persistent_data)
@@ -99,15 +100,16 @@ module SystemServices
       check_installed_status(location, service_name)
     when 'delete'
       check_deleted_status(service_name,delete_persistent_data)
+    else
+      "No option for check status"
     end
   end
 
   def check_service_access(location, service_name)
     template_hash = find_template(params[:service_name])
     domain = get_application_domain(template_hash, location)
-    url = service_name + '.' + domain
-    test = check_service_accessibility("https://www.onliner.by/")
-    raise "#{test}_______#{url}"
+    url = 'http://' + service_name + '.' + domain
+    test = check_service_accessibility(url)
   end
 
   def check_istalled_status(location,service_name)
