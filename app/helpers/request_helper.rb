@@ -6,16 +6,15 @@ module RequestHelper
   include Authenticator
 
   def request_api_github(resource, options = nil)
-    url = service_creds('github_api')[:url]
+    url = service_creds('github_api')["url"]
     url = "#{url}/#{resource}?#{options}"
     uri = URI.parse(url)
-
     get_request_api_github(uri)
   end
 
   def request_raw_github(resource, options = nil)
-    url = service_creds('github')[:url]
-    url = "#{url}/#{resource}?#{options}"
+    url = service_creds('github')["url"]
+    url = "https://raw.githubusercontent.com/#{url}/#{resource}?#{options}"
     uri = URI.parse(url)
 
     get_request_api_github(uri)
@@ -23,23 +22,23 @@ module RequestHelper
 
   def get_request_api_os(resource, options = nil)
     os_creds = service_creds('os_api')
-    url = os_creds[:url]
+    url = os_creds["url"]
     url = "#{url}/#{resource}?#{options}"
     @uri = URI.parse(url)
     request = Net::HTTP::Get.new(@uri)
-    request["Authorization"] = "Bearer #{os_creds[:token]}"
+    request["Authorization"] = "Bearer #{os_creds["token"]}"
     do_request(request)
   end
 
   def post_request_api_os(resource, body)
     os_creds = service_creds("os_api")
-    url = os_creds[:url]
+    url = os_creds["url"]
     url = "#{url}/#{resource}"
     @uri = URI.parse(url)
 
     request = Net::HTTP::Post.new(@uri)
     request.content_type = "application/json"
-    request["Authorization"] = "Bearer #{os_creds[:token]}"
+    request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
     request.body = body
     
@@ -48,13 +47,13 @@ module RequestHelper
 
   def put_request_api_os(resource, body)
     os_creds = service_creds("os_api")
-    url = os_creds[:url]
+    url = os_creds["url"]
     url = "#{url}/#{resource}"
     @uri = URI.parse(url)
 
     request = Net::HTTP::Put.new(@uri)
     request.content_type = "application/json"
-    request["Authorization"] = "Bearer #{os_creds[:token]}"
+    request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
     request.body = body
 
@@ -63,13 +62,13 @@ module RequestHelper
 
   def delete_request_api_os(resource)
     os_creds = service_creds("os_api")
-    url = os_creds[:url]
+    url = os_creds["url"]
     url = "#{url}/#{resource}"
     @uri = URI.parse(url)
 
     request = Net::HTTP::Delete.new(@uri)
     request.content_type = "application/json"
-    request["Authorization"] = "Bearer #{os_creds[:token]}"
+    request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
 
     do_request(request)
