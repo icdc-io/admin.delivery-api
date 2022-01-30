@@ -1,4 +1,4 @@
-class Admin::V1::VersionsController < ApplicationController
+class Api::V1::VersionsController < ApplicationController
   include SystemServices
   before_action :login
   before_action -> {

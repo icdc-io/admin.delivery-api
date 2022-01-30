@@ -1,6 +1,6 @@
 require 'yaml'
 
-class Admin::V1::ServicesController < ApplicationController
+class Api::V1::ServicesController < ApplicationController
   include SystemServices 
   before_action :login
   before_action -> {
@@ -24,9 +24,9 @@ class Admin::V1::ServicesController < ApplicationController
 
   def show
     is = image_stream_by_service(params[:service_name])
-    property = 'install' unless is
-    property = 'upgrade' if is
-    render json: {property:property, image_stream:is.dig('metadata','name')} 
+    service_installed = 'false' unless is
+    service_installed = 'true' if is
+    render json: {service_name:is.dig('metadata','name'), service_installed: service_installed} 
   end
 
   def overview
@@ -45,7 +45,7 @@ class Admin::V1::ServicesController < ApplicationController
     create_image_stream_tag(stream_hash['metadata']['name'], params[:version], sr)
     set_image_tag(stream_hash['metadata'], params[:version])
     template = find_template(params[:service_name])
-    template = update_template(template, params, request.headers['x-icdc-location'])
+    template = update_template(template, params,  ENV["LOCATION_NAME"])
     source_hash = generate_service_template(template)
     install_service(source_hash)
   end
