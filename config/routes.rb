@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  namespace :admin do
+  namespace :api do
     namespace :v1 do
       # services
       get '/services', to: 'services#index'

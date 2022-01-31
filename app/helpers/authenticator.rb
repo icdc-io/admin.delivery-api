@@ -1,5 +1,5 @@
 module Authenticator
-  def config
+  def config_file
     require 'yaml'
     config_template = ERB.new File.new(File.join(Rails.root, "config/icdc_credentials.yml")).read
     YAML.load config_template.result(binding)
@@ -8,11 +8,11 @@ module Authenticator
   end
 
   def service_creds(service)
-    config.dig("environment", ENV["RAILS_ENV"], service.downcase)
+    config_file.dig("environment", ENV["RAILS_ENV"], service.downcase)
   end
 
   def basic_token(service)
-    creds = config.dig("environment", ENV["RAILS_ENV"], service.downcase)
+    creds = config_file.dig("environment", ENV["RAILS_ENV"], service.downcase)
     creds["token"] ? creds["token"] : Base64.encode64("#{creds["username"]}:#{creds["password"]}").strip!
   end
 end

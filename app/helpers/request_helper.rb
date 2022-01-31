@@ -13,8 +13,10 @@ module RequestHelper
   end
 
   def request_raw_github(resource, options = nil)
-    url = service_creds('github')["url"]
-    url = "https://raw.githubusercontent.com/#{url}/#{resource}?#{options}"
+    account = service_creds('github')["account"] || 'icdc-io'
+    repo = service_creds('github')["repo"] || 'services'
+    ref = service_creds('github')["ref"] || 'main'
+    url = "https://raw.githubusercontent.com/#{account}/#{repo}/#{ref}/#{resource}?#{options}"
     uri = URI.parse(url)
 
     get_request_api_github(uri)
@@ -77,7 +79,6 @@ module RequestHelper
   def get_request_api_github(uri)
     response = Net::HTTP.get_response(uri)
     full_data = JSON.parse(response.body)
-    
     return full_data if response.code[0] == '2'
     return response.code
   end
@@ -95,10 +96,10 @@ module RequestHelper
     response = Net::HTTP.start(@uri.hostname, @uri.port, req_options) do |http|
       http.request(request)
     end
-    return JSON.parse(response.body) if response.code[0] == '2'
+    return JSON.parse(response.body) if (response.code[0] == '2') || (response.code[0] == '3')
     return response.code
   rescue 
-    return '400'    
+    return '400'
   end
 
   def req_options
@@ -107,4 +108,5 @@ module RequestHelper
       verify_mode: OpenSSL::SSL::VERIFY_NONE,
     }
   end
+
 end

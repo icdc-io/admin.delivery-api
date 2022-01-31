@@ -41,7 +41,7 @@ module GithubHelper
       metadata = request_raw_github(path_to_template)
       return path_to_template.split('/').last if metadata.dig('metadata','name').eql?(service_name)
     end
-    return nil
+    raise "Template name wasn`t find"# return nil
   end
 
   def find_template(service_name)
@@ -54,7 +54,7 @@ module GithubHelper
   end
 
   def service_versions(data)
-    data["spec"]["tags"].select { |d| d.dig("from", "kind") == "DockerImage" }.first.dig("name")
+    data["spec"]["tags"].select { |d| d.dig("from", "kind") == "DockerImage" }.collect{ |x| x.dig("name")}
   end
 
   def update_template(template, params, location)

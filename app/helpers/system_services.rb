@@ -112,6 +112,8 @@ module SystemServices
     test = check_service_accessibility(url)
   end
 
+  
+
   def check_istalled_status(location,service_name)
     stream_hash = image_stream_by_service(params[:service_name])
     revision = get_deployment_config_revision(stream_hash["metadata"]["name"])

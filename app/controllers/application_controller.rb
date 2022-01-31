@@ -17,8 +17,7 @@ class ApplicationController < ActionController::API
     end
     unless validate
       $token = nil
-      msg = "You're doesn't have access to #{$current_account} with role admin"
-      $current_account = nil
+      msg = "You don`t have permissions to admit this section."
       forbidden(msg)
     end
   end
@@ -30,7 +29,6 @@ class ApplicationController < ActionController::API
   end
 
   def validate
-    return false if $current_account.nil?
     $token.dig("groups").include?("#{$current_account}.admin")
   rescue => e
     false

@@ -203,6 +203,11 @@ module OsHelper
     get_request_api_os("api/v1/namespaces/#{$NAMESPACE}/persistentvolumeclaims/#{service_name}")
   end
 
+  def get_location
+    return ENV["LOCATION_NAME"] unless ENV["LOCATION_NAME"].nil?
+    return service_creds('os_api')["url"].split(".")[-3]
+  end
+
   private
   def generate_namespace(service_name)
     "icdc-#{service_name}"
