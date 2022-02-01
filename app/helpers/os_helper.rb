@@ -1,3 +1,5 @@
+require 'json'
+
 module OsHelper
   include RequestHelper
 
@@ -23,7 +25,7 @@ module OsHelper
   end
 
   def create_image_stream_tag(name, version, repository)
-    put_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreamtags", image_stream_tag_body(name, version, repository))
+    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{$NAMESPACE}/imagestreamtags", image_stream_tag_body(name, version, repository))
   end
 
   def generate_service_template(template)
