@@ -1,10 +1,11 @@
 require 'yaml'
 
 class Api::V1::ServicesController < ApplicationController
-  include SystemServices 
+  include SystemServices
+  include GithubHelper
   before_action :login
   before_action -> {
-   $NAMESPACE = "icdc-#{params[:service_name]}"
+    $NAMESPACE = get_namespace(params[:service_name])
   }
 
   def index

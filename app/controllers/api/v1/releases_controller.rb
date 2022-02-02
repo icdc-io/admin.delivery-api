@@ -1,8 +1,9 @@
 class Api::V1::ReleasesController < ApplicationController
   include SystemServices
+  include GithubHelper
   before_action :login
   before_action -> {
-   $NAMESPACE = "icdc-#{params[:service_name]}"
+    $NAMESPACE = get_namespace(params[:service_name])
   }
 
   def show

@@ -63,4 +63,11 @@ module GithubHelper
     template['parameters'].select { |tm| tm.dig('name').eql?('APPLICATION_DOMAIN') }.first['value'] = get_application_domain(template, location)
     template
   end
+
+  def get_namespace(service_name)
+    metadata = find_template(service_name)
+    metadata["parameters"].each do |parametr|
+      return parametr["value"] unless parametr["name"]!="NAMESPACE"
+    end
+  end
 end
