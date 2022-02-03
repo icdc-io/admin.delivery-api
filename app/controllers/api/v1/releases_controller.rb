@@ -1,6 +1,5 @@
 class Api::V1::ReleasesController < ApplicationController
   include SystemServices
-  include GithubHelper
   before_action :login
 
   def show

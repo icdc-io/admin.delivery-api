@@ -26,7 +26,7 @@ module OsHelper
   end
 
   def create_image_stream_tag(name, version, repository)
-    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_namespace(data["name"])}/imagestreamtags", image_stream_tag_body(name, version, repository))
+    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_namespace(name)}/imagestreamtags", image_stream_tag_body(name, version, repository))
   end
 
   def generate_service_template(template, service_name)
@@ -154,7 +154,7 @@ module OsHelper
   end
 
   def delete_service_account(service_name)
-    delete_request_api_os("api/v1/namespaces/#{get_namespace(service_name)E}/serviceaccounts/#{service_name}")
+    delete_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/serviceaccounts/#{service_name}")
   end
 
   def delete_config_map(service_name)
@@ -195,7 +195,7 @@ module OsHelper
   end
 
   def check_service_account(service_name)
-    get_request_api_os("api/v1/namespaces/#{get_namespace(service_name)/serviceaccounts/#{service_name}")
+    get_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/serviceaccounts/#{service_name}")
   end
 
   def check_config_map(service_name)
