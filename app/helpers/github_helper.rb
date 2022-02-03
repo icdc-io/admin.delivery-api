@@ -65,9 +65,6 @@ module GithubHelper
   end
 
   def get_namespace(service_name)
-    metadata = find_template(service_name)
-    metadata["parameters"].each do |parametr|
-      return parametr["value"] unless parametr["name"]!="NAMESPACE"
-    end
+    return find_template(service_name)["parameters"].select { |param| param.dig('name').eql?('NAMESPACE') }.first['value']
   end
 end
