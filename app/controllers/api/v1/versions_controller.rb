@@ -2,9 +2,6 @@ class Api::V1::VersionsController < ApplicationController
   include SystemServices
   include GithubHelper
   before_action :login
-  before_action -> {
-    $NAMESPACE = get_namespace(params[:service_name])
-  }
   
   def show
     stream_hash = image_stream_by_service(params[:service_name])
