@@ -1,11 +1,8 @@
 require 'yaml'
 
 class Api::V1::ServicesController < ApplicationController
-  include SystemServices 
+  include SystemServices
   before_action :login
-  before_action -> {
-   $NAMESPACE = "icdc-#{params[:service_name]}"
-  }
 
   def index
     image_names = list_images
@@ -39,15 +36,15 @@ class Api::V1::ServicesController < ApplicationController
   end
 
   def create
-    create_namespace
+    create_namespace(params[:service_name])
     stream_hash = image_stream_by_service(params[:service_name])
     sr = service_repository(stream_hash, params[:version])
     create_image_stream_tag(stream_hash['metadata']['name'], params[:version], sr)
     set_image_tag(stream_hash['metadata'], params[:version])
     template = find_template(params[:service_name])
     template = update_template(template, params, get_location)
-    source_hash = generate_service_template(template)
-    install_service(source_hash)
+    source_hash = generate_service_template(template, params[:service_name])
+    install_service(source_hash, params[:service_name])
   end
 
   def delete
