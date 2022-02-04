@@ -78,7 +78,7 @@ module OsHelper
     return_codes << check_pvc(service_name) if delete_persistent_data
     return_codes << check_namespace(service_name) if delete_persistent_data
     return true if return_codes.uniq.count > 1
-    return true
+    return false
   end
 
   def create_service(source, service_name)
