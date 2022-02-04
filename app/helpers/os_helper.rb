@@ -30,7 +30,7 @@ module OsHelper
   end
 
   def generate_service_template(template, service_name)
-    post_request_api_os("apis/template.openshift.io/v1/namespaces/#{get_namespace(service_name)])}/processedtemplates", template.to_json)
+    post_request_api_os("apis/template.openshift.io/v1/namespaces/#{get_namespace(service_name)}/processedtemplates", template.to_json)
   end
 
   def get_deployment_config_revision(image_stream_name)
