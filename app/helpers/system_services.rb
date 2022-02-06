@@ -8,6 +8,7 @@ module SystemServices
       name = image_stream_name(is)
       return is if name.eql?(service_name)
     end
+    return nil
   end
 
   def image_stream_name(stream_hash)
