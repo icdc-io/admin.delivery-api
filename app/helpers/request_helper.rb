@@ -26,8 +26,8 @@ module RequestHelper
     os_creds = service_creds('os_api')
     url = os_creds["url"]
     url = "#{url}/#{resource}?#{options}"
-    @uri = URI.parse(url)
-    request = Net::HTTP::Get.new(@uri)
+    uri = URI.parse(url)
+    request = Net::HTTP::Get.new(uri)
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     do_request(request)
   end
@@ -36,9 +36,9 @@ module RequestHelper
     os_creds = service_creds("os_api")
     url = os_creds["url"]
     url = "#{url}/#{resource}"
-    @uri = URI.parse(url)
+    uri = URI.parse(url)
 
-    request = Net::HTTP::Post.new(@uri)
+    request = Net::HTTP::Post.new(uri)
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
@@ -51,9 +51,9 @@ module RequestHelper
     os_creds = service_creds("os_api")
     url = os_creds["url"]
     url = "#{url}/#{resource}"
-    @uri = URI.parse(url)
+    uri = URI.parse(url)
 
-    request = Net::HTTP::Put.new(@uri)
+    request = Net::HTTP::Put.new(uri)
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
@@ -66,9 +66,9 @@ module RequestHelper
     os_creds = service_creds("os_api")
     url = os_creds["url"]
     url = "#{url}/#{resource}"
-    @uri = URI.parse(url)
+    uri = URI.parse(url)
 
-    request = Net::HTTP::Delete.new(@uri)
+    request = Net::HTTP::Delete.new(uri)
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
@@ -84,16 +84,16 @@ module RequestHelper
   end
 
   def check_service_accessibility(url)
-    @uri = URI.parse(url)
-    request = Net::HTTP::Head.new(@uri)
-    request_result = do_request(request)
+    uri = URI.parse(url)
+    request = Net::HTTP::Head.new(uri)
+    request_result = do_request(request, uri)
 
     return 'FAIL' if request_result.class.eql?('String')
     return 'OK' if request_result 
   end
 
-  def do_request(request)
-    response = Net::HTTP.start(@uri.hostname, @uri.port, req_options) do |http|
+  def do_request(request, uri)
+    response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
       http.request(request)
     end
     return JSON.parse(response.body) if (response.code[0] == '2') || (response.code[0] == '3')
@@ -104,7 +104,7 @@ module RequestHelper
 
   def req_options
     {
-      use_ssl: @uri.scheme == "https",
+      use_ssl: uri.scheme == "https",
       verify_mode: OpenSSL::SSL::VERIFY_NONE,
     }
   end
