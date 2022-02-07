@@ -29,7 +29,7 @@ module RequestHelper
     uri = URI.parse(url)
     request = Net::HTTP::Get.new(uri)
     request["Authorization"] = "Bearer #{os_creds["token"]}"
-    do_request(request)
+    do_request(request, uri)
   end
 
   def post_request_api_os(resource, body)
@@ -44,7 +44,7 @@ module RequestHelper
     request["Accept"] = "application/json"
     request.body = body
     
-    do_request(request)
+    do_request(request, uri)
   end
 
   def put_request_api_os(resource, body)
@@ -59,7 +59,7 @@ module RequestHelper
     request["Accept"] = "application/json"
     request.body = body
 
-    do_request(request)
+    do_request(request, uri)
   end
 
   def delete_request_api_os(resource)
@@ -73,7 +73,7 @@ module RequestHelper
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
 
-    do_request(request)
+    do_request(request, uri)
   end 
 
   def get_request_api_github(uri)
