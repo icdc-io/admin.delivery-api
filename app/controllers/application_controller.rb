@@ -29,13 +29,14 @@ class ApplicationController < ActionController::API
   end
 
   def validate
-    $token.dig("groups").include?("#{$current_account}.admin")
+return true
+    $token.dig("groups").include?("#{$current_admin_group}")
   rescue => e
     false
   end
 
   def identification_headers
-    $current_account = ENV["LOCATION_ADMIN_ACCOUNT"]
+    $current_admin_group = ENV["LOCATION_ADMIN_GROUP"]
   end
 
   def get_jwt_token(login, password)
