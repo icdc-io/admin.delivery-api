@@ -5,8 +5,9 @@ module OsHelper
   include GithubHelper 
 
   def login
-    os_creds = service_creds("os_api")
-    system("oc login #{os_creds['url']} --token=#{os_creds['token']} --insecure-skip-tls-verify")
+    #os_creds = service_creds("os_api")
+    #raise "#{os_creds}"
+    #system("oc login #{os_creds['url']} --token=#{os_creds['token']} --insecure-skip-tls-verify")
   end
 
   def installed_service_version(data)
