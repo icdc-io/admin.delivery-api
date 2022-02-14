@@ -6,7 +6,6 @@ module OsHelper
 
   def login
     #os_creds = service_creds("os_api")
-    #raise "#{os_creds}"
     #system("oc login #{os_creds['url']} --token=#{os_creds['token']} --insecure-skip-tls-verify")
   end
 
