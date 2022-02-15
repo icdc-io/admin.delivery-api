@@ -2,6 +2,14 @@ require 'rails_helper'
 
 jwt_token_admin = "Bearer REDACTED"
 
+
+# describe 'Endpoint GET /services', type: :request do
+#   it 'returns a 200 OK status' do
+#     get "/api/v1/services"
+#     expect(response).to have_https_status(:ok)
+#   end
+# end
+
 # describe 'Endpoint GET /services', type: :request do
 #   it 'returns a 200 OK status' do
 #     get "/api/v1/services",
@@ -11,21 +19,14 @@ jwt_token_admin = "Bearer REDACTED"
 #   end
 # end
 
-# describe 'Endpoint GET /services', type: :request do
-#   it 'returns a 200 OK status' do
-#     get "/api/v1/services"
-#     expect(response).to have_https_status(:ok)
+# describe 'Endpoint GET /services/:service_name', type: :request do
+#   it 'returns service name and service_installed if service exists' do   
+#     get "/api/v1/services/httpd",
+#       :params => nil,
+#       :headers => {:Authorization => jwt_token_admin}
+#     expect("#{JSON.parse(response.body)}").to eq "httpd"
 #   end
 # end
-
-describe 'Endpoint GET /services/:service_name', type: :request do
-  it 'returns service name and service_installed if service exists' do   
-    get "/api/v1/services/httpd",
-      :params => nil,
-      :headers => {:Authorization => jwt_token_admin}
-    expect("#{JSON.parse(response.body)}").to eq "httpd"
-  end
-end
 
 #   it 'returns \'500\' if service doesn\'t exist' do
 #     get "/api/v1/services/dsagdhasgdgahds"
@@ -47,9 +48,14 @@ end
 #   end
 # end
 
-# describe 'Endpoint POST /services/:service_name', type: :request do
-#   it 
-# end
+describe 'Endpoint POST /services/:service_name', type: :request do
+  it 'should create service if it exists' do
+    post "/api/v1/services/httpd",
+      :params => {:version => "1.0.0"}, 
+      :headers => {:Authorization => jwt_token_admin}
+    expect(response).to eq "httpd"
+  end
+end
 
 # describe 'Endpoint PUT /services/:service_name', type: :request do
 #   it 'upgrade service' do

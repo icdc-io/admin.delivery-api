@@ -52,7 +52,6 @@ module RequestHelper
     url = os_creds["url"]
     url = "#{url}/#{resource}"
     uri = URI.parse(url)
-
     request = Net::HTTP::Put.new(uri)
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
@@ -92,13 +91,13 @@ module RequestHelper
     return 'OK' if request_result 
   end
 
-  def do_request(request, uri)
+  def do_request(request, uri)   
     response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
       http.request(request)
     end
     return JSON.parse(response.body) if (response.code[0] == '2') || (response.code[0] == '3')
     return response.code
-  rescue 
+  rescue
     return '400'
   end
 
