@@ -36,6 +36,7 @@ module RequestHelper
     os_creds = service_creds("os_api")
     url = os_creds["url"]
     url = "#{url}/#{resource}"
+
     uri = URI.parse(url)
 
     request = Net::HTTP::Post.new(uri)
@@ -43,7 +44,6 @@ module RequestHelper
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
     request.body = body
-    
     do_request(request, uri)
   end
 
@@ -77,10 +77,10 @@ module RequestHelper
   end 
 
   def get_request_api_github(uri)
-    response = Net::HTTP.get_response(uri)
-    full_data = JSON.parse(response.body)
-    return full_data if response.code[0] == '2'
-    return response.code
+    request = Net::HTTP::Get.new(uri)
+    request.basic_auth(ENV['GITHUB_USER_NAME'], ENV['GITHUB_USER_TOKEN'])
+
+    do_request(request, uri)
   end
 
   def check_service_accessibility(url)
@@ -93,16 +93,16 @@ module RequestHelper
   end
 
   def do_request(request, uri)
-    response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+    response = Net::HTTP.start(uri.hostname, uri.port, req_options(uri)) do |http|
       http.request(request)
     end
     return JSON.parse(response.body) if (response.code[0] == '2') || (response.code[0] == '3')
     return response.code
-  rescue 
+  rescue
     return '400'
   end
 
-  def req_options
+  def req_options(uri)
     {
       use_ssl: uri.scheme == "https",
       verify_mode: OpenSSL::SSL::VERIFY_NONE,
