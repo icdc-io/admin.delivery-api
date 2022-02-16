@@ -2,6 +2,14 @@ require 'rails_helper'
 
 jwt_token_admin = "Bearer REDACTED"
 
+# describe 'Any endpoint if user is not authorized', type: :request do
+#   it 'returns 401 if user is not authorized' do   
+#     get "/api/v1/services/httpd"
+#     parsed_body = JSON.parse(response.body)
+#     expect("#{parsed_body["status"]}").to eq "401"  
+#     expect("#{parsed_body["data"]["message"]}").to eq "You're not authorized."
+#   end
+# end
 
 # describe 'Endpoint GET /services', type: :request do
 #   it 'returns a 200 OK status' do
@@ -24,27 +32,23 @@ jwt_token_admin = "Bearer REDACTED"
 #     get "/api/v1/services/httpd",
 #       :params => nil,
 #       :headers => {:Authorization => jwt_token_admin}
-#     expect("#{JSON.parse(response.body)}").to eq "httpd"
+#     expect("#{JSON.parse(response.body)["service_name"]}").to eq "httpd"
 #   end
-# end
-
 #   it 'returns \'500\' if service doesn\'t exist' do
-#     get "/api/v1/services/dsagdhasgdgahds"
+#     get "/api/v1/services/dsagdhasgdgahds",
+#     :params => nil,
+#     :headers => {:Authorization => jwt_token_admin}
 #     expect(response).to have_https_status(500)
 #   end
 # end
 
 # describe 'Endpoint GET /services/:service_name/overview', type: :request do
 #   it 'returns service description if service exists' do
-#     get "/api/v1/services/httpd/overview"
+#     get "/api/v1/services/httpd/overview",
+#     :params => nil,
+#     :headers => {:Authorization => jwt_token_admin}
 #     parsed_body=JSON.parse(response.body)
-#     expect("#{parsed_body[service_name]} #{parsed_body[description]} #{parsed_body[documentation_url]}").to eq "Apache HTTP Server An example Apache HTTP Server (httpd) application that serves static content. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/httpd-ex/blob/master/README.md. https://github.com/sclorg/httpd-ex"
-#   end
-
-#   it 'returns \'500\' if service doesn\'t exist' do
-#     get "/api/v1/services/dsagdhasgdgahds/overview"
-#     parsed_body=JSON.parse(response.body)
-#     expect(response).to have_https_status(500)
+#     expect("#{parsed_body["service_name"]} #{parsed_body["description"]} #{parsed_body["documentation_url"]}").to eq "Apache HTTP Server An example Apache HTTP Server (httpd) application that serves static content. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/httpd-ex/blob/master/README.md. https://github.com/sclorg/httpd-ex"
 #   end
 # end
 
