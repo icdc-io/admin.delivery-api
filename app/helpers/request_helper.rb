@@ -7,6 +7,7 @@ module RequestHelper
 
   def request_api_github(resource, options = nil)
     url = service_creds('github_api')["url"]
+
     url = "#{url}/#{resource}?#{options}"
     uri = URI.parse(url)
     get_request_api_github(uri)
@@ -16,6 +17,7 @@ module RequestHelper
     account = service_creds('github')["account"] || 'icdc-io'
     repo = service_creds('github')["repo"] || 'services'
     ref = service_creds('github')["ref"] || 'main'
+
     url = "https://raw.githubusercontent.com/#{account}/#{repo}/#{ref}/#{resource}?#{options}"
     uri = URI.parse(url)
 

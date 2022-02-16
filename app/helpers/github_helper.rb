@@ -6,7 +6,7 @@ module GithubHelper
   end
 
   def list_images
-    image_streams  = request_api_github('repos/dmemekh/icdc/contents/imagestreams','ref=main').collect { |is| is['path'] }
+    image_streams  = request_api_github("repos/#{get_repository}/contents/imagestreams","ref=#{get_ref}").collect { |is| is['path'] }
     im_str_names = []
     image_streams.map do |stream|
       stream = stream.split('/').last
@@ -18,7 +18,7 @@ module GithubHelper
   end
 
   def changelog_names
-    request_api_github('repos/dmemekh/icdc/contents/changelogs','ref=main').collect { |cl| cl['download_url'] }.map{ |cl| cl.split('/').last }
+    request_api_github("repos/#{get_repository}/contents/changelogs","ref=#{get_ref}").collect { |cl| cl['download_url'] }.map{ |cl| cl.split('/').last }
   end
 
   def changelog_version(stream_hash)
@@ -32,12 +32,12 @@ module GithubHelper
   end
 
   def available_templates
-    request_api_github("repos/dmemekh/icdc/contents/templates","ref=main").collect{ |templ| templ['name'] }
+    request_api_github("repos/#{get_repository}/contents/templates","ref=#{get_ref}").collect{ |templ| templ['name'] }
   end
 
   def find_template_name(service_name)
     available_templates.each do |template_name|
-       path_to_template = request_api_github("repos/dmemekh/icdc/contents/templates/#{template_name}","ref=main")['download_url'].split('/').last(2).join('/')
+       path_to_template = request_api_github("repos/#{get_repository}/contents/templates/#{template_name}","ref=#{get_ref}")['download_url'].split('/').last(2).join('/')
       metadata = request_raw_github(path_to_template)
       return path_to_template.split('/').last if metadata.dig('metadata','name').eql?(service_name)
     end
@@ -66,5 +66,15 @@ module GithubHelper
 
   def get_namespace(service_name)
     return find_template(service_name)["parameters"].select { |param| param.dig('name').eql?('NAMESPACE') }.first['value']
+  end
+
+  def get_repository
+    account = service_creds('github')["account"] || 'icdc-io'
+    repo = service_creds('github')["repo"] || 'services'
+    account + '/' + repo
+  end
+
+  def get_ref
+    service_creds('github')["ref"] || 'main'   
   end
 end
