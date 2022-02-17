@@ -7,6 +7,7 @@ module RequestHelper
 
   def request_api_github(resource, options = nil)
     url = service_creds('github_api')["url"]
+
     url = "#{url}/#{resource}?#{options}"
     uri = URI.parse(url)
     get_request_api_github(uri)
@@ -16,6 +17,7 @@ module RequestHelper
     account = service_creds('github')["account"] || 'icdc-io'
     repo = service_creds('github')["repo"] || 'services'
     ref = service_creds('github')["ref"] || 'main'
+
     url = "https://raw.githubusercontent.com/#{account}/#{repo}/#{ref}/#{resource}?#{options}"
     uri = URI.parse(url)
 
@@ -36,6 +38,7 @@ module RequestHelper
     os_creds = service_creds("os_api")
     url = os_creds["url"]
     url = "#{url}/#{resource}"
+
     uri = URI.parse(url)
 
     request = Net::HTTP::Post.new(uri)
@@ -43,7 +46,6 @@ module RequestHelper
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
     request.body = body
-    
     do_request(request, uri)
   end
 
@@ -52,6 +54,7 @@ module RequestHelper
     url = os_creds["url"]
     url = "#{url}/#{resource}"
     uri = URI.parse(url)
+
     request = Net::HTTP::Put.new(uri)
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
@@ -65,19 +68,19 @@ module RequestHelper
     os_creds = service_creds("os_api")
     url = os_creds["url"]
     url = "#{url}/#{resource}"
-
     uri = URI.parse(url)
 
     request = Net::HTTP::Delete.new(uri)
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
+
     do_request(request, uri)
   end 
 
   def get_request_api_github(uri)
     request = Net::HTTP::Get.new(uri)
-    request.basic_auth(ENV['GITHUB_USER_NAME'], ENV['GITHUB_USER_TOKEN'])
+    request.basic_auth("nininia", "REDACTED") # request.basic_auth(ENV['GITHUB_USER_NAME'], ENV['GITHUB_USER_TOKEN'])
 
     do_request(request, uri)
   end
@@ -91,7 +94,7 @@ module RequestHelper
     return 'OK' if request_result 
   end
 
-  def do_request(request, uri)   
+  def do_request(request, uri)
     response = Net::HTTP.start(uri.hostname, uri.port, req_options(uri)) do |http|
       http.request(request)
     end

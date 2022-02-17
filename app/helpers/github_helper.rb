@@ -41,6 +41,7 @@ module GithubHelper
       metadata = request_raw_github(path_to_template)
       return path_to_template.split('/').last if metadata.dig('metadata','name').eql?(service_name)
     end
+    raise "Template name wasn`t find"# return nil
   end
 
   def find_template(service_name)
