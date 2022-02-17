@@ -52,22 +52,26 @@ jwt_token_admin = "Bearer REDACTED"
 #   end
 # end
 
-describe 'Endpoint POST /services/:service_name', type: :request do
-  it 'should create service if it exists' do
-    post "/api/v1/services/httpd",
-      :params => {:version => "1.0.0"}, 
-      :headers => {:Authorization => jwt_token_admin}
-    expect(response).to eq "httpd"
-  end
-end
-
-# describe 'Endpoint PUT /services/:service_name', type: :request do
-#   it 'upgrade service' do
+# describe 'Endpoint POST /services/:service_name', type: :request do
+#   it 'should create service if it exists' do
+#     post "/api/v1/services/httpd",
+#       :params => {:version => "1.0.0"}, 
+#       :headers => {:Authorization => jwt_token_admin}
+#     expect(response.status).to eq 204
 #   end
 # end
 
-# describe 'Endpoint DELETE /services/:service_name', type: :request do
-#   it 'delete service' do
+## Необходим сервис с возможностью установки нескольких версий
+## describe 'Endpoint PUT /services/:service_name', type: :request do
+##   it 'should upgrade service if it is installed and have version for upgrade' do
+##   end
+## end
 
+# describe 'Endpoint DELETE /services/:service_name', type: :request do
+#   it 'delete service if it is installed' do
+#     delete "/api/v1/services/httpd",
+#       :params => nil, 
+#       :headers => {:Authorization => jwt_token_admin}
+#     expect(response.status).to eq 204
 #   end
 # end
