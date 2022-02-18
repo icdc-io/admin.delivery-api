@@ -1,6 +1,17 @@
 require 'rails_helper'
 
-jwt_token_admin = "Bearer REDACTED"
+jwt_token_admin = "Bearer " + JWT.encode({
+  "external": {
+    "accounts": {
+      "test": {
+        "roles": ["admin"]
+      },
+    }
+  },
+  "groups": ["test.admin"],
+  "user_id": "test_admin@test.com",
+  "name": "Test Admin"
+}, nil)
 
 describe 'Any endpoint if user is not authorized', type: :request do
   it 'returns 401 if user is not authorized' do   
