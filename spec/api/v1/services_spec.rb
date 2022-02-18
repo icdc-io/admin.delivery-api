@@ -43,10 +43,9 @@ end
 describe 'Endpoint GET /services/:service_name/overview', type: :request do
   it 'returns service description if service exists' do
     get "/api/v1/services/httpd/overview",
-    :params => nil,
-    :headers => {:Authorization => jwt_token_admin}
-    parsed_body=JSON.parse(response.body)
-    expect("#{parsed_body["service_name"]} #{parsed_body["description"]} #{parsed_body["documentation_url"]}").to eq "Apache HTTP Server An example Apache HTTP Server (httpd) application that serves static content. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/httpd-ex/blob/master/README.md. https://github.com/sclorg/httpd-ex"
+      :params => nil,
+      :headers => {:Authorization => jwt_token_admin}
+    expect(response.status).to eq 200
   end
 end
 

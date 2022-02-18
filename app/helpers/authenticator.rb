@@ -8,8 +8,7 @@ module Authenticator
   end
 
   def service_creds(service)
-
-    config_file.dig("environment", "development", service.downcase) # ENV["RAILS_ENV"]
+    config_file.dig("environment", ENV["RAILS_ENV"], service.downcase)
   end
 
   def basic_token(service)
