@@ -29,7 +29,6 @@ class ApplicationController < ActionController::API
   end
 
   def validate
-    return true
     $token.dig("groups").include?("#{$current_admin_group}")
   rescue => e
     false
