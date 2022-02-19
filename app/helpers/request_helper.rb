@@ -80,7 +80,7 @@ module RequestHelper
 
   def get_request_api_github(uri)
     request = Net::HTTP::Get.new(uri)
-    request.basic_auth("nininia", "REDACTED") # request.basic_auth(ENV['GITHUB_USER_NAME'], ENV['GITHUB_USER_TOKEN'])
+    request.basic_auth(ENV['GITHUB_USER_NAME'], ENV['GITHUB_USER_TOKEN'])
 
     do_request(request, uri)
   end
