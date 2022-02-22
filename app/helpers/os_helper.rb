@@ -92,7 +92,7 @@ module OsHelper
   end
 
   def create_deployment(source, service_name)
-    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    body = source["objects"].select { |s| s["kind"].eql?("Deployment") }.first
     post_request_api_os("/apis/apps/v1/namespaces/#{get_namespace(service_name)}/deployments", body.to_json) if body
   end
 
@@ -102,22 +102,22 @@ module OsHelper
   end
 
   def create_secret(source, service_name)
-    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    body = source["objects"].select { |s| s["kind"].eql?("Secret") }.first
     post_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/secrets", body.to_json) if body
   end
 
   def create_service_account(source, service_name)
-    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    body = source["objects"].select { |s| s["kind"].eql?("ServiceAccount") }.first
     post_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/serviceaccounts", body.to_json) if body
   end
 
   def create_configmap(source, service_name)
-    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    body = source["objects"].select { |s| s["kind"].eql?("ConfigMap") }.first
     post_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/configmaps", body.to_json) if body
   end
 
   def create_pvc(source, service_name)
-    body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+    body = source["objects"].select { |s| s["kind"].eql?("PersistentVolumeClaim") }.first
     post_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/persistentvolumeclaims", body.to_json) if body
   end
 
