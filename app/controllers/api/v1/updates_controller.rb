@@ -3,12 +3,15 @@ class Api::V1::UpdatesController < ApplicationController
   before_action :login
 
   def show
-    stream_hash = image_stream_by_service(params[:service_name])
     render json: updated_version(stream_hash)
   end
 
   def create
-    stream_hash = image_stream_by_service(params[:service_name])
     render json: update_service_version(stream_hash)
+  end
+
+private
+  def stream_hash
+    image_stream_by_service(params[:service_name])
   end
 end

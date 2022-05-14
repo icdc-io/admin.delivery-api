@@ -1,23 +1,7 @@
 module SystemServices
   include OsHelper
   include GithubHelper
-
-  def image_stream_by_service(service_name)
-    list_images.each do |image|
-      is = image_stream(image) 
-      name = image_stream_name(is)
-      return is if name.eql?(service_name)
-    end
-    return nil
-  end
-
-  def image_stream_name(stream_hash)
-    stream_hash.dig('metadata','name')
-  end
-
-  def image_stream_version(stream_hash)
-    stream_hash.dig('spec','tags').select { |tag| tag['name'] == 'latest' }.first.dig('from','name')
-  end
+  include ImageHelper
 
   def release_version(stream_hash) 
     begin
@@ -89,6 +73,22 @@ module SystemServices
     all = all_installed_version(stream_hash["metadata"])
     downgraded = all - installed
     return "No version to downgrade" if downgraded.empty?
+  end
+
+  def service_status(service_name)
+    img_streams = image_streams(service_name)
+    service_installed = false unless img_streams
+    service_installed = true if img_streams
+    service_status = 'deleting' if (File.exist?('Hello.rb'))
+    revision = get_deployment_config_revision(service_name)
+    replication_status = get_replication_controller_status(service_name, revision)
+    service_status = 'none' if replication_status.empty?
+    service_status = 'running' if replication_status.eql?("Running")
+    service_status = 'complete' if replication_status.eql?("Complete")
+# If service_installed is false and Get PersistentVolumeClaim is false, set service_deleted to true, else set service_deleted to false
+    service_deleted = true unless service_installed ^ get_pvc(service_name)
+    service_deleted = false if service_installed ^ get_pvc(service_name)
+    render json: {service_name: service_name, service_installed: service_installed, service_status: service_status}
   end
 
   def check_status(location, service_name, option, delete_persistent_data)

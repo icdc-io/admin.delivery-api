@@ -33,12 +33,16 @@ module OsHelper
     post_request_api_os("apis/template.openshift.io/v1/namespaces/#{get_namespace(service_name)}/processedtemplates", template.to_json)
   end
 
-  def get_deployment_config_revision(image_stream_name)
-    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_namespace(image_stream_name)}/deploymentconfigs/#{image_stream_name}").dig('status', 'latestVersion')
+  def get_deployment_config_revision(service_name)
+    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_namespace(service_name)}/deploymentconfigs/#{service_name}-api").dig('status', 'latestVersion')
   end
 
-  def get_replication_controller_status(image_stream_name, revision)
-    get_request_api_os("api/v1/namespaces/#{get_namespace(image_stream_name)}/replicationcontrollers/#{image_stream_name}-#{revision}").dig('metadata','annotations','openshift.io/deployment.phase')
+  def get_replication_controller_status(service_name, revision)
+    get_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/replicationcontrollers/#{service_name}-api-#{revision}").dig('metadata','annotations','openshift.io/deployment.phase')
+  end
+
+  def get_image_streams(service_name)
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_namespace(service_name)}/imagestreams/#{service_name}")
   end
 
   def install_service(source, service_name)
@@ -118,6 +122,7 @@ module OsHelper
 
   def create_pvc(source, service_name)
     body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
+raise "#{get_namespace(service_name)}___ #{body.to_json}____#{post_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/persistentvolumeclaims", body.to_json)}"
     post_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/persistentvolumeclaims", body.to_json) if body
   end
 
@@ -204,6 +209,10 @@ module OsHelper
 
   def check_pvc(service_name)
     get_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/persistentvolumeclaims/#{service_name}")
+  end
+
+  def get_pvc(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name}")
   end
 
   def get_location
