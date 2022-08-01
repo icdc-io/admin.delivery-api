@@ -42,19 +42,15 @@ class ApplicationController < ActionController::API
   def get_jwt_token(login, password)
     response = RestClient::Request.execute(
       :method => :post,
-      :url => "#{config_n[:url]}/auth/realms/#{config_n[:realm]}/protocol/openid-connect/token",
+      :url => "#{ENV['KEYCLOAK_URL']}/auth/realms/#{ENV['KEYCLOAK_REALM']}/protocol/openid-connect/token",
       :payload => {
         :username   => login,
         :password   => password,
         :grant_type => "password",
-        :client_id  => config_n[:client_id]
+        :client_id  => ENV['KEYCLOAK_CLIENT_ID']
       }
     )
     JSON.parse(response.body)["access_token"]
-  end
-
-  def config_n
-    YAML.load_file(File.join(Rails.root, "config", "keycloak.yml"))
   end
 
   def decoded_token(token = nil)
@@ -67,7 +63,7 @@ class ApplicationController < ActionController::API
   def public_key
     response = RestClient::Request.execute(
       :method => :get,
-      :url => "#{config_n[:url]}/auth/realms/#{config_n[:realm]}/protocol/openid-connect/certs"
+      :url => "#{ENV['KEYCLOAK_URL']}/auth/realms/#{ENV['KEYCLOAK_REALM']}/protocol/openid-connect/certs"
     )
     JSON.parse(response.body)["keys"].map do |key|
       next unless key["alg"] == "RS256"

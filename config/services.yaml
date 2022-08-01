@@ -1,0 +1,7 @@
+---
+$=compute:
+  - compute
+$=extra:
+  - artifactory
+$=test:
+  - web-server

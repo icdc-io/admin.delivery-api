@@ -6,7 +6,7 @@ module RequestHelper
   include Authenticator
 
   def request_api_github(resource, options = nil)
-    account = service_creds('github')["account"] || 'icdc-io'
+    account = service_creds('github')["account"] || "#{ENV["GITHUB_REPO"]}-io"
     repo = service_creds('github')["repo"] || 'services'
     url = service_creds('github_api')["url"]
     ref = service_creds('github')["ref"] || 'main'
@@ -16,7 +16,7 @@ module RequestHelper
   end
 
   def request_raw_github(resource, options = nil)
-    account = service_creds('github')["account"] || 'icdc-io'
+    account = service_creds('github')["account"] || "#{ENV["GITHUB_REPO"]}-io"
     repo = service_creds('github')["repo"] || 'services'
     ref = service_creds('github')["ref"] || 'main'
 
