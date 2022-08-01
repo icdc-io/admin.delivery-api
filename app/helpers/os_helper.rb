@@ -31,7 +31,7 @@ module OsHelper
   end
 
   def get_namespace_services
-    ['compute', "icdc-extra", "icdc-test"].map do |namespace|#hardcode namespaces
+    ['#{ENV["PLATFORM_NAME"]}-compute', "#{ENV["PLATFORM_NAME"]}-extra", "#{ENV["PLATFORM_NAME"]}-cloud"].map do |namespace|
       get_all_services(namespace)
     end.flatten
   end
@@ -196,7 +196,7 @@ module OsHelper
       when "VERSION"
         param["value"] = version
       when "APPLICATION_DOMAIN"
-        param["value"] = "#{ENV["LOCATION_NAME"]}.#{ENV["PLATFORM_NAME"]}"
+        param["value"] = "#{ENV["LOCATION_NAME"]}.#{ENV["PLATFORM_NAME"]}.io"
       else
         param["value"] = applications[param["name"].split("_")[1..].join.downcase]
       end

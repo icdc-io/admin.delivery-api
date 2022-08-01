@@ -91,7 +91,7 @@ module GithubHelper
   end
 
   def get_repository
-    account = service_creds('github')["account"] || 'icdc-io'
+    account = service_creds('github')["account"] || "#{ENV["GITHUB_REPO"]}-io"
     repo = service_creds('github')["repo"] || 'services'
     account + '/' + repo
   end
