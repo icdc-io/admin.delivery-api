@@ -3,8 +3,9 @@ class Api::V1::VersionsController < ApplicationController
   before_action :login
   
   def show
-    stream_hash = image_stream_by_service(params[:service_name])
-    render json: installed_service_version(stream_hash["metadata"]) 
+    service = get_installed_service(params[:service_name])
+    version = service["spec"]["tags"].collect{|tag| tag["from"]["name"] if tag["name"] == "latest"}
+    success(version.compact.first)
   end
 
   def create
@@ -14,12 +15,24 @@ class Api::V1::VersionsController < ApplicationController
   end
 
   def get_downgrade_versions
-    stream_hash = image_stream_by_service(params[:service_name])
-    render json: choose_version_to_downgrade(stream_hash)
+    service = get_installed_service(params[:service_name])
+    versions = service["spec"]["tags"].collect{|tag| tag["name"] if tag["name"] != "latest"}
+    success(versions.compact)
   end
 
   def get_installed_github_versions
-    stream_hash = image_stream_by_service(params[:service_name])
-    render json: service_versions(stream_hash)
+    versions = []
+    stream_hash = get_services_changelogs(params[:service_name]).map do |service|
+      service if service["download_url"].split("/").last.include?("release")
+    end.compact!
+    stream_hash.map do |sh|
+      uri = URI.parse(sh["download_url"])
+      request = Net::HTTP::Get.new(uri)
+      response = do_request(request, uri)
+      next if response == '400'
+      puts response.inspect
+      versions << response.map{|resp| resp if resp["tag"] == "latest"}
+    end
+    render json: versions.flatten.compact
   end
 end

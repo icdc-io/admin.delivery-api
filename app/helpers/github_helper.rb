@@ -6,7 +6,7 @@ module GithubHelper
   end
 
   def list_images
-    image_streams  = request_api_github("repos/#{get_repository}/contents/imagestreams","ref=#{get_ref}").collect { |is| is['path'] }
+    image_streams  = request_raw_github("repos/#{get_repository}/contents/imagestreams","ref=#{get_ref}").collect { |is| is['path'] }
     im_str_names = []
     image_streams.map do |stream|
       stream = stream.split('/').last
@@ -37,7 +37,7 @@ module GithubHelper
 
   def find_template_name(service_name)
     available_templates.each do |template_name|
-       path_to_template = request_api_github("repos/#{get_repository}/contents/templates/#{template_name}","ref=#{get_ref}")['download_url'].split('/').last(2).join('/')
+      path_to_template = request_api_github("repos/#{get_repository}/contents/templates/#{template_name}","ref=#{get_ref}")['download_url'].split('/').last(2).join('/')
       metadata = request_raw_github(path_to_template)
       return path_to_template.split('/').last if metadata.dig('metadata','name').eql?(service_name)
     end
@@ -64,8 +64,30 @@ module GithubHelper
     template
   end
 
-  def get_namespace(service_name)
-    return find_template(service_name)["parameters"].select { |param| param.dig('name').eql?('NAMESPACE') }.first['value']
+
+
+  def get_service_latest_version(service_name)
+    request_raw_github("changelogs/#{service_name}/latest.json")["version"]
+  end
+
+  def get_service_latest(service_name)
+    request_raw_github("changelogs/#{service_name}/latest.json")
+  end
+
+  def get_required_latest_version(service_name, version)
+    request_raw_github("changelogs/#{service_name}/release-#{version.split(".")[...-1].join(".")}.json").first
+  end
+
+  def get_required_version(service_name, version)
+    request_raw_github("changelogs/#{service_name}/release-#{version.split(".")[...-1].join(".")}.json")
+  end
+
+  def get_services_changelogs(service_name)
+    request_api_github("changelogs/#{service_name}")
+  end
+
+  def get_service_repository(service_name)
+    request_raw_github("templates/#{service_name}.json").compact
   end
 
   def get_repository

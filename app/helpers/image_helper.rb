@@ -22,4 +22,13 @@ module ImageHelper
     get_image_streams(service_name)
   end
 
+  def get_latest_image_version(service_name)
+    image_streams(service_name)["spec"]["tags"].each do |image|
+      if image["name"] == "latest"
+        return image["from"]["name"]
+      end
+    end
+    return nil
+  end
+
 end

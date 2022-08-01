@@ -6,9 +6,11 @@ module RequestHelper
   include Authenticator
 
   def request_api_github(resource, options = nil)
+    account = service_creds('github')["account"] || 'icdc-io'
+    repo = service_creds('github')["repo"] || 'services'
     url = service_creds('github_api')["url"]
-
-    url = "#{url}/#{resource}?#{options}"
+    ref = service_creds('github')["ref"] || 'main'
+    url = "#{url}/repos/#{account}/#{repo}/contents/#{resource}?ref=#{ref}"
     uri = URI.parse(url)
     get_request_api_github(uri)
   end
@@ -27,7 +29,8 @@ module RequestHelper
   def get_request_api_os(resource, options = nil)
     os_creds = service_creds('os_api')
     url = os_creds["url"]
-    url = "#{url}/#{resource}?#{options}"
+    url = "#{url}/#{resource}"
+    url += "?#{options}" if options
     uri = URI.parse(url)
     request = Net::HTTP::Get.new(uri)
     request["Authorization"] = "Bearer #{os_creds["token"]}"
@@ -81,7 +84,6 @@ module RequestHelper
   def get_request_api_github(uri)
     request = Net::HTTP::Get.new(uri)
     request.basic_auth(ENV['GITHUB_USER_NAME'], ENV['GITHUB_USER_TOKEN'])
-
     do_request(request, uri)
   end
 
