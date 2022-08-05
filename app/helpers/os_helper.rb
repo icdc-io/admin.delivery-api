@@ -6,6 +6,7 @@ module OsHelper
 
   include OsCreateHelper
   include OsDeleteHelper
+  include OsCommonHelper
 
   def login
     os_creds = service_creds("os_api")
@@ -31,7 +32,7 @@ module OsHelper
   end
 
   def get_namespace_services
-    ['#{ENV["PLATFORM_NAME"]}-compute', "#{ENV["PLATFORM_NAME"]}-extra", "#{ENV["PLATFORM_NAME"]}-cloud"].map do |namespace|
+    service_config.keys.map do |namespace|
       get_all_services(namespace)
     end.flatten
   end
