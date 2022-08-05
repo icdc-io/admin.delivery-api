@@ -42,12 +42,12 @@ class ApplicationController < ActionController::API
   def get_jwt_token(login, password)
     response = RestClient::Request.execute(
       :method => :post,
-      :url => "#{ENV['KEYCLOAK_URL']}/auth/realms/#{ENV['KEYCLOAK_REALM']}/protocol/openid-connect/token",
+      :url => "#{ENV['SSO_URL']}/auth/realms/#{ENV['SSO_REALM']}/protocol/openid-connect/token",
       :payload => {
         :username   => login,
         :password   => password,
         :grant_type => "password",
-        :client_id  => ENV['KEYCLOAK_CLIENT_ID']
+        :client_id  => ENV['SSO_CLIENT_ID']
       }
     )
     JSON.parse(response.body)["access_token"]
@@ -63,7 +63,7 @@ class ApplicationController < ActionController::API
   def public_key
     response = RestClient::Request.execute(
       :method => :get,
-      :url => "#{ENV['KEYCLOAK_URL']}/auth/realms/#{ENV['KEYCLOAK_REALM']}/protocol/openid-connect/certs"
+      :url => "#{ENV['SSO_URL']}/auth/realms/#{ENV['SSO_REALM']}/protocol/openid-connect/certs"
     )
     JSON.parse(response.body)["keys"].map do |key|
       next unless key["alg"] == "RS256"
