@@ -1,7 +1,7 @@
 ---
-$=compute:
+$-compute:
   - compute
-$=extra:
+$-extra:
   - artifactory
-$=test:
+$-test:
   - web-server

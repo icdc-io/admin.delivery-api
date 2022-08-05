@@ -3,8 +3,9 @@ require "yaml"
 module OsCommonHelper
   def service_config
     file = YAML.load_file("config/services.yaml")
-    JSON.parse(file.to_json.to_s.gsub("$=","#{ENV["PLATFORM_NAME"]}-"))
+    JSON.parse(file.to_json.to_s.gsub("$","#{ENV["PLATFORM_NAME"]}"))
   end
+
 
   def get_os_namespace(service_name)
     sc = service_config
