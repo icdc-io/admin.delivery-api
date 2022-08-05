@@ -6,7 +6,6 @@ module OsCommonHelper
     JSON.parse(file.to_json.to_s.gsub("$","#{ENV["PLATFORM_NAME"]}"))
   end
 
-  def prepare_name
 
   def get_os_namespace(service_name)
     sc = service_config
