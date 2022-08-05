@@ -155,7 +155,7 @@ module OsHelper
   end
 
   def get_location
-    return ENV["LOCATION_NAME"] unless ENV["LOCATION_NAME"].nil?
+    return ENV["OPENSHIFT_API"].split(".")[-3] unless ENV["OPENSHIFT_API"].split(".")[-3].nil?
     return service_creds('os_api')["url"].split(".")[-3]
   end
 
@@ -196,7 +196,7 @@ module OsHelper
       when "VERSION"
         param["value"] = version
       when "APPLICATION_DOMAIN"
-        param["value"] = "#{ENV["LOCATION_NAME"]}.#{ENV["PLATFORM_NAME"]}.io"
+        param["value"] = "#{ENV["OPENSHIFT_API"].split(".")[-3]}.#{ENV["PLATFORM_NAME"]}.io"
       else
         param["value"] = applications[param["name"].split("_")[1..].join.downcase]
       end
