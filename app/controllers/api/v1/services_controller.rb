@@ -34,7 +34,7 @@ class Api::V1::ServicesController < ApplicationController
     return abort("No such namespace") unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
     service_name = params[:service_name]
     latest_version_from_git = get_service_latest_version(service_name)
-    required_service = get_required_latest_version(service_name, latest_version_from_git)
+    required_service = get_required_latest_versions(service_name, latest_version_from_git).select{|service| service["version"] == params["version"]}.first
     installed_version = get_installed_service(service_name)
     installed_version = installed_version["spec"]["tags"].map{ |tag| tag["from"]["name"] if tag["name"] == "latest"} unless installed_version == "404"
     if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
@@ -83,7 +83,7 @@ class Api::V1::ServicesController < ApplicationController
       tag["from"]["name"] if tag["name"] == "latest"
     end.compact.first unless latest_release == "404"
     if latest_release_version != latest_release
-      metadata = get_required_latest_version(service_name, latest_release_version)
+      metadata =  get_required_latest_versions(service_name, latest_version_from_git).select{|service| service["version"] == params["version"]}.first
       latest_release = latest_release["spec"]["tags"].map{ |tag| tag["from"]["name"] if tag["name"] == "latest"} unless latest_release == "404"
       if latest_release.split(".").join.to_i <  metadata["version"].split(".").join.to_i
         update_service(service_name, metadata)

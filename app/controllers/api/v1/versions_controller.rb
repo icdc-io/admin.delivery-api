@@ -33,6 +33,6 @@ class Api::V1::VersionsController < ApplicationController
       puts response.inspect
       versions << response.map{|resp| resp if resp["tag"] == "latest"}
     end
-    render json: versions.flatten.compact
+    render json: versions.flatten.compact.sort_by { |hash| hash['version'] }
   end
 end

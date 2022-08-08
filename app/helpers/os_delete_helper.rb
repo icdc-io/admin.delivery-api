@@ -2,6 +2,7 @@ module OsDeleteHelper
   include OsCommonHelper
 
   def delete_os_namespace(service_name)
+    puts "---DELETE NAMESPACE---"
     delete_request_api_os("apis/project.openshift.io/v1/projects/#{get_os_namespace(service_name)}")
   end
   
