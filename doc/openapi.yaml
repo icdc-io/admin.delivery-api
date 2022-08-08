@@ -170,7 +170,7 @@ paths:
                             depricated: "* depricated1\r\n* depricated2"
                             known_issues: ""
                     
-  /services/{service_name}/serice_versions:
+  /services/{service_name}/service_versions:
     parameters:
       - in: path
         name: service_name
@@ -212,9 +212,22 @@ paths:
         schema:
           type: string
         required: true
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  example: 2.0.1
       tags:
         - 'Services'
       summary: Create service
+      
+      
       responses:
         '204':
           description: 'No content'
@@ -295,7 +308,7 @@ paths:
       responses:
         '204':
           description: 'No content'
-  /statuses:
+  /status:
     get:
       tags:
         - 'Services'

@@ -74,12 +74,16 @@ module GithubHelper
     request_raw_github("changelogs/#{service_name}/latest.json")
   end
 
-  def get_required_latest_version(service_name, version)
-    request_raw_github("changelogs/#{service_name}/release-#{version.split(".")[...-1].join(".")}.json").first
+  def get_required_latest_versions(service_name, version)
+    request_raw_github("changelogs/#{service_name}/release-#{version.split(".")[...-1].join(".")}.json")
   end
 
   def get_required_version(service_name, version)
     request_raw_github("changelogs/#{service_name}/release-#{version.split(".")[...-1].join(".")}.json")
+  end
+
+  def get_release(service_name)
+    request_raw_github("changelogs/#{service_name}/latest.json")["version"].split(".")[...-1].join(".")
   end
 
   def get_services_changelogs(service_name)
