@@ -33,10 +33,9 @@ class Api::V1::ServicesController < ApplicationController
   def create
     return abort("No such namespace") unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
     service_name = params[:service_name]
-    latest_version_from_git = get_service_latest_version(service_name)
-    required_service = get_required_latest_versions(service_name, latest_version_from_git).select{|service| service["version"] == params["version"]}.first
-    installed_version = get_installed_service(service_name)
-    installed_version = installed_version["spec"]["tags"].map{ |tag| tag["from"]["name"] if tag["name"] == "latest"} unless installed_version == "404"
+    required_service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
+    installed_version = get_latest_versions(service_name)
+    installed_version = installed_version.map{ |tag| tag if tag["version"] == "latest"} unless installed_version == "404"
     if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
       update_service(service_name, required_service)
     end
