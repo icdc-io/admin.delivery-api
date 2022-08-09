@@ -207,7 +207,7 @@ paths:
         schema:
           type: string
           example: true
-        required: true
+        optional: true
       tags:
         - 'Services'
       summary: Delete service

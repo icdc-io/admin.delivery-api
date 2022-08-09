@@ -78,8 +78,8 @@ module OsHelper
     deleted_check << delete_os_horizontal_pod_auto_scaler(service_name).to_s
     deleted_check << delete_os_job(service_name).to_s
     deleted_check << delete_os_cron_job(service_name).to_s
-    deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data
-    deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data
+    deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
+    # deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data
     return 204 unless deleted_check.include?("400")
   rescue => e
     puts "Something wrong #{e.message}"
