@@ -1,5 +1,6 @@
 class Api::V1::VersionsController < ApplicationController
   include SystemServices
+  include GithubHelper
   before_action :login
   
   def show
@@ -21,18 +22,7 @@ class Api::V1::VersionsController < ApplicationController
   end
 
   def get_installed_github_versions
-    versions = []
-    stream_hash = get_services_changelogs(params[:service_name]).map do |service|
-      service if service["download_url"].split("/").last.include?("release")
-    end.compact!
-    stream_hash.map do |sh|
-      uri = URI.parse(sh["download_url"])
-      request = Net::HTTP::Get.new(uri)
-      response = do_request(request, uri)
-      next if response == '400'
-      puts response.inspect
-      versions << response.map{|resp| resp if resp["tag"] == "latest"}
-    end
+    versions = get_latest_versions(params[:service_name])
     render json: versions.flatten.compact.sort_by { |hash| hash['version'] }.reverse
   end
 end
