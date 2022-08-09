@@ -7,7 +7,7 @@ class Api::V1::ReleasesController < ApplicationController
     latest_release = get_release(params[:service_name])
     if latest_release_version != latest_release
       metadata = request_raw_github("changelogs/#{params[:service_name]}/release-#{latest_release}.json")
-      return success(metadata.sort_by{|hash| hash["version"]})
+      return success(metadata.sort_by{|hash| hash["version"]}.reverse)
     end
     success("release is actual")
   end
