@@ -125,6 +125,16 @@ paths:
       tags:
        - 'Services'
       summary: Upgrade vesion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  example: 2.0.1
       responses:
         '200':
           description: 'Success'
