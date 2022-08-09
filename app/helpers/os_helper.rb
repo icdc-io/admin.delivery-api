@@ -178,7 +178,7 @@ module OsHelper
     applications = {}
     template = get_service_repository(service)
     required_service["applications"].map{|app| applications[app["name"]] = app["tag"]}
-    template = update_template_parametrs(template, applications, service, required_service["version"])
+    template = update_template_parametrs(template, applications, service, required_service["version"], get_os_namespace(service))
     generated_service_template = generate_service_template(template, service)
     generated_service_template["objects"].map do |obj|
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
@@ -188,14 +188,16 @@ module OsHelper
 
   private
 
-  def update_template_parametrs(template, applications, service, version)
-    white_list = ["VERSION", "APPLICATION_DOMAIN"]
+  def update_template_parametrs(template, applications, service, version, namespace)
+    white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE"]
     applications.keys.map{|a| white_list.append "TAG_#{a.upcase}"}
     template["parameters"].map do |param|
       next unless white_list.include?(param["name"])
       case param["name"]
       when "VERSION"
         param["value"] = version
+      when "NAMESPACE"
+        param["value"] = namespace
       when "APPLICATION_DOMAIN"
         param["value"] = "#{ENV["OPENSHIFT_API"].split(".")[-3]}.#{ENV["PLATFORM_NAME"]}.io"
       else
