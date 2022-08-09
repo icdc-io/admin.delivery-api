@@ -36,9 +36,9 @@ class Api::V1::ServicesController < ApplicationController
     required_service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
     installed_version = get_latest_versions(service_name)
     installed_version = installed_version.map{ |tag| tag if tag["version"] == "latest"} unless installed_version == "404"
-    if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
-      update_service(service_name, required_service)
-    end
+    # if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
+    #   update_service(service_name, required_service)
+    # end
     deploy_template(service_name, required_service)
   end
 
