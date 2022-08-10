@@ -6,7 +6,7 @@ Rails.application.routes.draw do
         post    '/services/:service_name/install',            to: 'services#create',                        constraints: { :service_name => /[0-z\.\-]+/ }
         delete  '/services/:service_name',                    to: 'services#delete',                        constraints: { :service_name => /[0-z\.\-]+/ }
         get     '/services/:service_name',                    to: 'services#overview',                      constraints: { :service_name => /[0-z\.\-]+/ }
-        put     '/services/:service_name/upgrade',            to: 'services#upgrade',                       constraints: { :service_name => /[0-z\.\-]+/ }
+        put     '/services/:service_name/release',            to: 'services#upgrade',                       constraints: { :service_name => /[0-z\.\-]+/ }
         put     '/services/:service_name/downgrade',          to: 'services#downgrade',                     constraints: { :service_name => /[0-z\.\-]+/ }
   
         # versions
