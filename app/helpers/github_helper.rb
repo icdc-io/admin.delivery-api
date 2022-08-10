@@ -99,7 +99,7 @@ module GithubHelper
   end
 
   def get_release(service_name)
-    request_raw_github("changelogs/#{service_name}/latest.json")["version"].split(".")[...-1].join(".")
+    request_raw_github("changelogs/#{service_name}/latest.json")["version"]
   end
 
   def get_services_changelogs(service_name)

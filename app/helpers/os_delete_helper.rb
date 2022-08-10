@@ -20,7 +20,6 @@ module OsDeleteHelper
     puts "---DELETE OS SERVICE---"
     services = get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services?labelSelector=service=#{service_name}")
     services["items"].each do |item|
-
         delete_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{item["metadata"]["name"]}")
     end
   end
@@ -37,7 +36,10 @@ module OsDeleteHelper
   
   def delete_os_deployment_config(service_name)
     puts "---DELETE DEPLOYMENT CONFIG---"
-    delete_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs?labelSelector=service=#{service_name}")
+    dcs = get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs?labelSelector=service=#{service_name}")
+    dcs["items"].each do |item|
+      delete_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{item["metadata"]["name"]}")
+    end
   end  
   
   def delete_os_deployment(service_name)

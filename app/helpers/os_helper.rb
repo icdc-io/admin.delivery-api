@@ -13,8 +13,8 @@ module OsHelper
     system("oc login #{os_creds['url']} --token=#{os_creds['token']} --insecure-skip-tls-verify")
   end
 
-  def installed_service_version(data)
-    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(data["name"])}/imagestreams/#{data["name"]}")["spec"]["tags"].select{ |d| d["name"] == "latest"}.first["from"]["name"]
+  def installed_service_version(service_name)
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")["spec"]["tags"].select{ |d| d["name"] == "latest"}.first["from"]["name"]
   end
 
   def installed_release_version(data)
