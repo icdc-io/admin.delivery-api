@@ -77,6 +77,8 @@ module RequestHelper
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
+    puts request.to_json
+    puts uri
 
     do_request(request, uri)
   end 
@@ -100,6 +102,7 @@ module RequestHelper
     response = Net::HTTP.start(uri.hostname, uri.port, req_options(uri)) do |http|
       http.request(request)
     end
+    puts response.body
     return JSON.parse(response.body) if (response.code[0] == '2') || (response.code[0] == '3')
     return response.code
   rescue
