@@ -18,7 +18,7 @@ class Api::V1::VersionsController < ApplicationController
   def get_downgrade_versions
     service = get_installed_service(params[:service_name])
     versions = service["spec"]["tags"].collect{|tag| tag["name"] if tag["name"] != "latest"}
-    success(versions.compact)
+    success(versions.compact.reverse)
   end
 
   def get_installed_github_versions

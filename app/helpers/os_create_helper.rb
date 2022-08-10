@@ -10,8 +10,6 @@ include OsCommonHelper
 
   def create_image_stream_service_tag(service)
     puts "---CREATE IMAGE STREAM SERVICE TAG---"
-    puts get_os_namespace(service["NAME"])
-    puts image_stream_service_tag_body(service)
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service["NAME"])}/imagestreamtags", image_stream_service_tag_body(service)) #uncomment
   end
 
