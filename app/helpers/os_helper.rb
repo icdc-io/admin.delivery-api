@@ -172,6 +172,7 @@ module OsHelper
                               service_name)
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
+    set_image_tag("", required_service["version"], service_name)
   end
 
   def deploy_template(service, required_service)
