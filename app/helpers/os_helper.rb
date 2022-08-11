@@ -238,7 +238,7 @@ module OsHelper
         },
         "importPolicy": {},
         "referencePolicy": {
-          "type": "Source"
+          "type": "Local"
         }
       },
       "lookupPolicy": {
