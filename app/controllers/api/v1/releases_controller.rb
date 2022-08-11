@@ -3,12 +3,10 @@ class Api::V1::ReleasesController < ApplicationController
   before_action :login
 
   def show
-    latest_release = get_release(params[:service_name])
+    latest_release = get_latest_version(params[:service_name])
     installed_version = installed_service_version(params[:service_name])
-    if installed_version != latest_release
-      metadata = request_raw_github("changelogs/#{params[:service_name]}/release-#{latest_release.split(".")[...-1].join(".")}.json")
-
-      return success(metadata.sort_by{|hash| hash["version"]}.reverse.first)
+    if installed_version != latest_release["version"]
+      return success(latest_release)
     end
     success("release is actual")
   end

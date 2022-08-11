@@ -64,34 +64,26 @@ class Api::V1::ServicesController < ApplicationController
     no_content
   end
 
-  def update
-    service_name = params[:service_name]
-    latest_release_version = get_service_latest_version(service_name)
-    latest_release = get_installed_service(service_name)["spec"]["tags"].map do |tag|
-      tag["from"]["name"] if tag["name"] == "latest"
-    end.compact.first unless latest_release == "404"
-    if latest_release_version != latest_release
-      metadata = request_raw_github("changelogs/#{params[:service_name]}/release-#{latest_release_version.split(".")[...-1].join(".")}.json").first
-      update_service(service_name, metadata)
-      success("Updated")
-    end
-    no_content
-  end
 
   def upgrade
+    #install
+    return abort("No such namespace") unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
     service_name = params[:service_name]
-    latest_release_version = get_service_latest_version(service_name)
-    latest_release = get_installed_service(service_name)
-    latest_release["spec"]["tags"].map do |tag|
-      tag["from"]["name"] if tag["name"] == "latest"
-    end.compact.first unless latest_release == "404"
-    if latest_release_version != latest_release
-      metadata =  get_required_latest_versions(service_name, latest_version_from_git).select{|service| service["version"] == params["version"]}.first
-      latest_release = latest_release["spec"]["tags"].map{ |tag| tag["from"]["name"] if tag["name"] == "latest"} unless latest_release == "404"
-      if latest_release.split(".").join.to_i <  metadata["version"].split(".").join.to_i
-        update_service(service_name, metadata)
-      end
-      deploy_template(service_name, metadata)
-    end
+    service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
+    required_services = service["required"]
+    installed_version = get_installed_service(service_name)
+    # required_services.keys.each do |required_service|
+    #   installed_version = get_installed_service(required_service)
+    #   next if installed_version == "404"
+    #   if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
+    #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
+    #   end
+    # end
+    deploy_template(service_name, service)
+
+    #update
+    service_name = params[:service_name]
+    update_service(service_name, service)
+    no_content
   end
 end
