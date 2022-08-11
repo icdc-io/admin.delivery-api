@@ -192,7 +192,7 @@ module OsHelper
     generated_service_template["objects"].map do |obj|
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
     end
-    rollout_deployment_config(service_name)
+    rollout_deployment_config(service)
   end
 
 
