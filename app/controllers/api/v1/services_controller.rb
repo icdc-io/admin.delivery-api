@@ -44,6 +44,7 @@ class Api::V1::ServicesController < ApplicationController
     #   end
     # end
     deploy_template(service_name, service)
+    update_service(service_name)
   end
 
   def delete
