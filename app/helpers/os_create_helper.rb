@@ -3,8 +3,6 @@ include OsCommonHelper
   
   def create_image_stream_tag(name, version, repository, service_name)
     puts "---CREATE IMAGE STREAM TAG---"
-    puts get_os_namespace(service_name)
-    puts image_stream_tag_body(name, version, repository)
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(name, version, repository)) #uncomment
   end
 
@@ -16,7 +14,6 @@ include OsCommonHelper
   def generate_service_template(template, service_name)
     puts "---GENERATE SERVICE TEMPLATE---"
     puts get_os_namespace(service_name)
-    # puts template["parameters"]
     post_request_api_os("apis/template.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/processedtemplates", template.to_json)
   end
 
