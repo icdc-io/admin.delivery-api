@@ -160,6 +160,13 @@ module OsHelper
     return service_creds('os_api')["url"].split(".")[-3]
   end
 
+  def rollout_deployment_config(service_name)
+    puts "---ROLLOUT DEPLOYMENT CONFIG---"
+    post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{service_name}/instantiate",
+      rollout_dc_template(service_name)
+    )
+  end
+
   def update_service(service_name, required_service)
     service_repository = get_service_repository(service_name)["parameters"].map{ |param| param["value"] if param["name"] == "SERVICE_REPOSITORY"}.compact.first
     applications = required_service["applications"].compact.map do |app|
@@ -173,6 +180,7 @@ module OsHelper
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
     set_image_tag(service_name, required_service["version"], service_name)
+    rollout_deployment_config(service_name)
   end
 
   def deploy_template(service, required_service)
@@ -184,6 +192,7 @@ module OsHelper
     generated_service_template["objects"].map do |obj|
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
     end
+    rollout_deployment_config(service_name)
   end
 
 
@@ -290,6 +299,16 @@ module OsHelper
       "lookupPolicy": {
         "local": false
       }
+    }.to_json
+  end
+
+  def rollout_dc_template(service_name)
+    {
+      "kind": "DeploymentRequest",
+      "apiVersion": "apps.openshift.io/v1",
+      "name": "#{service_name}",
+      "latest": true,
+      "force": true
     }.to_json
   end
 end
