@@ -85,6 +85,9 @@ module GithubHelper
     versions.compact.flatten
   end
 
+  def get_latest_version(service_name)
+    get_latest_versions(service_name).sort_by{|hash| hash["version"]}.reverse.first
+  end
 
   def get_service_latest(service_name)
     request_raw_github("changelogs/#{service_name}/latest.json")
@@ -96,10 +99,6 @@ module GithubHelper
 
   def get_required_version(service_name, version)
     request_raw_github("changelogs/#{service_name}/release-#{version.split(".")[...-1].join(".")}.json")
-  end
-
-  def get_release(service_name)
-    request_raw_github("changelogs/#{service_name}/latest.json")["version"]
   end
 
   def get_services_changelogs(service_name)
