@@ -33,13 +33,17 @@ class Api::V1::ServicesController < ApplicationController
   def create
     return abort("No such namespace") unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
     service_name = params[:service_name]
-    required_service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
+    service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
+    required_services = service["required"]
     installed_version = get_installed_service(service_name)
-    installed_version = installed_version["spec"]["tags"].select{ |tag| tag if tag["name"] == "latest"}.first["from"]["name"] unless installed_version == "404"
-    if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
-      update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
-    end
-    deploy_template(service_name, required_service)
+    # required_services.keys.each do |required_service|
+    #   installed_version = get_installed_service(required_service)
+    #   next if installed_version == "404"
+    #   if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
+    #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
+    #   end
+    # end
+    deploy_template(service_name, service)
   end
 
   def delete

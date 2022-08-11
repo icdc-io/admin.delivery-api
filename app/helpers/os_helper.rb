@@ -27,8 +27,8 @@ module OsHelper
 
   def set_image_tag(data, version, service_name)
     puts "---SET IMAGE TAG---"
-    put_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags/#{service_name}:latest",
-                                                                set_latest_image_stream_tag(service_name, version)).dig('tag','from','name')
+    put_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags/#{data}:latest",
+                                                                set_latest_image_stream_tag(data, version)).dig('tag','from','name')
   end
 
   def get_namespace_services
@@ -162,7 +162,7 @@ module OsHelper
 
   def update_service(service_name, required_service)
     service_repository = get_service_repository(service_name)["parameters"].map{ |param| param["value"] if param["name"] == "SERVICE_REPOSITORY"}.compact.first
-    applications = required_service["applications"].map do |app|
+    applications = required_service["applications"].compact.map do |app|
       create_image_stream_tag("#{service_name}-#{app['name']}",
                               app["tag"],
                               service_repository,
@@ -172,7 +172,7 @@ module OsHelper
                               service_name)
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
-    set_image_tag("", required_service["version"], service_name)
+    set_image_tag(service_name, required_service["version"], service_name)
   end
 
   def deploy_template(service, required_service)
