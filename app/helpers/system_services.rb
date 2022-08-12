@@ -76,14 +76,16 @@ module SystemServices
   end
 
   def service_status(service_name)
+    services = service_config
+    services = services.keys.map{|namespace| services[namespace] }.flatten
     response = {}
     img_streams = image_streams(service_name)
     service_installed = false unless img_streams
     service_installed = true if img_streams
     service_status = 'deleting' if $deleting[service_name] == "deleting"
     revisions = get_deployment_config_revision(service_name)
-    revisions.keys.each do |service|
-      service_status = get_replication_controller_status(service, revisions[service]) || "Undefined"
+    revisions.keys.each do |service| 
+      service_status = get_replication_controller_status(service, revisions[service], get_os_namespace(service_name)) || "Undefined"
       service_deleted = true unless service_installed ^ get_pvc(service_name)
       service_deleted = false if service_installed ^ get_pvc(service_name)
       response[service] =  {"service_installed" => service_installed, "service_status" => service_status}
@@ -113,13 +115,5 @@ module SystemServices
     domain = get_application_domain(template_hash, location)
     url = 'http://' + service_name + '.' + domain
     test = check_service_accessibility(url)
-  end
-
-  
-
-  def check_istalled_status(location,service_name)
-    stream_hash = image_stream_by_service(params[:service_name])
-    revision = get_deployment_config_revision(stream_hash["metadata"]["name"])
-    get_replication_controller_status(stream_hash["metadata"]["name"], revision)
   end
 end

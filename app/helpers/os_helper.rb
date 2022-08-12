@@ -50,8 +50,8 @@ module OsHelper
     puts "Something went wrong #{e.message}"
   end
 
-  def get_replication_controller_status(service_name, revision)
-    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/replicationcontrollers/#{service_name}-#{revision}").dig('metadata','annotations','openshift.io/deployment.phase')
+  def get_replication_controller_status(service_name, revision, namespace)
+    get_request_api_os("api/v1/namespaces/#{namespace}/replicationcontrollers/#{service_name}-#{revision}").dig('metadata','annotations','openshift.io/deployment.phase')
   rescue => e
     puts "Something went wrong in controller status: #{e.message}"
   end
@@ -63,21 +63,24 @@ module OsHelper
   def delete_service(service_name, delete_persistent_data)
     deleted_check = []
     deleted_check << delete_os_image_stream(service_name).to_s
-    deleted_check << delete_os_pods(service_name).to_s
+    deleted_check << delete_os_route(service_name).to_s
     deleted_check << delete_os_service(service_name).to_s
-    deleted_check << delete_os_replications_controller(service_name).to_s
-    deleted_check << delete_os_demon_set(service_name).to_s
     deleted_check << delete_os_deployment_config(service_name).to_s
     deleted_check << delete_os_deployment(service_name).to_s
-    deleted_check << delete_os_replica_set(service_name).to_s
-    deleted_check << delete_os_route(service_name).to_s
+    deleted_check << delete_os_stateful_set(service_name).to_s
+    deleted_check << delete_os_job(service_name).to_s
+    deleted_check << delete_os_cron_job(service_name).to_s
+
     deleted_check << delete_os_secret(service_name).to_s
     deleted_check << delete_os_service_account(service_name).to_s
     deleted_check << delete_os_config_map(service_name).to_s
-    deleted_check << delete_os_stateful_set(service_name).to_s
+
+    deleted_check << delete_os_pods(service_name).to_s
+    deleted_check << delete_os_replications_controller(service_name).to_s
+    deleted_check << delete_os_demon_set(service_name).to_s
+    deleted_check << delete_os_replica_set(service_name).to_s
     deleted_check << delete_os_horizontal_pod_auto_scaler(service_name).to_s
-    deleted_check << delete_os_job(service_name).to_s
-    deleted_check << delete_os_cron_job(service_name).to_s
+    
     deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
     # deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data
     return 204 unless deleted_check.include?("400")

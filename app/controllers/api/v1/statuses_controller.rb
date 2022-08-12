@@ -1,15 +1,20 @@
 class Api::V1::StatusesController < ApplicationController
   include SystemServices
+  include OsCommonHelper
+  include ResponseHelper
   before_action :login
 
   def show
-    services = get_namespace_services
+    services = service_config
+    services = services.keys.map{|namespace| services[namespace] }.flatten
     services_statuses = []
     response = []
     services.compact.map do |service|
       status = service_status(service)
-      services_statuses << service_status(service) unless services_statuses.include?(status)
-    end
+      next if status == {}
+      services_statuses << status unless services_statuses.include?(status)
+    end.compact
+    services_statuses.map{|status| services_statuses.delete(status) if status.to_s == "{}"}
     services_statuses.compact.map do |service|
       common_name = service.keys.map do |name|
         "\"#{name}\".split('-')"
@@ -21,8 +26,12 @@ class Api::V1::StatusesController < ApplicationController
                    "common_service_installed" => common_service_installed(service),
                    "services"      => service}
     end
-    render json: response
+
+    success response
   end
+
+
+
   private
 
   def common_service_status(statuses)
