@@ -1,28 +1,22 @@
 openapi: 3.0.0
 info:
-  version: '1.0'
-  title: 'Delivery API'
-  # description: 'Provides VPN service for account infrastructure'
-# servers:
-#   # Added by API Auto Mocking Plugin
-#   - description: SwaggerHub API Auto Mocking
-#     url: https://virtserver.swaggerhub.com/ahrechushkin/vpn/1.0
+  title: 'Service Delivery API'
+  description: 'Service API. Authorization SSO JWT token is required to test API'
+#  contact:
+#    email: dmemekh@ibagroup.eu
+  version: 1.0
+externalDocs:
+  description: Service Delivery API design
+  url: https://support.icdc.io/projects/locationadmin/wiki/Service_Delivery_Design
+servers:
+- url: https://service-api.icdc.d3.zby.icdc.io/api/v1
+  description: Service API Route
 tags:
-  # - name: Releases
-  #   description: Releases management
   - name: Services
-    description: Services management
-  # - name: Statuses
-  #   description: Statuses management
-  # - name: Subscriptions
-  #   description: Subscriptions management
-  # - name: Updates
-  #   description: Updates management
-  # - name: Versions
-  #   description: Verions management
+    description: Services API
      
-paths:    
-  /services/{service_name}/downgrade:
+paths:
+  /service/{service_name}/version:
     parameters:
       - in: path
         name: service_name
@@ -31,62 +25,9 @@ paths:
         required: true
     get:
       tags:
-        - 'Services'
-      summary: Get downgrade versions for services
-      responses:
-        '200':
-          description: 'Success'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  data:
-                    type: array
-                    example: 
-                      - "2.0.2"
-                      - "2.0.1"
-    put:
-      tags:
        - 'Services'
-      summary: Downgrade vesion
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                version:
-                  type: string
-                  example: 2.0.0
-      responses:
-        '204':
-          description: 'No content'
-          
-  /services/{service_name}/update:
-    parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
-    put:
-      tags:
-       - 'Services'
-      summary: Update vesion
-      responses:
-        '200':
-          description: 'Success'
-        '204':
-          description: 'No content'
-    get:
-      tags:
-       - 'Services'
-      summary: Update vesion
+      summary: Get available versions to install
+      operationId: getVersions
       responses:
         '200':
           description: 'Success'
@@ -113,89 +54,10 @@ paths:
                             bug_fixes: "* bug1\r\n* bug2"
                             depricated: "* depricated1\r\n* depricated2"
                             known_issues: ""
-    
-  /services/{service_name}/upgrade:
-    parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
-    put:
-      tags:
-       - 'Services'
-      summary: Upgrade vesion
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                version:
-                  type: string
-                  example: 2.0.1
-      responses:
-        '200':
-          description: 'Success'
-        '204':
-          description: 'No content'
-          
-  /services/{service_name}/version:
-    parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
-    get:
-      tags:
-       - 'Services'
-      summary: Get release version
 
-      responses:
-        '200':
-          description: 'Success'
-          content:
-            application/json:
-              schema:
-                type: array
-                example:
-                  - type: object
-                    properties:
-                      version: 1.0.2
-                      tag: latest
-                      release: 1.0
-                      date: 2021-09-09
-                      required:
-                        api-gateway: 1.0.1
-                      aplications:
-                        - name: httpd
-                          tag: 1.0.1
-                          description:
-                            warnings: "* warning1\r\n* warning2"
-                            features: "* feature1\r\n* feature2"
-                            security_fixes: "* security1\r\n* security2"
-                            bug_fixes: "* bug1\r\n* bug2"
-                            depricated: "* depricated1\r\n* depricated2"
-                            known_issues: ""
-                    
-  /services/{service_name}/service_versions:
-    parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
-    get:
-      tags:
-       - 'Services'
-      summary: Get release version
-
-                            
-                            
-  /services/{service_name}:
-    delete:
+  /service/{service_name}/install:
+    post:
+      operationId: installService
       parameters:
       - in: path
         name: service_name
@@ -203,45 +65,19 @@ paths:
           type: string
         required: true
       - in: query
-        name: delete_persistent_data
+        name: version
         schema:
           type: string
-          example: true
-        optional: true
+          example: 2.0.2
+        required: true
       tags:
         - 'Services'
-      summary: Delete service
-      responses:
-        '204':
-          description: 'No content'
-  /services/{service_name}/install:
-    post:
-      parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
-        
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                version:
-                  type: string
-                  example: 2.0.1
-      tags:
-        - 'Services'
-      summary: Create service
-      
-      
+      summary: Install service
       responses:
         '204':
           description: 'No content'
     get:
+      operationId: getInstalledVersion
       parameters:
       - in: path
         name: service_name
@@ -250,7 +86,7 @@ paths:
         required: true
       tags:
         - 'Services'
-      summary: Create service
+      summary: Get installed version
       responses:
         '200':
           description: 'Success'
@@ -265,8 +101,95 @@ paths:
                   data:
                     type: string
                     example: 1.1.1
+
+  /service/{service_name}:
+    delete:
+      operationId: deleteService
+      parameters:
+      - in: path
+        name: service_name
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: delete_persistent_data
+        schema:
+          type: string
+#          default: false
+#          example: true
+        description: Default value is empty (false)
+      tags:
+        - 'Services'
+      summary: Delete service
+      responses:
+        '204':
+          description: 'No content'
           
-        
+  /service/{service_name}/update:
+#    parameters:
+#      - in: path
+#        name: service_name
+#        schema:
+#          type: string
+#        required: true
+    get:
+      parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+      tags:
+       - 'Services'
+      summary: Get update vesion
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                type: array
+                example:
+                  - type: object
+                    properties:
+                      version: 1.0.2
+                      tag: latest
+                      release: 1.0
+                      date: 2021-09-09
+                      required:
+                        api-gateway: 1.0.1
+                      aplications:
+                        - name: httpd
+                          tag: 1.0.1
+                          description:
+                            warnings: "* warning1\r\n* warning2"
+                            features: "* feature1\r\n* feature2"
+                            security_fixes: "* security1\r\n* security2"
+                            bug_fixes: "* bug1\r\n* bug2"
+                            depricated: "* depricated1\r\n* depricated2"
+                            known_issues: ""
+    put:
+      parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: version
+          schema:
+            type: string
+            example: 1.0.2
+          required: true
+      tags:
+       - 'Services'
+      summary: Update version from update overview
+      responses:
+        '200':
+          description: 'Success'
+        '204':
+          description: 'No content'
+
   /service/{service_name}/release:
     get:
       tags:
@@ -277,7 +200,7 @@ paths:
           schema:
             type: string
           required: true
-      summary: Create service
+      summary: Get release version
       responses:
         '200':
           description: 'Success'
@@ -314,11 +237,79 @@ paths:
           schema:
             type: string
           required: true
-      summary: Create service
+        - in: query
+          name: version
+          schema:
+            type: string
+            example: 2.0.2
+          required: true
+      summary: Upgrade version from release overview
       responses:
+        '200':
+          description: 'Success'
         '204':
           description: 'No content'
-  /status:
+
+  /service/{service_name}/downgrade:
+    get:
+      parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+      tags:
+        - 'Services'
+      summary: Get all installed versions for downgrade
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    example: 
+                      - "2.0.2"
+                      - "2.0.1"
+    put:
+      parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: version
+          schema:
+            type: string
+            example: 2.0.1
+          required: true
+      tags:
+       - 'Services'
+      summary: Downgrade version from version overview
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              properties:
+#                version:
+#                  type: string
+#                  example: 2.0.0
+      responses:
+        '200':
+          description: 'Success'
+        '204':
+          description: 'No content'
+
+  /services/status:
     get:
       tags:
         - 'Services'
@@ -341,3 +332,16 @@ paths:
                       web-server-db:
                         service_installed: true
                         service_status: Complete
+components:
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    AccountAccessError:
+      description: Account access is denied
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+security:
+  - bearerAuth: []
