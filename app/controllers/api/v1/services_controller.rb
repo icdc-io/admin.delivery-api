@@ -4,6 +4,7 @@ class Api::V1::ServicesController < ApplicationController
   include SystemServices
   include OsCommonHelper
   include OsHelper
+  include ServiceHelper
   before_action :login
 
   def index
@@ -44,6 +45,7 @@ class Api::V1::ServicesController < ApplicationController
     #   end
     # end
     deploy_template(service_name, service)
+    create_dns_record(service_name)
   end
 
   def delete
@@ -52,6 +54,7 @@ class Api::V1::ServicesController < ApplicationController
       delete_code = delete_service(params[:service_name], params[:delete_persistent_data])
       if delete_code.to_i == 204
         $deleting.delete(params[:service_name])
+        delete_dns_record(params[:service_name])
         return '204'
       end
       sleep 5
