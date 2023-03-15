@@ -7,7 +7,7 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'https://git.zby.icdc.io'
+    origins 'https://git.zby.icdc.io', 'https://code.zby.scdc.io'
     #origins ENV.fetch('CORS_ORIGINS').split(" ").map(&:strip)
 
     resource '*',
