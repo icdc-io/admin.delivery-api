@@ -9,7 +9,7 @@ externalDocs:
   description: Service Delivery API design
   url: https://support.icdc.io/projects/locationadmin/wiki/Service_Delivery_Design
 servers:
-- url: http://api.vpn.upi.ocp.lab.icdc.io/api/v1
+- url: https://api.vpn.upi.ocp.lab.icdc.io/api/v1
   description: API Route UPI Lab
 - url: https://delivery.vpn.upi.ocp.lab.icdc.io/api/v1
   description: Delivery API Route UPI Lab
