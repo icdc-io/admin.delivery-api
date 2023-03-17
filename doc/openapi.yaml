@@ -16,6 +16,8 @@ servers:
 - url: https://service-api.icdc.d3.zby.icdc.io/api/v1
   description: Service API Route
 tags:
+  - name: Service
+    description: Service API
   - name: Services
     description: Services API
      
@@ -29,7 +31,7 @@ paths:
         required: true
     get:
       tags:
-       - 'Services'
+       - 'Service'
       summary: Get available versions to install
       operationId: getVersions
       responses:
@@ -75,7 +77,7 @@ paths:
           example: 2.0.2
         required: true
       tags:
-        - 'Services'
+        - 'Service'
       summary: Install service
       responses:
         '204':
@@ -89,7 +91,7 @@ paths:
           type: string
         required: true
       tags:
-        - 'Services'
+        - 'Service'
       summary: Get installed version
       responses:
         '200':
@@ -123,7 +125,7 @@ paths:
 #          example: true
         description: Default value is empty (false)
       tags:
-        - 'Services'
+        - 'Service'
       summary: Delete service
       responses:
         '204':
@@ -144,7 +146,7 @@ paths:
             type: string
           required: true
       tags:
-       - 'Services'
+       - 'Service'
       summary: Get update vesion
       responses:
         '200':
@@ -186,7 +188,7 @@ paths:
             example: 1.0.2
           required: true
       tags:
-       - 'Services'
+       - 'Service'
       summary: Update version from update overview
       responses:
         '200':
@@ -197,7 +199,7 @@ paths:
   /service/{service_name}/release:
     get:
       tags:
-        - 'Services'
+        - 'Service'
       parameters:
         - in: path
           name: service_name
@@ -234,7 +236,7 @@ paths:
     
     put:
       tags:
-        - 'Services'
+        - 'Service'
       parameters:
         - in: path
           name: service_name
@@ -263,7 +265,7 @@ paths:
             type: string
           required: true
       tags:
-        - 'Services'
+        - 'Service'
       summary: Get all installed versions for downgrade
       responses:
         '200':
@@ -295,7 +297,7 @@ paths:
             example: 2.0.1
           required: true
       tags:
-       - 'Services'
+       - 'Service'
       summary: Downgrade version from version overview
 #      requestBody:
 #        required: true
