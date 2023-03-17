@@ -159,7 +159,7 @@ module OsHelper
   end
 
   def get_location
-    return ENV["OPENSHIFT_API"].split(".")[-3] unless ENV["OPENSHIFT_API"].split(".")[-3].nil?
+    return ENV["OPENSHIFT_SERVER"].split(".")[-3] unless ENV["OPENSHIFT_SERVER"].split(".")[-3].nil?
     return service_creds('os_api')["url"].split(".")[-3]
   end
 
@@ -212,7 +212,7 @@ module OsHelper
       when "NAMESPACE"
         param["value"] = namespace
       when "APPLICATION_DOMAIN"
-        param["value"] = "#{ENV["OPENSHIFT_API"].split(".")[-3]}.#{ENV["PLATFORM_NAME"]}.io"
+        param["value"] = "#{ENV["LOCATION_DOMAIN"]}"
       else
         param["value"] = applications[param["name"].split("_")[1..].join.downcase]
       end
