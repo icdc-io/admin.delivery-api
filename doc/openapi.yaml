@@ -11,6 +11,8 @@ externalDocs:
 servers:
 - url: https://api.ext.upi.ocp.lab.icdc.io/api/v1
   description: API Route UPI Lab
+- url: https://api-loc.vpn.dcl.ocp.lab.icdc.io/api/service/v1
+  description: API Route DCL Lab
 - url: https://api.vpn.dcl.ocp.lab.icdc.io/api/v1
   description: API Route DCL Lab
 - url: https://delivery.vpn.upi.ocp.lab.icdc.io/api/v1
