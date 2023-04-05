@@ -9,10 +9,10 @@ externalDocs:
   description: Service Delivery API design
   url: https://support.icdc.io/projects/locationadmin/wiki/Service_Delivery_Design
 servers:
-- url: https://api.ext.upi.ocp.lab.icdc.io/api/v1
-  description: API Route UPI Lab
 - url: https://api-loc.ext.dcl.ocp.lab.icdc.io/api/delivery/v1
   description: API Route DCL Lab
+- url: https://api.ext.upi.ocp.lab.icdc.io/api/v1
+  description: API Route UPI Lab
 - url: https://service-api.icdc.d3.zby.icdc.io/api/v1
   description: Service API Route
 tags:
