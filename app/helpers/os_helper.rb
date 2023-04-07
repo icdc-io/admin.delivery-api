@@ -71,7 +71,7 @@ module OsHelper
     deleted_check << delete_os_job(service_name).to_s
     deleted_check << delete_os_cron_job(service_name).to_s
 
-    deleted_check << delete_os_secret(service_name).to_s
+    deleted_check << delete_os_secret(service_name).to_s if delete_persistent_data == "true"
     deleted_check << delete_os_service_account(service_name).to_s
     deleted_check << delete_os_config_map(service_name).to_s
 
