@@ -96,7 +96,7 @@ module OsHelper
     return_codes << check_deployment_config(service_name)
     return_codes << check_deployment(service_name)
     return_codes << check_route(service_name)
-    return_codes << check_secret(service_name)
+    return_codes << check_secret(service_name) if delete_persistent_data
     return_codes << check_service_account(service_name)
     return_codes << check_config_map(service_name)
     return_codes << check_pvc(service_name) if delete_persistent_data
