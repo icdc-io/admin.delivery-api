@@ -90,7 +90,12 @@ class Api::V1::StatusesController < ApplicationController
     #state = statuses.keys.map do |service_name|
     #  statuses[service_name]["service_installed"]
     #end
-    return "false" if statuses.map { |status| status["service_installed" ] }.include?("false")
+    #return "false" if statuses.map { |status| status["service_installed" ] }.include?("false")
+    #"true"
+
+    uniq_statuses = statuses.map { |status| status["service_installed"] }.uniq
+
+    return "false" if (uniq_statuses.include?("false") || uniq_statuses.compact.empty?)
     "true"
   end
 
