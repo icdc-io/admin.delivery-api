@@ -37,7 +37,7 @@ class Api::V1::ServicesController < ApplicationController
     prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
 
     unless get_all_namespaces.include?("#{prefix}-#{params[:service_name]}")
-      create_namespace("#{prefix}-#{params[:service_name]}")
+      create_namespace(params[:service_name])
     end
 
     service_name = params[:service_name]
