@@ -62,7 +62,6 @@ class Api::V1::ServicesController < ApplicationController
       if delete_code.to_i == 204
         $deleting.delete(params[:service_name])
         #delete_dns_record(params[:service_name])
-        delete_os_namespace(params[:service_name])
         return '204'
       end
       sleep 5
