@@ -232,20 +232,6 @@ module OsHelper
     template
   end
 
-  def create_namespace_body(service_name)
-    {
-      "apiVersion": "project.openshift.io/v1",
-      "kind": "Project",
-      "metadata": {
-        "annotations": {
-          "openshift.io/display-name": "#{get_os_namespace(service_name)}",
-        },
-        "name": "#{get_os_namespace(service_name)}"
-      }
-   }.to_json
-  end
-
-
   def set_latest_image_stream_tag(name, version)
     {
       "kind": "ImageStreamTag",

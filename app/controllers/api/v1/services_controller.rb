@@ -4,6 +4,8 @@ class Api::V1::ServicesController < ApplicationController
   include SystemServices
   include OsCommonHelper
   include OsHelper
+  include OsCreateHelper
+  include OsDeleteHelper
   #include ServiceHelper
   before_action :login
 
@@ -32,7 +34,12 @@ class Api::V1::ServicesController < ApplicationController
   end
 
   def create
-    return abort("No such namespace") unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
+    prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+
+    unless get_all_namespaces.include?("#{prefix}-#{params[:service_name]}")
+      create_namespace("#{prefix}-#{params[:service_name]}")
+    end
+
     service_name = params[:service_name]
     service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
     required_services = service["required"]
@@ -55,6 +62,7 @@ class Api::V1::ServicesController < ApplicationController
       if delete_code.to_i == 204
         $deleting.delete(params[:service_name])
         #delete_dns_record(params[:service_name])
+        delete_os_namespace(params[:service_name])
         return '204'
       end
       sleep 5

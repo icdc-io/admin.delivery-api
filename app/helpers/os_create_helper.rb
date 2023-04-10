@@ -1,5 +1,5 @@
 module OsCreateHelper
-include OsCommonHelper
+  include OsCommonHelper
   
   def create_image_stream_tag(name, version, repository, service_name)
     puts "---CREATE IMAGE STREAM TAG---"
@@ -75,13 +75,27 @@ include OsCommonHelper
   end
 
   def create_namespace(service_name)
-    post_request_api_os("apis/project.openshift.io/v1/projects", create_namespace_body(service_name))
+    post_request_api_os("apis/project.openshift.io/v1/projectrequests", create_namespace_body(service_name))
   end
     
   def create_image_stream(source, service_name)
     puts "---CREATE IS---"
     puts source.to_json
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams", source.to_json)
+  end
+
+  private
+
+  def create_namespace_body(service_name)
+    prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+    {
+      "apiVersion": "project.openshift.io/v1",
+      "kind": "ProjectRequest",
+      "metadata": {
+        "name": "#{prefix}-#{service_name}"
+      },
+      "displayName": "#{service_name.capitalize} Service"
+   }.to_json
   end
 
 end

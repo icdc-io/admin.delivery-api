@@ -3,7 +3,8 @@ module OsDeleteHelper
 
   def delete_os_namespace(service_name)
     puts "---DELETE NAMESPACE---"
-    delete_request_api_os("apis/project.openshift.io/v1/projects/#{get_os_namespace(service_name)}")
+    prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+    delete_request_api_os("apis/project.openshift.io/v1/projects/#{prefix}-#{service_name}")
   end
   
   def delete_os_image_stream(service_name)
