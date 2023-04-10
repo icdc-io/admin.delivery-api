@@ -42,20 +42,20 @@ class Api::V1::StatusesController < ApplicationController
         "common_name" => service,
         "common_service_status" => common_service_status(service_apps),
         "common_service_installed" => common_service_installed(service_apps),
-        "common_service_deleted" => common_service_deleted(service_apps),
+        "common_service_deleted" => common_service_deleted(service),
         "services" => service_apps.map do |service_app|
           {
             service_app["name"] => {
               "service_installed" => service_app["service_installed"],
               "service_status"  => service_app["service_status"],
-              "service_deleted" => service_app["service_deleted"]
             }
           }
         end
       }
     end
 
-    success response
+    #response
+    return success response
   end
 
 
@@ -94,9 +94,8 @@ class Api::V1::StatusesController < ApplicationController
     "true"
   end
 
-  def common_service_deleted(statuses)
-    return "false" if statuses.map { |status| status["service_deleted"] }.include?("false")
-    "true"
+  def common_service_deleted(service)
+    get_pvc(service).dig("items").empty?
   end
 
   def deployment_configs_list(namespaces)
@@ -116,7 +115,6 @@ class Api::V1::StatusesController < ApplicationController
       revision = dc.dig("status", "latestVersion")
       ns = dc.dig("metadata", "namespace")
       service_installed = image_stream_exists?(name, ns)
-      service_deleted = service_installed ^ get_pvc(service)
 
       {
         "name" => name,
@@ -124,7 +122,6 @@ class Api::V1::StatusesController < ApplicationController
         "revision" => revision,
         "service_status" => get_replication_controller_status(name, revision, ns) || "Undefined",
         "service_installed" => service_installed,
-        "service_deleted" => service_deleted
       }
     end
   end
