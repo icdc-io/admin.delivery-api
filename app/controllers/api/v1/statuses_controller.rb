@@ -36,7 +36,7 @@ class Api::V1::StatusesController < ApplicationController
     services = namespaces.map { |namespace| common_service_name(namespace) }
 
     apps = parsed_services(namespaces)
-    services.map do |service|
+    response = services.map do |service|
       service_apps = apps.select { |app| app["service"] == service }
       {
         "common_name" => service,
@@ -53,6 +53,8 @@ class Api::V1::StatusesController < ApplicationController
         end
       }
     end
+
+    success response
   end
 
 
