@@ -56,6 +56,10 @@ module OsHelper
     puts "Something went wrong in controller status: #{e.message}"
   end
 
+  def image_stream_exists?(service, namespace)
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams/#{service}") != "404"
+  end
+
   def get_image_streams(service_name)
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
   end
@@ -116,6 +120,14 @@ module OsHelper
 
   def get_all_namespaces
     get_request_api_os("api/v1/namespaces")['items'].map{|nsp| nsp.dig("metadata", "name") }
+  end
+
+  def get_namespaces_by_label(label)
+    get_request_api_os("api/v1/namespaces?labelSelector=#{label}")['items'].map{|nsp| nsp.dig("metadata", "name") }
+  end
+
+  def get_deployment_configs(namespace)
+    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs").dig("items")
   end
 
   def get_installed_service(service_name)
