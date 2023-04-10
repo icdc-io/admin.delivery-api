@@ -42,6 +42,7 @@ class Api::V1::StatusesController < ApplicationController
         "common_name" => service,
         "common_service_status" => common_service_status(service_apps),
         "common_service_installed" => common_service_installed(service_apps),
+        "common_service_deleted" => common_service_deleted(service_apps),
         "services" => service_apps.map do |service_app|
           {
             service_app["name"] => {
@@ -90,6 +91,11 @@ class Api::V1::StatusesController < ApplicationController
     #  statuses[service_name]["service_installed"]
     #end
     return "false" if statuses.map { |status| status["service_installed" ] }.include?("false")
+    "true"
+  end
+
+  def common_service_deleted(statuses)
+    return "false" if statuses.map { |status| status["service_deleted"] }.include?("false")
     "true"
   end
 
