@@ -52,6 +52,7 @@ class Api::V1::StatusesController < ApplicationController
     return state.first if state.count == 1
     return "Running" if state.include?("Running")
     return "Undefined" if state.include?("Undefined")
+    return "Error" if state.include?("Error")
   end
 
   def common_service_installed(dcs)
@@ -81,7 +82,7 @@ class Api::V1::StatusesController < ApplicationController
       revision = dc.dig("status", "latestVersion")
       ns = dc.dig("metadata", "namespace")
       service_installed = image_stream_exists?(name, ns)
-      service_status = revision > 0 ? get_replication_controller_status(name, revision, ns) : nil
+      service_status = revision > 0 ? get_replication_controller_status(name, revision, ns) : "Error"
 
       {
         "name" => name,
