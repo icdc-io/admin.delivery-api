@@ -5,7 +5,7 @@ class Api::V1::UpdatesController < ApplicationController
   def show
     installed_version = get_latest_image_version(params[:service_name])
     update_version = request_raw_github("changelogs/#{params[:service_name]}/release-#{installed_version.split(".")[...-1].join(".")}.json").first
-    if installed_version != update_version["version"]
+    if installed_version && installed_version != update_version["version"]
       render json: update_version
     else
       render json: nil
