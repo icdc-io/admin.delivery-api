@@ -7,6 +7,8 @@ class Api::V1::VersionsController < ApplicationController
     service = get_installed_service(params[:service_name])
     version = service["spec"]["tags"].collect{|tag| tag["from"]["name"] if tag["name"] == "latest"}
     success(version.compact.first)
+  rescue
+    nil
   end
 
   def create
