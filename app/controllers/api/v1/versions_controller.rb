@@ -21,6 +21,8 @@ class Api::V1::VersionsController < ApplicationController
     service = get_installed_service(params[:service_name])
     versions = service["spec"]["tags"].collect{|tag| tag["name"] if tag["name"] != "latest"}
     success(versions.compact.reverse)
+  rescue
+    nil
   end
 
   def get_installed_github_versions
