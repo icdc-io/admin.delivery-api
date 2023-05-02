@@ -195,7 +195,7 @@ module OsHelper
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
     set_image_tag(service_name, required_service["version"], service_name)
-    rollout_deployment_config(service_name)
+    #rollout_deployment_config(service_name)
   end
 
   def deploy_template(service, required_service)
@@ -207,7 +207,7 @@ module OsHelper
     generated_service_template["objects"].map do |obj|
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
     end
-    rollout_deployment_config(service)
+    #rollout_deployment_config(service)
   end
 
 
