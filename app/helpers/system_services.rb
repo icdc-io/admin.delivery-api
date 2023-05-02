@@ -43,19 +43,19 @@ module SystemServices
     return "No version for updating"
   end
 
-  def update_service_version(stream_hash)
+  def update_service_version(stream_hash, service_name)
     up = updated_version(stream_hash).dig('available_service_version')
     return "No available version for update." unless up
     sr = service_repository(stream_hash, up)
-    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr)
+    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr, service_name)
     set_image_tag(stream_hash["metadata"], up)
   end
 
-  def upgrade_service_version(stream_hash)
+  def upgrade_service_version(stream_hash, service_name)
     up = release_version(stream_hash).dig(:available_service_version)
     return "No available version for upgrade." unless up
     sr = service_repository(stream_hash, up)
-    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr)
+    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr, service_name)
     set_image_tag(stream_hash["metadata"], up)
   end
 

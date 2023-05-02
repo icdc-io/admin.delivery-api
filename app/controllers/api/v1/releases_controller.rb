@@ -24,7 +24,8 @@ class Api::V1::ReleasesController < ApplicationController
   end
 
   def create
-    stream_hash = image_stream_by_service(params[:service_name])
-    render json: upgrade_service_version(stream_hash)
+    service_name = params[:service_name]
+    stream_hash = image_stream_by_service(service_name)
+    render json: upgrade_service_version(stream_hash, service_name)
   end
 end

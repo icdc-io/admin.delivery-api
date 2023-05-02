@@ -1,9 +1,9 @@
 module OsCreateHelper
   include OsCommonHelper
   
-  def create_image_stream_tag(name, version, repository, service_name)
+  def create_image_stream_tag(app_name, version, repository, service_name)
     puts "---CREATE IMAGE STREAM TAG---"
-    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(name, version, repository)) #uncomment
+    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(app_name, version, repository, service_name)) #uncomment
   end
 
   def create_image_stream_service_tag(service)
