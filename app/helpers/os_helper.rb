@@ -190,13 +190,8 @@ module OsHelper
   def update_service(service_name, required_service)
     service_repository = get_service_repository(service_name)["parameters"].map{ |param| param["value"] if param["name"] == "SERVICE_REPOSITORY"}.compact.first
     applications = required_service["applications"].compact.map do |app|
-      create_image_stream_tag("#{service_name}-#{app['name']}",
-                              app["tag"],
-                              service_repository,
-                              service_name)
-      set_image_tag("#{service_name}-#{app['name']}",
-                              app["tag"],
-                              service_name)
+      create_image_stream_tag(app['name'], app["tag"], service_repository, service_name)
+      set_image_tag("#{service_name}-#{app['name']}", app["tag"], service_name)
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
     set_image_tag(service_name, required_service["version"], service_name)
@@ -262,19 +257,19 @@ module OsHelper
     }.to_json
   end
 
-  def image_stream_tag_body(name, version, repository)
+  def image_stream_tag_body(app_name, version, repository, service_name)
     {
       "kind": "ImageStreamTag",
       "apiVersion": "image.openshift.io/v1",
       "metadata": {
-        "name": "#{name}:#{version}"
+        "name": "#{service_name}-#{app_name}:#{version}"
       },
       "tag": {
         "name": "",
         "annotations": {},
         "from": {
           "kind": "DockerImage",
-          "name": "#{repository}/#{name}:#{version}"
+          "name": "#{repository}/#{app_name}:#{version}"
         },
       "importPolicy": {},
       "referencePolicy": {
