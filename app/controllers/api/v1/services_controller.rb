@@ -52,6 +52,12 @@ class Api::V1::ServicesController < ApplicationController
     #   end
     # end
     deploy_template(service_name, service)
+
+    #update
+    service_name = params[:service_name]
+    update_service(service_name, service)
+    no_content
+    
     #create_dns_record(service_name)
   end
 
