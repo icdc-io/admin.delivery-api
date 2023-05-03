@@ -50,6 +50,7 @@ class Api::V1::StatusesController < ApplicationController
   def common_service_status(dcs)
     state = dcs.map { |dc| dc["service_status"] }.uniq
     return state.first if state.count == 1
+    return "Pending" if state.include?("Pending")
     return "Running" if state.include?("Running")
     return "Undefined" if state.include?("Undefined")
     return "Error" if state.include?("Error")
