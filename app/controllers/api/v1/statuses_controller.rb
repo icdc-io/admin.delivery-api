@@ -52,6 +52,7 @@ class Api::V1::StatusesController < ApplicationController
     return state.first if state.count == 1
     return "Pending" if state.include?("Pending")
     return "Running" if state.include?("Running")
+    return "Deleting" if state.include?("Deleting")
     return "Undefined" if state.include?("Undefined")
     return "Error" if state.include?("Error")
     return "Failed" if state.include?("Failed")

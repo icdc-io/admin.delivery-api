@@ -82,7 +82,7 @@ module SystemServices
     img_streams = image_streams(service_name)
     service_installed = false unless img_streams
     service_installed = true if img_streams
-    service_status = 'deleting' if $deleting[service_name] == "deleting"
+    service_status = 'Deleting' if $deleting[service_name] == "deleting"
     revisions = get_deployment_config_revision(service_name)
     revisions.keys.each do |service| 
       service_status = get_replication_controller_status(service, revisions[service], get_os_namespace(service_name)) || "Undefined"
