@@ -53,12 +53,13 @@ class Api::V1::StatusesController < ApplicationController
     return "Running" if state.include?("Running")
     return "Undefined" if state.include?("Undefined")
     return "Error" if state.include?("Error")
+    return "Failed" if state.include?("Failed")
   end
 
   def common_service_installed(dcs)
     uniq_statuses = dcs.map { |dc| dc["service_installed"] }.uniq
-    return "false" if (uniq_statuses.include?("false") || uniq_statuses.compact.empty?)
-    "true"
+    return false if (uniq_statuses.include?("false") || uniq_statuses.compact.empty?)
+    true
   end
 
   def common_service_deleted(service)
