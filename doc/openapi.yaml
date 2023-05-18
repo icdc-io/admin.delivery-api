@@ -195,27 +195,6 @@ paths:
           description: 'Success'
         '204':
           description: 'No content'
-    post:
-      parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
-          schema:
-            type: string
-            example: 1.0.2
-          required: true
-      tags:
-       - 'Service'
-      summary: Update version from update overview
-      responses:
-        '200':
-          description: 'Success'
-        '204':
-          description: 'No content'
   /service/{service_name}/release:
     get:
       tags:
