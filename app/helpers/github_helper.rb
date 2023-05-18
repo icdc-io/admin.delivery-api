@@ -83,6 +83,8 @@ module GithubHelper
       versions << response.select{|resp| resp if resp["tag"] == "latest"}
     end
     versions.compact.flatten
+    rescue
+      []
   end
 
   def get_latest_version(service_name)
