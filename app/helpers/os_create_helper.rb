@@ -37,7 +37,7 @@ module OsCreateHelper
     puts "---CREATE DEPLOYMENT---"
     # body = source["objects"].select { |s| s["kind"].eql?("Deployment") }.first
     puts source.to_json
-    post_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments", source.to_json) if body
+    post_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments", source.to_json)# if body
   end
 
   def create_route(source, service_name)
@@ -59,13 +59,13 @@ module OsCreateHelper
   def create_service_account(source, service_name)
     puts "---CREATE SA---"    
     puts source.to_json
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", body.to_json) if body
+    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", body.to_json)# if body
   end
 
-  def create_configmap(source, service_name)
+  def create_config_map(source, service_name)
     puts "---CREATE CM---"
     puts source.to_json
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps", source.to_json) if body
+    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps", source.to_json)# if body
   end
 
   def create_persistent_volume_claim(source, service_name)
