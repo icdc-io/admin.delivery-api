@@ -221,6 +221,7 @@ module OsHelper
 
   def update_template_parametrs(template, applications, service, version, namespace)
     white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE"]
+    white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN").empty?
     applications.keys.map{|a| white_list.append "TAG_#{a.upcase}"}
     template["parameters"].map do |param|
       next unless white_list.include?(param["name"])
@@ -231,13 +232,11 @@ module OsHelper
         param["value"] = namespace
       when "APPLICATION_DOMAIN"
         param["value"] = "#{ENV["LOCATION_DOMAIN"]}"
+      when "LOCATION_DOMAIN"
+        param["value"] = check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN")
       else
         param["value"] = applications[param["name"].split("_")[1..].join.downcase]
       end
-    end
-
-    unless check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN").empty?
-      template["parameters"] << { "name" => "LOCATION_DOMAIN", "value" => check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN") }
     end
 
     template
