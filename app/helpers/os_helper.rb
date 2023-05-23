@@ -167,6 +167,10 @@ module OsHelper
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps/#{service_name}")
   end
 
+  def check_config_map_env_loc(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps/env-loc")
+  end
+
   def check_pvc(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims/#{service_name}")
   end
@@ -231,6 +235,11 @@ module OsHelper
         param["value"] = applications[param["name"].split("_")[1..].join.downcase]
       end
     end
+
+    unless check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN").empty?
+      template["parameters"] << { "name" => "LOCATION_DOMAIN", "value" => check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN") }
+    end
+
     template
   end
 
