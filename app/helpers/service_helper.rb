@@ -1,7 +1,7 @@
 module ServiceHelper
     include OsHelper
     def create_dns_record(service_name)
-        location_platform_io = "#{get_location}.#{ENV["PLATFORM_NAME"]}.io"
+        location_platform_io = "#{ENV["LOCATION_DOMAIN"]}"
         account = ENV["SYS_ACCOUNT"] || "sys"
         puts "---CREATE FQDN---"
         puts "ttl"=>3600,"metadata"=>{"account"=> account}, "group"=>"#{service_name}.#{location_platform_io}","host"=>Resolv.getaddress("api.#{location_platform_io}")
@@ -10,7 +10,7 @@ module ServiceHelper
 
     def delete_dns_record(service_name)
         puts "---DELETE FQDN---"
-        location_platform_io = "#{get_location}.#{ENV["PLATFORM_NAME"]}.io"
+        location_platform_io = "#{ENV["LOCATION_DOMAIN"]}"
         domain = coredns.domain("#{service_name}.#{location_platform_io}")
         domain.list_all.each{|record| domain.delete("name"=> record["name"])}
     end

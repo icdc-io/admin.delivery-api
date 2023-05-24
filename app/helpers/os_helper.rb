@@ -14,7 +14,12 @@ module OsHelper
   end
 
   def installed_service_version(service_name)
-    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")["spec"]["tags"].select{ |d| d["name"] == "latest"}.first["from"]["name"]
+    response = get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
+    unless response == "404"
+      response.dig("spec", "tags")&.select{ |d| d["name"] == "latest"}.first.dig("from", "name")
+    else
+      nil
+    end
   end
 
   def installed_release_version(data)
@@ -56,6 +61,10 @@ module OsHelper
     puts "Something went wrong in controller status: #{e.message}"
   end
 
+  def image_stream_exists?(service, namespace)
+    get_request_api_os("apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams/#{service}") != "404"
+  end
+
   def get_image_streams(service_name)
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
   end
@@ -71,7 +80,7 @@ module OsHelper
     deleted_check << delete_os_job(service_name).to_s
     deleted_check << delete_os_cron_job(service_name).to_s
 
-    deleted_check << delete_os_secret(service_name).to_s
+    deleted_check << delete_os_secret(service_name).to_s if delete_persistent_data == "true"
     deleted_check << delete_os_service_account(service_name).to_s
     deleted_check << delete_os_config_map(service_name).to_s
 
@@ -82,7 +91,7 @@ module OsHelper
     deleted_check << delete_os_horizontal_pod_auto_scaler(service_name).to_s
     
     deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
-    # deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data
+    deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data == "true"
     return 204 unless deleted_check.include?("400")
   rescue => e
     puts "Something wrong #{e.message}"
@@ -96,7 +105,7 @@ module OsHelper
     return_codes << check_deployment_config(service_name)
     return_codes << check_deployment(service_name)
     return_codes << check_route(service_name)
-    return_codes << check_secret(service_name)
+    return_codes << check_secret(service_name) if delete_persistent_data
     return_codes << check_service_account(service_name)
     return_codes << check_config_map(service_name)
     return_codes << check_pvc(service_name) if delete_persistent_data
@@ -116,6 +125,14 @@ module OsHelper
 
   def get_all_namespaces
     get_request_api_os("api/v1/namespaces")['items'].map{|nsp| nsp.dig("metadata", "name") }
+  end
+
+  def get_namespaces_by_label(label)
+    get_request_api_os("api/v1/namespaces?labelSelector=#{label}")['items'].map{|nsp| nsp.dig("metadata", "name") }
+  end
+
+  def get_deployment_configs(namespace)
+    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs").dig("items")
   end
 
   def get_installed_service(service_name)
@@ -150,6 +167,10 @@ module OsHelper
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps/#{service_name}")
   end
 
+  def check_config_map_env_loc(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps/env-loc")
+  end
+
   def check_pvc(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims/#{service_name}")
   end
@@ -159,7 +180,7 @@ module OsHelper
   end
 
   def get_location
-    return ENV["OPENSHIFT_API"].split(".")[-3] unless ENV["OPENSHIFT_API"].split(".")[-3].nil?
+    return ENV["OPENSHIFT_SERVER"].split(".")[-3] unless ENV["OPENSHIFT_SERVER"].split(".")[-3].nil?
     return service_creds('os_api')["url"].split(".")[-3]
   end
 
@@ -173,17 +194,14 @@ module OsHelper
   def update_service(service_name, required_service)
     service_repository = get_service_repository(service_name)["parameters"].map{ |param| param["value"] if param["name"] == "SERVICE_REPOSITORY"}.compact.first
     applications = required_service["applications"].compact.map do |app|
-      create_image_stream_tag("#{service_name}-#{app['name']}",
-                              app["tag"],
-                              service_repository,
-                              service_name)
-      set_image_tag("#{service_name}-#{app['name']}",
-                              app["tag"],
-                              service_name)
+      create_image_stream_tag(app['name'], app["tag"], service_repository, service_name)
+      set_image_tag("#{service_name}-#{app['name']}", app["tag"], service_name)
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
     set_image_tag(service_name, required_service["version"], service_name)
-    rollout_deployment_config(service_name)
+
+    #sleep 3
+    #rollout_deployment_config(service_name)
   end
 
   def deploy_template(service, required_service)
@@ -195,7 +213,7 @@ module OsHelper
     generated_service_template["objects"].map do |obj|
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
     end
-    rollout_deployment_config(service)
+    # rollout_deployment_config(service)
   end
 
 
@@ -203,6 +221,7 @@ module OsHelper
 
   def update_template_parametrs(template, applications, service, version, namespace)
     white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE"]
+    white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN").empty?
     applications.keys.map{|a| white_list.append "TAG_#{a.upcase}"}
     template["parameters"].map do |param|
       next unless white_list.include?(param["name"])
@@ -212,27 +231,16 @@ module OsHelper
       when "NAMESPACE"
         param["value"] = namespace
       when "APPLICATION_DOMAIN"
-        param["value"] = "#{ENV["OPENSHIFT_API"].split(".")[-3]}.#{ENV["PLATFORM_NAME"]}.io"
+        param["value"] = "#{ENV["LOCATION_DOMAIN"]}"
+      when "LOCATION_DOMAIN"
+        param["value"] = check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN")
       else
         param["value"] = applications[param["name"].split("_")[1..].join.downcase]
       end
     end
+
     template
   end
-
-  def create_namespace_body(service_name)
-    {
-      "apiVersion": "project.openshift.io/v1",
-      "kind": "Project",
-      "metadata": {
-        "annotations": {
-          "openshift.io/display-name": "#{get_os_namespace(service_name)}",
-        },
-        "name": "#{get_os_namespace(service_name)}"
-      }
-   }.to_json
-  end
-
 
   def set_latest_image_stream_tag(name, version)
     {
@@ -259,19 +267,19 @@ module OsHelper
     }.to_json
   end
 
-  def image_stream_tag_body(name, version, repository)
+  def image_stream_tag_body(app_name, version, repository, service_name)
     {
       "kind": "ImageStreamTag",
       "apiVersion": "image.openshift.io/v1",
       "metadata": {
-        "name": "#{name}:#{version}"
+        "name": "#{service_name}-#{app_name}:#{version}"
       },
       "tag": {
         "name": "",
         "annotations": {},
         "from": {
           "kind": "DockerImage",
-          "name": "#{repository}/#{name}:#{version}"
+          "name": "#{repository}/#{app_name}:#{version}"
         },
       "importPolicy": {},
       "referencePolicy": {

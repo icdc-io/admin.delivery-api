@@ -10,6 +10,8 @@ class Api::V1::UpdatesController < ApplicationController
     else
       render json: nil
     end
+  rescue
+    render json: nil
   end
 
   def create

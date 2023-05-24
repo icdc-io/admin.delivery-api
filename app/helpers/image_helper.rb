@@ -29,6 +29,8 @@ module ImageHelper
       end
     end
     return nil
+  rescue
+    nil
   end
 
 end

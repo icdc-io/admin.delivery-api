@@ -3,53 +3,97 @@ class Api::V1::StatusesController < ApplicationController
   include OsCommonHelper
   include ResponseHelper
   before_action :login
+  before_action :setup_prefix, only: [:show]
 
   def show
-    services = service_config
-    services = services.keys.map{|namespace| services[namespace] }.flatten
-    services_statuses = []
-    response = []
-    services.compact.map do |service|
-      status = service_status(service)
-      next if status == {}
-      services_statuses << status unless services_statuses.include?(status)
-    end.compact
-    services_statuses.map{|status| services_statuses.delete(status) if status.to_s == "{}"}
-    services_statuses.compact.map do |service|
-      common_name = service.keys.map do |name|
-        "\"#{name}\".split('-')"
-      end.join(" & ")
-      common_service_name = eval(common_name).join("-")
-      common_status = common_service_status(service)
-      response << {"common_name"   => common_service_name,
-                   "common_status" => common_service_status(service),
-                   "common_service_installed" => common_service_installed(service),
-                   "services"      => service}
+    namespaces = valid_namespaces(get_all_namespaces)
+    services = namespaces.map { |namespace| common_service_name(namespace) }
+
+    dcs = parsed_dcs(namespaces)
+    response = services.map do |service|
+      service_dcs = dcs.select { |dc| dc["service"] == service }
+      {
+        "common_name" => service,
+        "common_service_status" => common_service_status(service_dcs),
+        "common_service_installed" => common_service_installed(service_dcs),
+        "common_service_deleted" => common_service_deleted(service),
+        "services" => service_dcs.map do |service_dc|
+          {
+            service_dc["name"] => {
+              "service_installed" => service_dc["service_installed"],
+              "service_status"  => service_dc["service_status"],
+            }
+          }
+        end
+      }
     end
 
-    success response
+    return success response
   end
 
 
 
   private
 
-  def common_service_status(statuses)
-    state = []
-    statuses.keys.each do |service_name|
-      service_status = statuses[service_name]["service_status"]
-      state << service_status unless state.include?(service_status)
-    end
-    return state.first if state.count == 1
-    return "Running" if state.include?("Running")
-    return "Undefined" if state.include?("Undefined")
+  def setup_prefix
+    @prefix = ENV['NAMESPACE_PREFIX'] || 'cloud' 
   end
 
-  def common_service_installed(statuses)
-    state = statuses.keys.map do |service_name|
-      statuses[service_name]["service_installed"]
+  def valid_namespaces(namespaces)
+    namespaces.reject { |namespace| namespace unless namespace.start_with? @prefix }
+  end
+
+  def common_service_name(namespace)
+    namespace.gsub("#{@prefix}-", '')
+  end
+
+  def common_service_status(dcs)
+    state = dcs.map { |dc| dc["service_status"] }.uniq
+    return state.first if state.count == 1
+    return "Pending" if state.include?("Pending")
+    return "Running" if state.include?("Running")
+    return "Deleting" if state.include?("Deleting")
+    return "Undefined" if state.include?("Undefined")
+    return "Error" if state.include?("Error")
+    return "Failed" if state.include?("Failed")
+  end
+
+  def common_service_installed(dcs)
+    uniq_statuses = dcs.map { |dc| dc["service_installed"] }.uniq
+    return false if (uniq_statuses.include?("false") || uniq_statuses.compact.empty?)
+    true
+  end
+
+  def common_service_deleted(service)
+    get_pvc(service).dig("items").empty?
+  end
+
+  def deployment_configs_list(namespaces)
+    deployment_configs = []
+
+    namespaces.each do |namespace|
+      deployment_configs << get_deployment_configs(namespace)
     end
-    return "false" if state.include?("false")
-    "true"
+
+    deployment_configs.flatten
+  end
+
+  def parsed_dcs(namespaces)
+    deployment_configs_list(namespaces).map do |dc|
+      name = dc.dig("metadata", "name")
+      service = dc.dig("metadata", "labels", "service")
+      revision = dc.dig("status", "latestVersion")
+      ns = dc.dig("metadata", "namespace")
+      service_installed = image_stream_exists?(name, ns)
+      service_status = revision > 0 ? get_replication_controller_status(name, revision, ns) : "Error"
+
+      {
+        "name" => name,
+        "service" => service,
+        "revision" => revision,
+        "service_status" => service_status,
+        "service_installed" => service_installed,
+      }
+    end
   end
 end

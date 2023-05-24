@@ -74,7 +74,7 @@ module GithubHelper
     versions = []
     stream_hash = get_services_changelogs(service_name).map do |service|
       service if service["download_url"].split("/").last.include?("release")
-    end.compact!
+    end.compact
     stream_hash.map do |sh|
       uri = URI.parse(sh["download_url"])
       request = Net::HTTP::Get.new(uri)
@@ -83,6 +83,8 @@ module GithubHelper
       versions << response.select{|resp| resp if resp["tag"] == "latest"}
     end
     versions.compact.flatten
+    rescue
+      []
   end
 
   def get_latest_version(service_name)

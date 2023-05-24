@@ -5,3 +5,5 @@ $-extra:
   - artifactory
 $-test:
   - web-server
+$-admin:
+  - admin

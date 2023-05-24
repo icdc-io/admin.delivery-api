@@ -43,19 +43,19 @@ module SystemServices
     return "No version for updating"
   end
 
-  def update_service_version(stream_hash)
+  def update_service_version(stream_hash, service_name)
     up = updated_version(stream_hash).dig('available_service_version')
     return "No available version for update." unless up
     sr = service_repository(stream_hash, up)
-    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr)
+    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr, service_name)
     set_image_tag(stream_hash["metadata"], up)
   end
 
-  def upgrade_service_version(stream_hash)
+  def upgrade_service_version(stream_hash, service_name)
     up = release_version(stream_hash).dig(:available_service_version)
     return "No available version for upgrade." unless up
     sr = service_repository(stream_hash, up)
-    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr)
+    create_image_stream_tag(stream_hash["metadata"]["name"], up, sr, service_name)
     set_image_tag(stream_hash["metadata"], up)
   end
 
@@ -82,7 +82,7 @@ module SystemServices
     img_streams = image_streams(service_name)
     service_installed = false unless img_streams
     service_installed = true if img_streams
-    service_status = 'deleting' if $deleting[service_name] == "deleting"
+    service_status = 'Deleting' if $deleting[service_name] == "deleting"
     revisions = get_deployment_config_revision(service_name)
     revisions.keys.each do |service| 
       service_status = get_replication_controller_status(service, revisions[service], get_os_namespace(service_name)) || "Undefined"

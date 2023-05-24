@@ -1,9 +1,9 @@
 module OsCreateHelper
-include OsCommonHelper
+  include OsCommonHelper
   
-  def create_image_stream_tag(name, version, repository, service_name)
+  def create_image_stream_tag(app_name, version, repository, service_name)
     puts "---CREATE IMAGE STREAM TAG---"
-    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(name, version, repository)) #uncomment
+    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(app_name, version, repository, service_name)) #uncomment
   end
 
   def create_image_stream_service_tag(service)
@@ -37,7 +37,7 @@ include OsCommonHelper
     puts "---CREATE DEPLOYMENT---"
     # body = source["objects"].select { |s| s["kind"].eql?("Deployment") }.first
     puts source.to_json
-    post_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments", source.to_json) if body
+    post_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments", source.to_json)# if body
   end
 
   def create_route(source, service_name)
@@ -59,13 +59,13 @@ include OsCommonHelper
   def create_service_account(source, service_name)
     puts "---CREATE SA---"    
     puts source.to_json
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", body.to_json) if body
+    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", body.to_json)# if body
   end
 
-  def create_configmap(source, service_name)
+  def create_config_map(source, service_name)
     puts "---CREATE CM---"
     puts source.to_json
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps", source.to_json) if body
+    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps", source.to_json)# if body
   end
 
   def create_persistent_volume_claim(source, service_name)
@@ -75,13 +75,27 @@ include OsCommonHelper
   end
 
   def create_namespace(service_name)
-    post_request_api_os("apis/project.openshift.io/v1/projects", create_namespace_body(service_name))
+    post_request_api_os("apis/project.openshift.io/v1/projectrequests", create_namespace_body(service_name))
   end
     
   def create_image_stream(source, service_name)
     puts "---CREATE IS---"
     puts source.to_json
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams", source.to_json)
+  end
+
+  private
+
+  def create_namespace_body(service_name)
+    prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+    {
+      "apiVersion": "project.openshift.io/v1",
+      "kind": "ProjectRequest",
+      "metadata": {
+        "name": "#{prefix}-#{service_name}"
+      },
+      "displayName": "#{service_name.capitalize} Service"
+   }.to_json
   end
 
 end
