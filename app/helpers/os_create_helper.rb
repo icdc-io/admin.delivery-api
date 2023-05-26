@@ -59,7 +59,7 @@ module OsCreateHelper
   def create_service_account(source, service_name)
     puts "---CREATE SA---"    
     puts source.to_json
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", body.to_json)# if body
+    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", source.to_json)# if body
   end
 
   def create_config_map(source, service_name)
@@ -82,6 +82,18 @@ module OsCreateHelper
     puts "---CREATE IS---"
     puts source.to_json
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams", source.to_json)
+  end
+
+  def create_role(source, service_name)                                                                                        
+    puts "---CREATE ROLE---"           
+    puts source.to_json                             
+    post_request_api_os("apis/rbac.authorization.k8s.io/v1/namespaces/#{get_os_namespace(service_name)}/roles", source.to_json)
+  end                                                                                                                          
+                       
+  def create_role_binding(source, service_name)                                                                                
+    puts "---CREATE ROLEBINDING---"
+    puts source.to_json            
+    post_request_api_os("apis/rbac.authorization.k8s.io/v1/namespaces/#{get_os_namespace(service_name)}/rolebindings", source.to_json)
   end
 
   private
