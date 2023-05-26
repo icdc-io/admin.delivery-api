@@ -222,7 +222,7 @@ module OsHelper
   def update_template_parametrs(template, applications, service, version, namespace)
     white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE"]
     white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "location_domain").empty?
-    applications.keys.map{|a| white_list.append "TAG_#{a.upcase}"}
+    applications.keys.map{|a| white_list.append "TAG_#{a.underscore.upcase}"}
     template["parameters"].map do |param|
       next unless white_list.include?(param["name"])
       case param["name"]
