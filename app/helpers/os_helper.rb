@@ -235,7 +235,7 @@ module OsHelper
       when "LOCATION_DOMAIN"
         param["value"] = check_config_map_env_loc(service).dig("data", "location_domain")
       else
-        param["value"] = applications[param["name"].split("_")[1..].join.downcase]
+        param["value"] = applications[param["name"].split("_")[1..].join('-').downcase]
       end
     end
 
