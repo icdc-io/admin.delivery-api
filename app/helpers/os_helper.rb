@@ -209,6 +209,7 @@ module OsHelper
     template = get_service_repository(service)
     required_service["applications"].map{|app| applications[app["name"]] = app["tag"]}
     template = update_template_parametrs(template, applications, service, required_service["version"], get_os_namespace(service))
+    create_dns_records(template)
     generated_service_template = generate_service_template(template, service)
     generated_service_template["objects"].map do |obj|
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
@@ -218,6 +219,35 @@ module OsHelper
 
 
   private
+
+  def create_dns_records(template)
+    dns_params = template.dig("parameters").select { |param| param["name"] =~ /HOSTNAME/ }
+    
+    dns_params.each do |dns_param|
+      case dns_param["name"]
+      when /HOSTNAME_SYS_*/
+        dns_host = ENV["DNS_HOST_SYS"] || "sys.cloudgw-account.#{ENV['LOCATION_DOMAIN']}"
+      when /HOSTNAME_EXT_*/
+        dns_host = ENV["DNS_HOST_EXT"] || "gw.ext.#{ENV['OCP_DOMAIN']}"
+      when /HOSTNAME_VPN_*/
+        dns_host = ENV["DNS_HOST_VPN"] || "gw.vpn.#{ENV['OCP_DOMAIN']}"
+      else
+        next
+      end
+
+      hostname = dns_param["value"]
+
+      create_dns_record(hostname, dns_host)
+    end
+  end
+
+  def delete_dns_records(template)
+    dns_params = template.dig("parameters").select { |param| param["name"] =~ /HOSTNAME/ }
+    dns_params.each do |dns_param|
+      hostname = dns_param["value"]
+      delete_dns_record(hostname)
+    end
+  end
 
   def update_template_parametrs(template, applications, service, version, namespace)
     white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE"]

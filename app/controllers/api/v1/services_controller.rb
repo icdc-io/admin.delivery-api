@@ -42,8 +42,8 @@ class Api::V1::ServicesController < ApplicationController
 
     service_name = params[:service_name]
     service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
-    required_services = service["required"]
-    installed_version = get_installed_service(service_name)
+    #required_services = service["required"]
+    #installed_version = get_installed_service(service_name)
     # required_services.keys.each do |required_service|
     #   installed_version = get_installed_service(required_service)
     #   next if installed_version == "404"
@@ -57,8 +57,6 @@ class Api::V1::ServicesController < ApplicationController
     service_name = params[:service_name]
     update_service(service_name, service)
     no_content
-    
-    create_dns_record(service_name)
   end
 
   def delete
@@ -67,7 +65,9 @@ class Api::V1::ServicesController < ApplicationController
       delete_code = delete_service(params[:service_name], params[:delete_persistent_data])
       if delete_code.to_i == 204
         $deleting.delete(params[:service_name])
-        delete_dns_record(params[:service_name])
+        #delete_dns_record(params[:service_name])
+        template = get_service_repository(params[:service_name])
+        delete_dns_records(template)
         return '204'
       end
       sleep 5
