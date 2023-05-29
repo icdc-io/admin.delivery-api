@@ -7,7 +7,7 @@ module ServiceHelper
         dns_owner = ENV["DNS_OWNER"] || "admin@#{location_domain}"
         puts "---CREATE FQDN---"
         puts "ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>Resolv.getaddress(dns_host)                                                            
-        coredns.domain("#{service_name}.#{location_domain}").add("ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>Resolv.getaddress(dns_host))       
+        coredns.domain("#{hostname}.#{location_domain}").add("ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>Resolv.getaddress(dns_host))       
     end                                                                      
 
 
