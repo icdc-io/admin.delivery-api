@@ -99,7 +99,7 @@ module OsCreateHelper
   def create_cron_job(source, service_name)                                                                                
     puts "---CREATE CRONJOB---"
     puts source.to_json            
-    post_request_api_os("apis/batch/v1/watch/namespaces/#{get_os_namespace(service_name)}/cronjobs", source.to_json)
+    post_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs", source.to_json)
   end
 
   private
