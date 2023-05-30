@@ -96,6 +96,12 @@ module OsCreateHelper
     post_request_api_os("apis/rbac.authorization.k8s.io/v1/namespaces/#{get_os_namespace(service_name)}/rolebindings", source.to_json)
   end
 
+  def create_cron_job(source, service_name)                                                                                
+    puts "---CREATE CRONJOB---"
+    puts source.to_json            
+    post_request_api_os("apis/batch/v1/watch/namespaces/#{get_os_namespace(service_name)}/cronjobs", source.to_json)
+  end
+
   private
 
   def create_namespace_body(service_name)
