@@ -95,6 +95,6 @@ module OsDeleteHelper
 
   def delete_os_cron_job(service_name)
     puts "---DELETE CJ---"
-    delete_request_api_os("apis/batch/v1beta1/namespaces/#{get_os_namespace(service_name)}/cronjobs?labelSelector=service=#{service_name}")
+    delete_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs?labelSelector=service=#{service_name}")
   end 
 end
