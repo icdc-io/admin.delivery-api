@@ -2,7 +2,7 @@ module ServiceHelper
     include OsHelper
     def create_dns_record(hostname, dns_host)
       location_domain = "#{ENV["LOCATION_DOMAIN"]}"
-      account = ENV["DNS_ACCOUNT"] || "sys"
+      account = ENV["DNS_ACCOUNT"] || ENV["LOCATION_ADMIN_NAME"]
       dns_ttl = ENV["DNS_TTL"].to_i || 3600
       dns_owner = ENV["DNS_OWNER"] || "admin@#{location_domain}"
       puts "---CREATE FQDN---"
