@@ -228,9 +228,9 @@ module OsHelper
       when /HOSTNAME_SYS_*/
         dns_host = ENV["DNS_HOST_SYS"] || "sys.cloudgw-account.#{ENV['LOCATION_DOMAIN']}"
       when /HOSTNAME_EXT_*/
-        dns_host = ENV["DNS_HOST_EXT"] || "gw.ext.#{ENV['OCP_DOMAIN']}"
+        dns_host = ENV["DNS_HOST_EXT"] || "gw.ext.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
       when /HOSTNAME_VPN_*/
-        dns_host = ENV["DNS_HOST_VPN"] || "gw.vpn.#{ENV['OCP_DOMAIN']}"
+        dns_host = ENV["DNS_HOST_VPN"] || "gw.vpn.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
       else
         next
       end
