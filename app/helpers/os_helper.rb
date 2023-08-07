@@ -91,7 +91,7 @@ module OsHelper
     deleted_check << delete_os_horizontal_pod_auto_scaler(service_name).to_s
     
     deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
-    deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data == "true"
+    #deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data == "true"
     return 204 unless deleted_check.include?("400")
   rescue => e
     puts "Something wrong #{e.message}"
@@ -109,7 +109,7 @@ module OsHelper
     return_codes << check_service_account(service_name)
     return_codes << check_config_map(service_name)
     return_codes << check_pvc(service_name) if delete_persistent_data
-    return_codes << check_namespace(service_name) if delete_persistent_data
+    #return_codes << check_namespace(service_name) if delete_persistent_data
     return true if return_codes.uniq.count > 1
     return false
   end
@@ -209,6 +209,7 @@ module OsHelper
     template = get_service_repository(service)
     required_service["applications"].map{|app| applications[app["name"]] = app["tag"]}
     template = update_template_parametrs(template, applications, service, required_service["version"], get_os_namespace(service))
+    create_dns_records(template)
     generated_service_template = generate_service_template(template, service)
     generated_service_template["objects"].map do |obj|
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
@@ -219,10 +220,39 @@ module OsHelper
 
   private
 
+  def create_dns_records(template)
+    dns_params = template.dig("parameters").select { |param| param["name"] =~ /HOSTNAME/ }
+    
+    dns_params.each do |dns_param|
+      case dns_param["name"]
+      when /HOSTNAME_SYS_*/
+        dns_host = ENV["DNS_HOST_SYS"] || "sys.cloudgw-account.#{ENV['LOCATION_DOMAIN']}"
+      when /HOSTNAME_EXT_*/
+        dns_host = ENV["DNS_HOST_EXT"] || "gw.ext.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
+      when /HOSTNAME_VPN_*/
+        dns_host = ENV["DNS_HOST_VPN"] || "gw.vpn.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
+      else
+        next
+      end
+
+      hostname = dns_param["value"]
+
+      create_dns_record(hostname, dns_host)
+    end
+  end
+
+  def delete_dns_records(template)
+    dns_params = template.dig("parameters").select { |param| param["name"] =~ /HOSTNAME/ }
+    dns_params.each do |dns_param|
+      hostname = dns_param["value"]
+      delete_dns_record(hostname)
+    end
+  end
+
   def update_template_parametrs(template, applications, service, version, namespace)
     white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE"]
-    white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN").empty?
-    applications.keys.map{|a| white_list.append "TAG_#{a.upcase}"}
+    white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "location_domain").empty?
+    applications.keys.map{|a| white_list.append "TAG_#{a.underscore.upcase}"}
     template["parameters"].map do |param|
       next unless white_list.include?(param["name"])
       case param["name"]
@@ -233,9 +263,9 @@ module OsHelper
       when "APPLICATION_DOMAIN"
         param["value"] = "#{ENV["LOCATION_DOMAIN"]}"
       when "LOCATION_DOMAIN"
-        param["value"] = check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN")
+        param["value"] = check_config_map_env_loc(service).dig("data", "location_domain")
       else
-        param["value"] = applications[param["name"].split("_")[1..].join.downcase]
+        param["value"] = applications[param["name"].split("_")[1..].join('-').downcase]
       end
     end
 
