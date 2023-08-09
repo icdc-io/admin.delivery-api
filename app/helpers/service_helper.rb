@@ -3,7 +3,7 @@ module ServiceHelper
     def create_dns_record(hostname, dns_host)
       location_domain = "#{ENV["LOCATION_DOMAIN"]}"
       account = ENV["DNS_ACCOUNT"] || ENV["LOCATION_ADMIN_NAME"]
-      dns_ttl = ENV["DNS_TTL"].to_i || 3600
+      dns_ttl = (ENV["DNS_TTL"] || 3600).to_i
       dns_owner = ENV["DNS_OWNER"] || "admin@#{location_domain}"
       puts "---CREATE FQDN---"
       puts "ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>Resolv.getaddress(dns_host)
