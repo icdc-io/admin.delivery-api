@@ -16,10 +16,12 @@ module ServiceHelper
       end
 
       if coredns.domain("#{hostname}.#{location_domain}").list.empty?
-        coredns.domain("#{hostname}.#{location_domain}").add({"ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>dns_host})
+        # resolve by type A
+        coredns.domain("#{hostname}.#{location_domain}").add("ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>Resolv.getaddress(dns_host))
+        # resolve by type CNAME - doesn't work on coredns
+        #coredns.domain("#{hostname}.#{location_domain}").add({"ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>dns_host})
       end
-      # resolve by type A
-      #coredns.domain("#{hostname}.#{location_domain}").add("ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>Resolv.getaddress(dns_host))
+
     end
 
 
