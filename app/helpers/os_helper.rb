@@ -250,7 +250,7 @@ module OsHelper
   end
 
   def update_template_parametrs(template, applications, service, version, namespace)
-    white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE", "REGISTRY_SERVER"]
+    white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE", "REGISTRY_SERVER", "REGISTRY_PROXY_SERVER"]
     white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "location_domain").empty?
     applications.keys.map{|a| white_list.append "TAG_#{a.underscore.upcase}"}
     template["parameters"].map do |param|
@@ -266,6 +266,8 @@ module OsHelper
         param["value"] = check_config_map_env_loc(service).dig("data", "location_domain")
       when "REGISTRY_SERVER"
         param["value"] = ENV["REGISTRY_SERVER"] if ENV["REGISTRY_SERVER"]
+      when "REGISTRY_PROXY_SERVER"
+        param["value"] = ENV["REGISTRY_PROXY_SERVER"] if ENV["REGISTRY_PROXY_SERVER"]
       else
         param["value"] = applications[param["name"].split("_")[1..].join('-').downcase]
       end
