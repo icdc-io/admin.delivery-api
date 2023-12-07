@@ -192,7 +192,10 @@ module OsHelper
   end
 
   def update_service(service_name, required_service)
-    service_repository = get_service_repository(service_name)["parameters"].map{ |param| param["value"] if param["name"] == "SERVICE_REPOSITORY"}.compact.first
+    #service_repository = get_service_repository(service_name)["parameters"].map{ |param| param["value"] if param["name"] == "SERVICE_REPOSITORY"}.compact.first
+    namespace = get_os_namespace(service_name)
+    registry_server =  ENV['REGISTRY_SERVER'] || get_service_repository(service_name)["parameters"].find {|x| x["name"] == "REGISTRY_SERVER" }["value"]
+    service_repository = "#{registry_server}/#{namespace}"
     applications = required_service["applications"].compact.map do |app|
       create_image_stream_tag(app['name'], app["tag"], service_repository, service_name)
       set_image_tag("#{service_name}-#{app['name']}", app["tag"], service_name)
