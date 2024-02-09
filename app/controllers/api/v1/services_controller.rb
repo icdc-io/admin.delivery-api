@@ -25,12 +25,13 @@ class Api::V1::ServicesController < ApplicationController
   end
 
   def overview
-    metadata = find_template(params[:service_name])
-    result = {}
-    result[:service_name] = metadata.dig('metadata','annotations','openshift.io/display-name')
-    result[:description]  = metadata.dig('metadata','annotations','description')
-    result[:documentation_url] = metadata.dig('metadata','annotations','openshift.io/documentation-url')
-    render json:result
+    service = get_installed_service(params[:service_name])
+    latest_version = service["spec"]["tags"].collect{|tag| tag["from"]["name"] if tag["name"] == "latest"}.compact.first
+    service_version = describe_service_version(params[:service_name], latest_version)
+
+    success(service_version)
+  rescue
+    nil
   end
 
   def create
@@ -42,6 +43,7 @@ class Api::V1::ServicesController < ApplicationController
 
     service_name = params[:service_name]
     service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
+
     #required_services = service["required"]
     #installed_version = get_installed_service(service_name)
     # required_services.keys.each do |required_service|
@@ -51,6 +53,7 @@ class Api::V1::ServicesController < ApplicationController
     #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
     #   end
     # end
+
     deploy_template(service_name, service)
 
     #update
