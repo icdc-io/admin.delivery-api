@@ -111,6 +111,20 @@ paths:
                     example: 1.1.1
 
   /service/{service_name}:
+    get:
+      operationId: service_info
+      summary: Get info on specific service
+      parameters:
+      - in: path
+        name: service_name
+        schema:
+          type: string
+        required: true
+      tags:
+        - 'Service'
+      responses:
+        '200':
+          description: 'Service info'
     delete:
       operationId: deleteService
       parameters:
@@ -316,6 +330,15 @@ paths:
         '204':
           description: 'No content'
 
+  /services:
+    get:
+      tags:
+        - 'Services'
+      summary: Get services
+      responses:
+        '200':
+          description: 'Success'
+
   /services/status:
     get:
       tags:
@@ -339,6 +362,7 @@ paths:
                       web-server-db:
                         service_installed: true
                         service_status: Complete
+  
 components:
   responses:
     UnauthorizedError:
