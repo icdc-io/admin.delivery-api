@@ -138,7 +138,7 @@ paths:
                     example: latest
                   date:
                     type: string
-                    example: 2024-02-09
+                    example: '2024-02-09'
                   required:
                     type: object
                     properties:
