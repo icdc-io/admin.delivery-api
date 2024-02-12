@@ -27,9 +27,9 @@ class Api::V1::ServicesController < ApplicationController
   def overview
     service = get_installed_service(params[:service_name])
     latest_version = service["spec"]["tags"].collect{|tag| tag["from"]["name"] if tag["name"] == "latest"}.compact.first
-    service_version = describe_service_version(params[:service_name], latest_version)
+    service_version = describe_service_version(params[:service_name], latest_version).dig(0)
 
-    success(service_version)
+    render json: service_version, status: :ok
   rescue
     nil
   end
