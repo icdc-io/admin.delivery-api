@@ -11,6 +11,8 @@ externalDocs:
 servers:
 - url: https://api.scz.lab.icdc.io/api/delivery/v1
   description: API Proxy SCZ Lab
+- url: https://api.dcz.lab.icdc.io/api/delivery/v1
+  description: API Proxy DCZ Lab
 - url: https://api-loc.ext.dcl.ocp.lab.icdc.io/api/delivery/v1
   description: API Route DCL Lab
 - url: https://api.ext.upi.ocp.lab.icdc.io/api/v1
@@ -52,7 +54,7 @@ paths:
                       date: 2021-09-09
                       required:
                         api-gateway: 1.0.1
-                      aplications:
+                      applications:
                         - name: httpd
                           tag: 1.0.1
                           description:
@@ -225,7 +227,7 @@ paths:
                       date: 2021-09-09
                       required:
                         api-gateway: 1.0.1
-                      aplications:
+                      applications:
                         - name: httpd
                           tag: 1.0.1
                           description:
@@ -283,7 +285,7 @@ paths:
                       date: 2021-09-09
                       required:
                         api-gateway: 1.0.1
-                      aplications:
+                      applications:
                         - name: httpd
                           tag: 1.0.1
                           description:
