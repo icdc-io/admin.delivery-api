@@ -22,7 +22,7 @@ tags:
     description: Service API
   - name: Services
     description: Services API
-     
+
 paths:
   /service/{service_name}/version:
     parameters:
@@ -111,6 +111,65 @@ paths:
                     example: 1.1.1
 
   /service/{service_name}:
+    get:
+      operationId: describeService
+      parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+      tags:
+        - 'Service'
+      summary: Explore installed service version details
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: 1.1.1
+                  tag:
+                    type: string
+                    example: latest
+                  date:
+                    type: string
+                    example: '2024-02-09'
+                  required:
+                    type: object
+                    properties:
+                      admin:
+                        type: string
+                        example: 1.0.0
+                      compute:
+                        type: string
+                        example: 1.0.0
+                  applications:
+                    type: array
+                    example:
+                      - name: apigw
+                        tag: 1.0.0
+                        description:
+                          warnings: "* warning1\r\n* warning2"
+                          features: "* feature1\r\n* feature2"
+                          security_fixes: "* security1\r\n* security2"
+                          bug_fixes: "* bug1\r\n* bug2"
+                          depricated: "* depricated1\r\n* depricated2"
+                          known_issues: ""
+                      - name: engine
+                        tag: 1.0.0
+                        ui_url: /billing/engine/remoteEntry.js
+                        description:
+                          warnings: "* warning1\r\n* warning2"
+                          features: "* feature1\r\n* feature2"
+                          security_fixes: "* security1\r\n* security2"
+                          bug_fixes: "* bug1\r\n* bug2"
+                          depricated: "* depricated1\r\n* depricated2"
+                          known_issues: ""
     delete:
       operationId: deleteService
       parameters:
@@ -132,7 +191,7 @@ paths:
       responses:
         '204':
           description: 'No content'
-          
+
   /service/{service_name}/update:
 #    parameters:
 #      - in: path
@@ -234,7 +293,7 @@ paths:
                             bug_fixes: "* bug1\r\n* bug2"
                             depricated: "* depricated1\r\n* depricated2"
                             known_issues: ""
-    
+
     put:
       tags:
         - 'Service'
@@ -281,7 +340,7 @@ paths:
                     example: 200
                   data:
                     type: array
-                    example: 
+                    example:
                       - "2.0.2"
                       - "2.0.1"
     put:
@@ -349,6 +408,6 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT 
+      bearerFormat: JWT
 security:
   - bearerAuth: []
