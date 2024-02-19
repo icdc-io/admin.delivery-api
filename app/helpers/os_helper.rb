@@ -222,6 +222,7 @@ module OsHelper
     applications = required_service["applications"].compact.map do |app|
       create_image_stream_tag(app['name'], app["tag"], service_repository, service_name)
       set_image_tag("#{service_name}-#{app['name']}", app["tag"], service_name)
+      create_image_stream_import(app['name'], app["tag"], service_repository, service_name)
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
     set_image_tag(service_name, required_service["version"], service_name)
@@ -354,6 +355,37 @@ module OsHelper
       },
       "lookupPolicy": {
         "local": false
+      }
+    }.to_json
+  end
+
+  def image_stream_import_body(app_name, version, repository, service_name)
+    {
+      "kind": "ImageStreamImport",
+      "apiVersion": "image.openshift.io/v1",
+      "metadata": {
+        "name": "#{service_name}-#{app_name}"
+      },
+      "spec": {
+        "import": true,
+        "images": [
+          {
+            "from": {
+              "kind": "DockerImage",
+              "name": "#{repository}/#{app_name}:#{version}"
+            },
+            "to": {
+              "name": "#{version}"
+            },
+            "importPolicy": {
+              "insecure": true,
+              "importMode": "Legacy"
+            },
+            "referencePolicy": {
+              "type": "Source"
+            }
+          }
+        ]
       }
     }.to_json
   end
