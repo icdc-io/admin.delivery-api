@@ -7,6 +7,11 @@ module OsCreateHelper
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(app_name, version, repository, service_name)) #uncomment
   end
 
+  def create_image_stream_import(app_name, version, repository, service_name)
+    puts "---CREATE IMAGE STREAM IMPORT---"
+    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamimports", image_stream_import_body(app_name, version, repository, service_name))
+  end
+
   def create_image_stream_service_tag(service)
     puts "---CREATE IMAGE STREAM SERVICE TAG---"
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service["NAME"])}/imagestreamtags", image_stream_service_tag_body(service)) #uncomment
