@@ -37,6 +37,22 @@ module RequestHelper
     do_request(request, uri)
   end
 
+  def patch_request_api_os(resource, body)
+    os_creds = service_creds("os_api")
+    url = os_creds["url"]
+    url = "#{url}/#{resource}"
+
+    uri = URI.parse(url)
+
+    request = Net::HTTP::Patch.new(uri)
+    request.content_type = "application/merge-patch+json"
+    request["Authorization"] = "Bearer #{os_creds["token"]}"
+    request["Accept"] = "application/json"
+    request.body = body
+
+    do_request(request, uri)
+  end
+
   def post_request_api_os(resource, body)
     os_creds = service_creds("os_api")
     url = os_creds["url"]
@@ -81,7 +97,7 @@ module RequestHelper
     puts uri
 
     do_request(request, uri)
-  end 
+  end
 
   def get_request_api_github(uri)
     request = Net::HTTP::Get.new(uri)
@@ -96,14 +112,18 @@ module RequestHelper
     request_result = do_request(request, uri)
 
     return 'FAIL' if request_result.class.eql?('String')
-    return 'OK' if request_result 
+    return 'OK' if request_result
   end
 
   def do_request(request, uri)
     response = Net::HTTP.start(uri.hostname, uri.port, req_options(uri)) do |http|
       http.request(request)
     end
+
+    puts "-----\n"
     puts response.body
+    puts "-----\n"
+
     return JSON.parse(response.body) if (response.code[0] == '2') || (response.code[0] == '3')
     return response.code
   rescue

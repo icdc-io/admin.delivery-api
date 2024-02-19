@@ -2,7 +2,7 @@ require 'json'
 
 module OsHelper
   include RequestHelper
-  include GithubHelper 
+  include GithubHelper
 
   include OsCreateHelper
   include OsDeleteHelper
@@ -89,7 +89,6 @@ module OsHelper
     deleted_check << delete_os_demon_set(service_name).to_s
     deleted_check << delete_os_replica_set(service_name).to_s
     deleted_check << delete_os_horizontal_pod_auto_scaler(service_name).to_s
-    
     deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
     #deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data == "true"
     return 204 unless deleted_check.include?("400")
@@ -155,6 +154,26 @@ module OsHelper
     get_request_api_os("apis/route.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/routes/#{service_name}")
   end
 
+  def check_cronjobs(service_name)
+    get_request_api_os("apis/route.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs/#{service_name}")
+  end
+
+  def check_jobs(service_name)
+    get_request_api_os("apis/route.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/jobs/#{service_name}")
+  end
+
+  def check_statefulset(service_name)
+    get_request_api_os("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/statefulsets/#{service_name}")
+  end
+
+  def check_daemonset(service_name)
+    get_request_api_os("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/daemonsets/#{service_name}")
+  end
+
+  def check_horizontal_pod_autoscaler(service_name)
+    get_request_api_os("apis/autoscaling/v2/namespaces/#{get_os_namespace(service_name)}/horizontalpodautoscalers/#{service_name}")
+  end
+
   def check_secret(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/secrets/#{service_name}")
   end
@@ -177,6 +196,10 @@ module OsHelper
 
   def get_pvc(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name}")
+  end
+
+  def check_service(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{service_name}")
   end
 
   def get_location
@@ -215,7 +238,9 @@ module OsHelper
     create_dns_records(template)
     generated_service_template = generate_service_template(template, service)
     generated_service_template["objects"].map do |obj|
-      eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}')")
+      puts "debug object #{obj}\n"
+      obj_name = obj.dig('metadata', 'name')
+      eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}', '#{obj_name}')")
     end
     # rollout_deployment_config(service)
   end
@@ -225,7 +250,7 @@ module OsHelper
 
   def create_dns_records(template)
     dns_params = template.dig("parameters").select { |param| param["name"] =~ /HOSTNAME/ }
-    
+
     dns_params.each do |dns_param|
       case dns_param["name"]
       when /HOSTNAME_SYS_*/
