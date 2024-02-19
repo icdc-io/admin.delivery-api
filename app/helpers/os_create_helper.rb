@@ -1,6 +1,7 @@
 module OsCreateHelper
   include OsCommonHelper
-  
+  #include OsHelper
+
   def create_image_stream_tag(app_name, version, repository, service_name)
     puts "---CREATE IMAGE STREAM TAG---"
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(app_name, version, repository, service_name)) #uncomment
@@ -13,42 +14,55 @@ module OsCreateHelper
 
   def generate_service_template(template, service_name)
     puts "---GENERATE SERVICE TEMPLATE---"
-    puts get_os_namespace(service_name)
+    #puts get_os_namespace(service_name)
     post_request_api_os("apis/template.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/processedtemplates", template.to_json)
   end
 
-  def create_service(source, service_name)
+  def create_service(source, service_name, name = nil)
     puts "---CREATE SERVICE---"
-    puts source.to_json
+    #puts source.to_json
 
-    # body = source["objects"].select { |s| s["kind"].eql?("Service") }.first
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services", source.to_json)# if body
+    if check_service(service_name) == "404"
+      post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services", source.to_json)# if body
+    else
+      post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{name}", source.to_json)# if body
+    end
   end
 
-  def create_deployment_config(source, service_name)
+  def create_deployment_config(source, service_name, name = nil)
     puts "---CREATE DEPLOYMENT CONFIG---"
-    puts source.to_json
-
+    #puts source.to_json
+    if check_deployment_config(service_name) == "404"
     # body = source["objects"].select { |s| s["kind"].eql?("DeploymentConfig") }.first
-    post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs", source.to_json)# if body
+      post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs", source.to_json)# if body
+    else
+      puts "PATCHING DEPLOYMENT CONFIGS #{source.to_json}"
+      patch_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{name}", source.to_json)
+    end
   end
 
-  def create_deployment(source, service_name)
+  def create_deployment(source, service_name, name = nil)
     puts "---CREATE DEPLOYMENT---"
     # body = source["objects"].select { |s| s["kind"].eql?("Deployment") }.first
     puts source.to_json
-    post_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments", source.to_json)# if body
+    if check_deployment(service_name) == "404"
+      post_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments", source.to_json)# if body
+    else
+      patch_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments/#{name}", source.to_json)# if body
+    end
   end
 
-  def create_route(source, service_name)
+  def create_route(source, service_name, name = nil)
     puts "---CREATE ROUTE---"
-    puts source.to_json
-
-    # body = source["objects"].select { |s| s["kind"].eql?("Route") }.first
-    post_request_api_os("apis/route.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/routes", source.to_json)# if body
+    #puts source.to_json
+    if check_route(service_name) == "404"
+      post_request_api_os("apis/route.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/routes", source.to_json)# if body
+    else
+      patch_request_api_os("apis/route.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/routes/#{name}", source.to_json)# if body
+    end
   end
 
-  def create_secret(source, service_name)
+  def create_secret(source, service_name, name = nil)
     puts "---CREATE SECRET---"
     # body = source["objects"].select { |s| s["kind"].eql?("Secret") }.first
     puts source.to_json
@@ -56,19 +70,23 @@ module OsCreateHelper
     post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/secrets", source.to_json)# if body
   end
 
-  def create_service_account(source, service_name)
-    puts "---CREATE SA---"    
+  def create_service_account(source, service_name, name = nil)
+    puts "---CREATE SA---"
     puts source.to_json
     post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", source.to_json)# if body
   end
 
-  def create_config_map(source, service_name)
+  def create_config_map(source, service_name, name = nil)
     puts "---CREATE CM---"
-    puts source.to_json
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps", source.to_json)# if body
+    #puts source.to_json
+    if check_config_map(service_name) == "404"
+      post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps", source.to_json)# if body
+    else
+      patch_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/configmaps/#{name}", source.to_json)# if body
+    end
   end
 
-  def create_persistent_volume_claim(source, service_name)
+  def create_persistent_volume_claim(source, service_name, name = nil)
     puts "---CREATE PVC---"
     puts source.to_json
     post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims", source.to_json)
@@ -77,29 +95,73 @@ module OsCreateHelper
   def create_namespace(service_name)
     post_request_api_os("apis/project.openshift.io/v1/projectrequests", create_namespace_body(service_name))
   end
-    
-  def create_image_stream(source, service_name)
+
+  def create_image_stream(source, service_name, name = nil)
     puts "---CREATE IS---"
-    puts source.to_json
-    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams", source.to_json)
+    #puts source.to_json
+    if get_image_streams(service_name) == "404"
+      post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams", source.to_json)
+    else
+      patch_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(name)}/imagestreams", source.to_json)
+    end
   end
 
-  def create_role(source, service_name)                                                                                        
-    puts "---CREATE ROLE---"           
-    puts source.to_json                             
+  def create_role(source, service_name, name = nil)
+    puts "---CREATE ROLE---"
+    puts source.to_json
     post_request_api_os("apis/rbac.authorization.k8s.io/v1/namespaces/#{get_os_namespace(service_name)}/roles", source.to_json)
-  end                                                                                                                          
-                       
-  def create_role_binding(source, service_name)                                                                                
+  end
+
+  def create_role_binding(source, service_name, name = nil)
     puts "---CREATE ROLEBINDING---"
-    puts source.to_json            
+    puts source.to_json
     post_request_api_os("apis/rbac.authorization.k8s.io/v1/namespaces/#{get_os_namespace(service_name)}/rolebindings", source.to_json)
   end
 
-  def create_cron_job(source, service_name)                                                                                
+  def create_cron_job(source, service_name, name = nil)
     puts "---CREATE CRONJOB---"
-    puts source.to_json            
-    post_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs", source.to_json)
+    #puts source.to_json
+
+    if check_cronjobs(service_name) == "404"
+      post_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs", source.to_json)
+    else
+      patch_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs/#{name}", source.to_json)
+    end
+  end
+
+  def create_job(source, service_name, name = nil)
+    puts "---CREATE JOB---"
+    #puts source.to_json
+
+    if check_jobs(service_name) == "404"
+      post_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/jobs", source.to_json)
+    else
+      patch_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/jobs/#{name}", source.to_json)
+    end
+  end
+
+  def create_stateful_set(source, service_name, name = nil)
+    if check_statefulset(service_name) == "404"
+      post_request_api_os("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/statefulsets", source.to_json)
+    else
+      patch_request_api_os("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/statefulsets/#{name}", source.to_json)
+    end
+  end
+
+  def create_daemon_set(source, service_name, name = nil)
+    if check_daemonset(service_name) == "404"
+      post_request_api_os("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/daemonsets", source.to_json)
+    else
+      patch_request_api_os("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/daemonsets/#{name}", source.to_json)
+    end
+  end
+
+  def create_horizontal_pod_autoscaler(source, service_name, name = nil)
+    if check_horizontal_pod_autoscaler(service_name) == "404"
+      post_request_api_os("apis/autoscaling/v2/namespaces/#{get_os_namespace(service_name)}/horizontalpodautoscalers", source.to_json)
+    else
+      patch_request_api_os("apis/autoscaling/v2/namespaces/#{get_os_namespace(service_name)}/horizontalpodautoscalers/#{name}", source.to_json)
+    end
   end
 
   private
