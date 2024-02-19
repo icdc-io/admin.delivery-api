@@ -231,11 +231,11 @@ module OsHelper
       when /HOSTNAME_SYS_*/
         dns_host = ENV["DNS_HOST_SYS"] || "sys.cloudgw-account.#{ENV['LOCATION_DOMAIN']}"
       when /HOSTNAME_INT_*/
-        dns_host = ENV["DNS_HOST_INT"] || "gw.int.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
+        dns_host = ENV["DNS_HOST_INT"] || "gwint.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
       when /HOSTNAME_EXT_*/
-        dns_host = ENV["DNS_HOST_EXT"] || "gw.ext.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
+        dns_host = ENV["DNS_HOST_EXT"] || "gwext.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
       when /HOSTNAME_VPN_*/
-        dns_host = ENV["DNS_HOST_VPN"] || "gw.vpn.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
+        dns_host = ENV["DNS_HOST_VPN"] || "gwvpn.sys.ocp.#{ENV['LOCATION_DOMAIN']}"
       else
         next
       end
