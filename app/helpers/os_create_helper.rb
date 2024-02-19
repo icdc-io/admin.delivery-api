@@ -104,11 +104,7 @@ module OsCreateHelper
   def create_image_stream(source, service_name, name = nil)
     puts "---CREATE IS---"
     #puts source.to_json
-    unless object_exists?("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(name)}/imagestreams")
-      post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams", source.to_json)
-    else
-      patch_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(name)}/imagestreams", source.to_json)
-    end
+    post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams", source.to_json)
   end
 
   def create_role(source, service_name, name = nil)
