@@ -18,6 +18,8 @@ class Api::V1::ReleasesController < ApplicationController
       update_versions = request_raw_github("changelogs/#{params[:service_name]}/release-#{installed_version.split(".")[...-1].join(".")}.json")
       update_version = update_versions.find {|x| x["tag"] == "latest"}
 
+      return success(latest_release) unless update_version
+
       if installed_version != latest_release["version"] && update_version["version"] != latest_release["version"]
         return success(latest_release)
       end
