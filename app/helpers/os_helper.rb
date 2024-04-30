@@ -69,7 +69,7 @@ module OsHelper
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
   end
 
-  def delete_service(service_name, delete_persistent_data)
+  def delete_service(service_name, delete_persistent_data, delete_backup_data)
     deleted_check = []
     deleted_check << delete_os_image_stream(service_name).to_s
     deleted_check << delete_os_route(service_name).to_s
@@ -89,7 +89,9 @@ module OsHelper
     deleted_check << delete_os_demon_set(service_name).to_s
     deleted_check << delete_os_replica_set(service_name).to_s
     deleted_check << delete_os_horizontal_pod_auto_scaler(service_name).to_s
-    deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
+    deleted_check << delete_os_pvc_data(service_name).to_s if delete_persistent_data == "true"
+    deleted_check << delete_os_pvc_backup(service_name).to_s if delete_backup_data == "true"
+    #deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
     #deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data == "true"
     return 204 unless deleted_check.include?("400")
   rescue => e
