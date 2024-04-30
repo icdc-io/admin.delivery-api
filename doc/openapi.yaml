@@ -187,6 +187,13 @@ paths:
 #          default: false
 #          example: true
         description: Default value is empty (false)
+      - in: query
+        name: delete_backup_data
+        schema:
+          type: string
+#          default: false
+#          example: true
+        description: Default value is empty (false)
       tags:
         - 'Service'
       summary: Delete service

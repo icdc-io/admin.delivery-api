@@ -78,6 +78,16 @@ module OsDeleteHelper
     delete_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name}")
   end
 
+  def delete_os_pvc_data(service_name)
+    puts "---DELETE PVC---"
+    delete_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name},type=data")
+  end
+
+  def delete_os_pvc_backup(service_name)
+    puts "---DELETE PVC---"
+    delete_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name},type=backup")
+  end
+
   def delete_os_stateful_set(service_name)
     puts "---DELETE SS---"
     delete_request_api_os("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/statefulsets?labelSelector=service=#{service_name}")
