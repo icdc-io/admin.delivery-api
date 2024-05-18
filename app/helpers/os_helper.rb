@@ -200,6 +200,14 @@ module OsHelper
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name}")
   end
 
+  def get_pvc_data(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name},type=data")
+  end
+
+  def get_pvc_backup(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name},type=backup")
+  end
+
   def check_service(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{service_name}")
   end

@@ -400,6 +400,9 @@ paths:
                   - common_name: web-server
                     common_status: Complete
                     common_service_installed: true
+                    common_service_deleted: true
+                    common_data_deleted: true
+                    common_backup_deleted: true
                     services:
                       web-server-api:
                         service_installed: true
