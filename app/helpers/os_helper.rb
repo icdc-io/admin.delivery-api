@@ -305,6 +305,8 @@ module OsHelper
         param["value"] = "#{ENV["LOCATION_DOMAIN"]}"
       when "LOCATION_DOMAIN"
         param["value"] = check_config_map_env_loc(service).dig("data", "location_domain")
+      when "LOCATION_TIMEZONE"
+        param["value"] = check_config_map_env_loc(service).dig("data", "location_timezone")
       when "REGISTRY_SERVER"
         param["value"] = ENV["REGISTRY_SERVER"] if ENV["REGISTRY_SERVER"]
       when "REGISTRY_PROXY_SERVER"
