@@ -17,6 +17,8 @@ class Api::V1::StatusesController < ApplicationController
         "common_service_status" => common_service_status(service_dcs),
         "common_service_installed" => common_service_installed(service_dcs),
         "common_service_deleted" => common_service_deleted(service),
+        "common_data_deleted" => common_data_deleted(service),
+        "common_backup_deleted" => common_backup_deleted(service),
         "services" => service_dcs.map do |service_dc|
           {
             service_dc["name"] => {
@@ -66,6 +68,14 @@ class Api::V1::StatusesController < ApplicationController
 
   def common_service_deleted(service)
     get_pvc(service).dig("items").empty?
+  end
+
+  def common_data_deleted(service)
+    get_pvc_data(service).dig("items").empty?
+  end
+
+  def common_backup_deleted(service)
+    get_pvc_backup(service).dig("items").empty?
   end
 
   def deployment_configs_list(namespaces)
