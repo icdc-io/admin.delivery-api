@@ -10,6 +10,7 @@ module ServiceHelper
       # resolve by type CNAME
 
       existed_records = coredns.domain("#{hostname}.#{location_domain}").list
+      puts "#{existed_records}"
 
       existed_records.each do |record|
         delete_dns_record(hostname) unless record["host"] == dns_host  
@@ -30,6 +31,9 @@ module ServiceHelper
       location_domain = "#{ENV["LOCATION_DOMAIN"]}"
       domain = coredns.domain("#{hostname}.#{location_domain}")
       domain.list_all.each{ |record| domain.delete("name"=> record["name"]) }
+      puts "#{domain}"
+      puts "-----"
+      puts "#{domain.list_all}"
     end
 
     def coredns

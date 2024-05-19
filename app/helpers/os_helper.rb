@@ -249,9 +249,9 @@ module OsHelper
     create_dns_records(template)
     generated_service_template = generate_service_template(template, service)
     generated_service_template["objects"].map do |obj|
-      puts "debug object #{obj}\n"
       obj_name = obj.dig('metadata', 'name')
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}', '#{obj_name}')")
+      puts "debug object #{obj}\n"
     end
     # rollout_deployment_config(service)
   end
