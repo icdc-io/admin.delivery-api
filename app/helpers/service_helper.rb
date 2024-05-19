@@ -6,13 +6,6 @@ module ServiceHelper
       dns_ttl = (ENV["DNS_TTL"] || 3600).to_i
       dns_owner = ENV["DNS_OWNER"] || "admin@#{location_domain}"
 
-      # resolve by type CNAME
-      #existed_records = coredns.domain("#{hostname}.#{location_domain}").list
-      #puts "#{existed_records}"
-      #existed_records.each do |record|
-      #  delete_dns_record(hostname) unless record["host"] == dns_host  
-      #end
-
       if coredns.domain("#{hostname}.#{location_domain}").list.empty?
         puts "---CREATE FQDN---"
         #puts "ttl"=>dns_ttl,"metadata"=>{"account"=> account,"owner"=>dns_owner}, "group"=>"#{hostname}.#{location_domain}","host"=>Resolv.getaddress(dns_host)
