@@ -93,8 +93,8 @@ module RequestHelper
     request.content_type = "application/json"
     request["Authorization"] = "Bearer #{os_creds["token"]}"
     request["Accept"] = "application/json"
-    puts request.to_json
-    puts uri
+    #puts request.to_json
+    #puts uri
 
     do_request(request, uri)
   end
@@ -120,9 +120,9 @@ module RequestHelper
       http.request(request)
     end
 
-    puts "-----\n"
-    puts response.body
-    puts "-----\n"
+    #puts "-----\n"
+    #puts response.body
+    #puts "-----\n"
 
     return JSON.parse(response.body) if (response.code[0] == '2') || (response.code[0] == '3')
     return response.code
