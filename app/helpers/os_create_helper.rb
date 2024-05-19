@@ -50,7 +50,7 @@ module OsCreateHelper
   def create_deployment(source, service_name, name = nil)
     puts "---CREATE DEPLOYMENT---"
     # body = source["objects"].select { |s| s["kind"].eql?("Deployment") }.first
-    puts source.to_json
+    #puts source.to_json
     unless object_exists?("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments/#{name}")
       post_request_api_os("/apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/deployments", source.to_json)# if body
     else
@@ -71,13 +71,13 @@ module OsCreateHelper
   def create_secret(source, service_name, name = nil)
     puts "---CREATE SECRET---"
     # body = source["objects"].select { |s| s["kind"].eql?("Secret") }.first
-    puts source.to_json
+    #puts source.to_json
     post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/secrets", source.to_json)# if body
   end
 
   def create_service_account(source, service_name, name = nil)
     puts "---CREATE SA---"
-    puts source.to_json
+    #puts source.to_json
     post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/serviceaccounts", source.to_json)# if body
   end
 
@@ -93,8 +93,13 @@ module OsCreateHelper
 
   def create_persistent_volume_claim(source, service_name, name = nil)
     puts "---CREATE PVC---"
-    puts source.to_json
-    post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims", source.to_json)
+    #puts source.to_json
+    #post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims", source.to_json)
+    unless object_exists?("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims/#{name}")
+      post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims", source.to_json)# if body
+    else
+      patch_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims/#{name}", source.to_json)
+    end
   end
 
   def create_namespace(service_name)
@@ -109,20 +114,19 @@ module OsCreateHelper
 
   def create_role(source, service_name, name = nil)
     puts "---CREATE ROLE---"
-    puts source.to_json
+    #puts source.to_json
     post_request_api_os("apis/rbac.authorization.k8s.io/v1/namespaces/#{get_os_namespace(service_name)}/roles", source.to_json)
   end
 
   def create_role_binding(source, service_name, name = nil)
     puts "---CREATE ROLEBINDING---"
-    puts source.to_json
+    #puts source.to_json
     post_request_api_os("apis/rbac.authorization.k8s.io/v1/namespaces/#{get_os_namespace(service_name)}/rolebindings", source.to_json)
   end
 
   def create_cron_job(source, service_name, name = nil)
     puts "---CREATE CRONJOB---"
     #puts source.to_json
-
     unless object_exists?("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs/#{name}")
       post_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs", source.to_json)
     else
@@ -133,7 +137,6 @@ module OsCreateHelper
   def create_job(source, service_name, name = nil)
     puts "---CREATE JOB---"
     #puts source.to_json
-
     unless object_exists?("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/jobs/#{name}")
       post_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/jobs", source.to_json)
     else
