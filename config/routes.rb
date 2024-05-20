@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+
+  get '/up', to: proc { [200, {}, ['Up!']] }
+
   namespace :api do
     namespace :v1 do
         # services
