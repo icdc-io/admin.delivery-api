@@ -242,7 +242,8 @@ module OsHelper
     applications = required_service["applications"].compact.map do |app|
       create_image_stream_tag(app['name'], app["tag"], service_repository, service_name)
       set_image_tag("#{service_name}-#{app['name']}", app["tag"], service_name)
-      create_image_stream_import(app['name'], app["tag"], service_repository, service_name)
+      # required basically on dev while patching existing version of image
+      #create_image_stream_import(app['name'], app["tag"], service_repository, service_name)
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
     set_image_tag(service_name, required_service["version"], service_name)
