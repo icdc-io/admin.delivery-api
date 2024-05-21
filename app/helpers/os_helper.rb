@@ -136,6 +136,10 @@ module OsHelper
     get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs").dig("items")
   end
 
+  def get_deploymentconfigs(service_name)                                                        
+    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs?labelSelector=service=#{service_name}")
+  end
+
   def get_installed_service(service_name)
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
   end
@@ -219,9 +223,15 @@ module OsHelper
 
   def rollout_deployment_config(service_name)
     puts "---ROLLOUT DEPLOYMENT CONFIG---"
-    post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{service_name}/instantiate",
-      rollout_dc_template(service_name)
-    )
+    #post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{service_name}/instantiate",
+    #  rollout_dc_template(service_name)
+    #)     
+    dcs = get_deploymentconfigs(service_name)
+    dcs["items"].each do |item|                                                                  
+      post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{item["metadata"]["name"]}/instantiate",
+        rollout_dc_template(item["metadata"]["name"])
+      )                                      
+    end                                                                                                                                  
   end
 
   def update_service(service_name, required_service)
@@ -424,13 +434,12 @@ module OsHelper
     }.to_json
   end
 
-  def rollout_dc_template(service_name)
-    {
-      "kind": "DeploymentRequest",
-      "apiVersion": "apps.openshift.io/v1",
-      "name": "#{service_name}",
-      "latest": true,
-      "force": true
-    }.to_json
+  def rollout_dc_template(deploymentconfig_name)                                                 
+    {                                                                                                                                                        
+      "kind": "DeploymentRequest",                   
+      "apiVersion": "apps.openshift.io/v1",  
+      "name": "#{deploymentconfig_name}",                                                                                                
+      "latest": true,       
+      "force": true                                                                             
+    }.to_json                                       
   end
-end
