@@ -435,12 +435,12 @@ module OsHelper
     }.to_json
   end
 
-  def rollout_dc_template(deploymentconfig_name)                                                 
-    {                                                                                                                                                        
-      "kind": "DeploymentRequest",                   
-      "apiVersion": "apps.openshift.io/v1",  
-      "name": "#{deploymentconfig_name}",                                                                                                
-      "latest": true,       
-      "force": true                                                                             
-    }.to_json                                       
+  def rollout_dc_template(deploymentconfig_name)
+    {
+      "kind": "DeploymentRequest",
+      "apiVersion": "apps.openshift.io/v1",
+      "name": "#{deploymentconfig_name}",
+      "latest": true,
+      "force": true
+    }.to_json
   end
