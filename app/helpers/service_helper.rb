@@ -27,6 +27,7 @@ module ServiceHelper
       puts "---DELETE FQDN---"
       location_domain = "#{ENV["LOCATION_DOMAIN"]}"
       domain = coredns.domain("#{hostname}.#{location_domain}")
+      Rails.logger.info { "#{domain.list_all}" }
       domain.list_all.each{ |record| domain.delete("name"=> record["name"]) }
     end
 
