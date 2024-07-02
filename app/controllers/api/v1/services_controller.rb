@@ -65,7 +65,7 @@ class Api::V1::ServicesController < ApplicationController
   def delete
     $deleting[params[:service_name]] = "deleting"
     10.times do
-      delete_code = delete_service(params[:service_name], params[:delete_persistent_data])
+      delete_code = delete_service(params[:service_name], params[:delete_persistent_data], params[:delete_backup_data])
       if delete_code.to_i == 204
         $deleting.delete(params[:service_name])
         #delete_dns_record(params[:service_name])

@@ -69,7 +69,7 @@ module OsHelper
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
   end
 
-  def delete_service(service_name, delete_persistent_data)
+  def delete_service(service_name, delete_persistent_data, delete_backup_data)
     deleted_check = []
     deleted_check << delete_os_image_stream(service_name).to_s
     deleted_check << delete_os_route(service_name).to_s
@@ -80,7 +80,7 @@ module OsHelper
     deleted_check << delete_os_job(service_name).to_s
     deleted_check << delete_os_cron_job(service_name).to_s
 
-    deleted_check << delete_os_secret(service_name).to_s if delete_persistent_data == "true"
+    #deleted_check << delete_os_secret(service_name).to_s if delete_persistent_data == "true"
     deleted_check << delete_os_service_account(service_name).to_s
     deleted_check << delete_os_config_map(service_name).to_s
 
@@ -89,7 +89,9 @@ module OsHelper
     deleted_check << delete_os_demon_set(service_name).to_s
     deleted_check << delete_os_replica_set(service_name).to_s
     deleted_check << delete_os_horizontal_pod_auto_scaler(service_name).to_s
-    deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
+    deleted_check << delete_os_pvc_data(service_name).to_s if delete_persistent_data == "true"
+    deleted_check << delete_os_pvc_backup(service_name).to_s if delete_backup_data == "true"
+    #deleted_check << delete_os_pvc(service_name).to_s if delete_persistent_data == "true"
     #deleted_check << delete_os_namespace(service_name).to_s if delete_persistent_data == "true"
     return 204 unless deleted_check.include?("400")
   rescue => e
@@ -132,6 +134,10 @@ module OsHelper
 
   def get_deployment_configs(namespace)
     get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs").dig("items")
+  end
+
+  def get_deploymentconfigs(service_name)                                                        
+    get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs?labelSelector=service=#{service_name}")
   end
 
   def get_installed_service(service_name)
@@ -198,6 +204,14 @@ module OsHelper
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name}")
   end
 
+  def get_pvc_data(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name},type=data")
+  end
+
+  def get_pvc_backup(service_name)
+    get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name},type=backup")
+  end
+
   def check_service(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{service_name}")
   end
@@ -209,9 +223,15 @@ module OsHelper
 
   def rollout_deployment_config(service_name)
     puts "---ROLLOUT DEPLOYMENT CONFIG---"
-    post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{service_name}/instantiate",
-      rollout_dc_template(service_name)
-    )
+    #post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{service_name}/instantiate",
+    #  rollout_dc_template(service_name)
+    #)     
+    dcs = get_deploymentconfigs(service_name)
+    dcs["items"].each do |item|                                                                  
+      post_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs/#{item["metadata"]["name"]}/instantiate",
+        rollout_dc_template(item["metadata"]["name"])
+      )                                      
+    end                                                                                                                                  
   end
 
   def update_service(service_name, required_service)
@@ -222,7 +242,8 @@ module OsHelper
     applications = required_service["applications"].compact.map do |app|
       create_image_stream_tag(app['name'], app["tag"], service_repository, service_name)
       set_image_tag("#{service_name}-#{app['name']}", app["tag"], service_name)
-      create_image_stream_import(app['name'], app["tag"], service_repository, service_name)
+      # required basically on dev while patching existing version of image
+      #create_image_stream_import(app['name'], app["tag"], service_repository, service_name)
     end
     create_image_stream_service_tag({"NAME" => service_name, "VERSION" => required_service["version"]})
     set_image_tag(service_name, required_service["version"], service_name)
@@ -239,9 +260,9 @@ module OsHelper
     create_dns_records(template)
     generated_service_template = generate_service_template(template, service)
     generated_service_template["objects"].map do |obj|
-      puts "debug object #{obj}\n"
       obj_name = obj.dig('metadata', 'name')
       eval("create_#{obj['kind'].underscore}(#{obj}, '#{service}', '#{obj_name}')")
+      puts "debug object #{obj}\n"
     end
     # rollout_deployment_config(service)
   end
@@ -283,6 +304,7 @@ module OsHelper
   def update_template_parametrs(template, applications, service, version, namespace)
     white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE", "REGISTRY_SERVER", "REGISTRY_PROXY_SERVER", "NAMESPACE_PREFIX"]
     white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "location_domain").empty?
+    white_list << "LOCATION_TIMEZONE" unless check_config_map_env_loc(service).dig("data", "location_timezone").empty?
     applications.keys.map{|a| white_list.append "TAG_#{a.underscore.upcase}"}
     template["parameters"].map do |param|
       next unless white_list.include?(param["name"])
@@ -295,6 +317,8 @@ module OsHelper
         param["value"] = "#{ENV["LOCATION_DOMAIN"]}"
       when "LOCATION_DOMAIN"
         param["value"] = check_config_map_env_loc(service).dig("data", "location_domain")
+      when "LOCATION_TIMEZONE"
+        param["value"] = check_config_map_env_loc(service).dig("data", "location_timezone")
       when "REGISTRY_SERVER"
         param["value"] = ENV["REGISTRY_SERVER"] if ENV["REGISTRY_SERVER"]
       when "REGISTRY_PROXY_SERVER"
@@ -411,13 +435,14 @@ module OsHelper
     }.to_json
   end
 
-  def rollout_dc_template(service_name)
+  def rollout_dc_template(deploymentconfig_name)
     {
       "kind": "DeploymentRequest",
       "apiVersion": "apps.openshift.io/v1",
-      "name": "#{service_name}",
+      "name": "#{deploymentconfig_name}",
       "latest": true,
       "force": true
     }.to_json
   end
+
 end
