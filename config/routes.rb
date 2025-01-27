@@ -5,13 +5,13 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
         # services
-        get     '/services',                                  to: 'services#index' 
+        get     '/services',                                  to: 'services#index'
         post    '/service/:service_name/install',            to: 'services#create',                        constraints: { :service_name => /[0-z\.\-]+/ }
         delete  '/service/:service_name',                    to: 'services#delete',                        constraints: { :service_name => /[0-z\.\-]+/ }
         get     '/service/:service_name',                    to: 'services#overview',                      constraints: { :service_name => /[0-z\.\-]+/ }
         put     '/service/:service_name/release',            to: 'services#upgrade',                       constraints: { :service_name => /[0-z\.\-]+/ }
         put     '/service/:service_name/downgrade',          to: 'services#downgrade',                     constraints: { :service_name => /[0-z\.\-]+/ }
-  
+
         # versions
         get     '/service/:service_name/install',            to: 'versions#show',                          constraints: { :service_name => /[0-z\.\-]+/ }
         get     '/service/:service_name/downgrade',          to: 'versions#get_downgrade_versions',        constraints: { :service_name => /[0-z\.\-]+/ }
@@ -26,7 +26,8 @@ Rails.application.routes.draw do
 
         # status
         get      '/services/status',            to: 'statuses#show'
+        get      '/services/apps',              to: 'statuses#apps'
 
     end
-  end 
+  end
 end

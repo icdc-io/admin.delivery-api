@@ -2,8 +2,15 @@ class Api::V1::StatusesController < ApplicationController
   include SystemServices
   include OsCommonHelper
   include ResponseHelper
-  before_action :login
-  before_action :setup_prefix, only: [:show]
+
+  before_action :setup_prefix, only: [:apps, :show]
+
+  def apps
+    resp = ServiceDiscoverer.instance.get_services_cache
+    resp = apply_rbac(resp)
+
+    render json: resp, status: :ok
+  end
 
   def show
     namespaces = valid_namespaces(get_all_namespaces)
@@ -33,12 +40,24 @@ class Api::V1::StatusesController < ApplicationController
     return success response
   end
 
-
-
   private
 
+  def apply_rbac(data)
+    return unless data
+    data.reject! do |d|
+      next if d['roles'].to_s.empty? || User.current.role == "operator"
+      d['roles'] != User.current.role
+    end
+
+    data.each do |d|
+      apply_rbac(d['apps']) unless d['apps']
+    end
+
+    data
+  end
+
   def setup_prefix
-    @prefix = ENV['NAMESPACE_PREFIX'] || 'cloud' 
+    @prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
   end
 
   def valid_namespaces(namespaces)
