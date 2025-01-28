@@ -7,7 +7,8 @@ class Api::V1::ServicesController < ApplicationController
   include OsCreateHelper
   include OsDeleteHelper
   include ServiceHelper
-  before_action :login
+  # before_action :login
+  before_action :operator_required
 
   def index
     image_names = list_images

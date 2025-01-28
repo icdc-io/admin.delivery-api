@@ -1,6 +1,7 @@
 class Api::V1::UpdatesController < ApplicationController
   include SystemServices
-  before_action :login
+  # before_action :login
+  before_action :operator_required
 
   def show
     installed_version = get_latest_image_version(params[:service_name])

@@ -3,6 +3,7 @@ class Api::V1::StatusesController < ApplicationController
   include OsCommonHelper
   include ResponseHelper
 
+  before_action :operator_required, only: [:show]
   before_action :setup_prefix, only: [:apps, :show]
 
   def apps

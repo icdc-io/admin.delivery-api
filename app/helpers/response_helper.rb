@@ -15,7 +15,7 @@ module ResponseHelper
   def not_found(object)
     c_response('404', {:message => "Bad request, not found #{object}"})
   end
-  
+
   def forbidden(body)
     c_response('403', body)
   end
@@ -28,9 +28,11 @@ module ResponseHelper
 
   def c_response(code, body = nil)
     render :json => {
-      :status => code,
-      :data => body
+      :status => code.to_i,
+      # TODO: leave this field for backward compatibility, remove it in future
+      :data => body,
+      # end TODO
+      :message => body
     }, status: code
   end
 end
-

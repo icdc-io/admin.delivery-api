@@ -1,11 +1,19 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::API
+  include ResponseHelper
+
   before_action :setup_user
 
   def setup_user
     userid, account, role = auth_headers
     User.current = User.new({userid: userid, account: account, role: role})
+  end
+
+  def operator_required
+    unless User.current.role == "operator"
+      return forbidden("You're not authorized to perform action.")
+    end
   end
 
   private

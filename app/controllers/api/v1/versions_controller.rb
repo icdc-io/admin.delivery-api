@@ -1,8 +1,9 @@
 class Api::V1::VersionsController < ApplicationController
   include SystemServices
   include GithubHelper
-  before_action :login
-  
+  # before_action :login
+  before_action :operator_required
+
   def show
     service = get_installed_service(params[:service_name])
     version = service["spec"]["tags"].collect{|tag| tag["from"]["name"] if tag["name"] == "latest"}
