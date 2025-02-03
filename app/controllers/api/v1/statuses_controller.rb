@@ -7,10 +7,10 @@ class Api::V1::StatusesController < ApplicationController
   before_action :setup_prefix, only: [:apps, :show]
 
   def apps
-    resp = ServiceDiscoverer.instance.get_services_cache
-    resp = apply_rbac(resp)
+    resp = ServiceDiscoverer.instance.services_cache
+    filtered_resp = apply_rbac(resp.dup)
 
-    render json: resp, status: :ok
+    render json: filtered_resp, status: :ok
   end
 
   def show
@@ -45,16 +45,14 @@ class Api::V1::StatusesController < ApplicationController
 
   def apply_rbac(data)
     return unless data
-    data.reject! do |d|
-      next if d['roles'].to_s.empty? || User.current.role == "operator"
-      d['roles'] != User.current.role
-    end
 
-    data.each do |d|
-      apply_rbac(d['apps']) unless d['apps']
-    end
+    data.each_with_object([]) do |d, result|
+      next if !d[:roles].to_s.empty? && User.current.role != "operator" && d[:roles] != User.current.role
 
-    data
+      filtered_entry = d.dup
+      filtered_entry[:apps] = apply_rbac(d[:apps].dup) if d[:apps]
+      result << filtered_entry
+    end
   end
 
   def setup_prefix

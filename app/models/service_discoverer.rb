@@ -1,62 +1,97 @@
 class ServiceDiscoverer
   include Singleton
-
+  include Authenticator
   include OsHelper
   include SystemServices
 
   attr_accessor :services_cache
 
-  def services
-    get_services_cache
-  end
-
-  def get_services_cache
+  def cache
     unless self.services_cache
-      self.services_cache = discovery_services
+      self.services_cache = fetch_services_cache
     end
-
     self.services_cache
-  end
-
-  def discovery_services
-    Rails.logger.info { '[ServiceDiscoverer] building services apps cache' }
-    services = services_list
-    services_versions = services.filter_map { |s| installed_version(s)}.inject(&:merge)
-
-    services_versions.filter_map do |service, version|
-      service_info(service, version).find { _1["version"] == version }
-    end
   end
 
   private
 
-  def service_info(service, version)
-    Rails.logger.info { "[ServiceDiscoverer] fetching #{service}-#{version} info" }
-    resp = request_api_github("applications/#{service}/#{release_filename(version)}")
-    if resp == "404"
-      Rails.logger.warn { "[ServiceDiscoverer] #{service}-#{version} was not found"}
-    end
-    decode_content resp["content"]
+  def fetch_services_cache
+    discovery_services.map(&:deep_symbolize_keys)
   end
 
-  def installed_version(name)
-    image_stream = get_installed_service(name)
+  def discovery_services
+    Rails.logger.info { '[ServiceDiscoverer] building services apps cache' }
+    build_services_versions
+  end
+
+  def build_services_versions
+    services_list.filter_map do |service|
+      next unless (version = installed_version_for(service))
+
+      service_details(service, version)
+    end.compact
+  end
+
+  def service_details(service, version)
+    info = service_info(service, version)&.detect { _1["version"] == version }
+    location_service = location_services.detect { _1["name"] == service }
+    return unless info && location_service
+
+    info.merge(
+      description: location_service["description"],
+      position: location_service["position"],
+      display_name: location_service["display_name"]
+    )
+  end
+
+  def location_services
+    @location_services ||= JSON.parse(location_response.body)["locations"].detect do |loc|
+      loc["name"] == ENV["LOCATION_NAME"]
+    end["services"]
+  end
+
+  def central_location_services
+
+  end
+
+  def location_response
+    RestClient.get(
+      "#{ENV['CPV_API_GATEWAY']}/api/accounts/v1/account",
+      authorization_headers
+    )
+  end
+
+  def authorization_headers
+    {
+      'x-auth-group': ENV['OPERATOR_GROUP'],
+      Authorization: "Bearer #{operator_jwt}"
+    }
+  end
+
+  def service_info(service, version)
+    Rails.logger.info { "[ServiceDiscoverer] fetching #{service}-#{version} info" }
+    content = fetch_service_content(service, version)
+    decode_content(content) unless content == "404"
+  end
+
+  def fetch_service_content(service, version)
+    request_api_github("applications/#{service}/#{release_filename(version)}")
+  end
+
+  def installed_version_for(service)
+    image_stream = get_installed_service(service)
     return if image_stream == "404"
 
-    tags = image_stream.dig('spec', 'tags')
-
-    version = tags.find { _1['name'] == 'latest' }.dig('from','name')
-
-    { name => version }
+    image_stream.dig('spec', 'tags')&.detect { _1['name'] == 'latest' }&.dig('from', 'name')
   end
 
   def services_list
-    Rails.logger.info { '[ServiceDiscoverer] fetching list of installed services...' }
-    valid_namespaces(get_all_namespaces).map { _1.gsub("#{prefix}-", '')}
+    Rails.logger.info { '[ServiceDiscoverer] fetching installed services...' }
+    valid_namespaces.map { |ns| ns.gsub("#{prefix}-", '') }
   end
 
-  def valid_namespaces(namespaces)
-    namespaces.reject { |namespace| namespace unless namespace.start_with? prefix }
+  def valid_namespaces
+    get_all_namespaces.select { |ns| ns.start_with?(prefix) }
   end
 
   def prefix
@@ -68,6 +103,6 @@ class ServiceDiscoverer
   end
 
   def decode_content(content)
-    JSON.parse Base64.decode64(content)
+    JSON.parse(Base64.decode64(content["content"]))
   end
 end
