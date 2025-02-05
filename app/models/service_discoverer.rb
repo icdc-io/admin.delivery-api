@@ -20,21 +20,23 @@ class ServiceDiscoverer
   end
 
   def discovery_services
-    Rails.logger.info { '[ServiceDiscoverer] building services apps cache' }
+    Rails.logger.info { '[ServiceDiscoverer] building services apps cache...' }
     build_services_versions
   end
 
   def build_services_versions
     services_list.filter_map do |service|
-      next unless (version = installed_version_for(service))
+      version = installed_version_for(service)
+      next unless version
 
       service_details(service, version)
-    end.compact
+    end.compact + central_location_services
   end
 
   def service_details(service, version)
     info = service_info(service, version)&.detect { _1["version"] == version }
     location_service = location_services.detect { _1["name"] == service }
+
     return unless info && location_service
 
     info.merge(
@@ -51,6 +53,21 @@ class ServiceDiscoverer
   end
 
   def central_location_services
+    Rails.logger.debug { 'Fetching cetral location services'}
+    services_names = request_api_github('applications/central').map { _1['name'].gsub('.json', '') }
+
+    services_names.filter_map do |service|
+      info = service_info(service)
+      location_service = location_services.detect { _1["name"] == service }
+
+      return unless info && location_service
+
+      info.merge(
+        description: location_service["description"],
+        position: location_service["position"],
+        display_name: location_service["display_name"]
+      )
+    end
 
   end
 
@@ -68,14 +85,22 @@ class ServiceDiscoverer
     }
   end
 
-  def service_info(service, version)
-    Rails.logger.info { "[ServiceDiscoverer] fetching #{service}-#{version} info" }
+  def service_info(service, version = nil )
+    Rails.logger.info { "[ServiceDiscoverer] fetching #{service}: #{version} info" }
     content = fetch_service_content(service, version)
     decode_content(content) unless content == "404"
   end
 
-  def fetch_service_content(service, version)
-    request_api_github("applications/#{service}/#{release_filename(version)}")
+  def fetch_service_content(service, version = nil)
+    url = "applications"
+
+    unless version
+      url += "/central/#{service}.json"
+    else
+      url += "/#{service}/#{release_filename(version)}"
+    end
+
+    request_api_github(url)
   end
 
   def installed_version_for(service)
