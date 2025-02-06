@@ -30,7 +30,7 @@ class ServiceDiscoverer
       next unless version
 
       service_details(service, version)
-    end.compact + central_location_services
+    end.compact + central_location_services.to_a
   end
 
   def service_details(service, version)
@@ -54,7 +54,7 @@ class ServiceDiscoverer
 
   def central_location_services
     Rails.logger.debug { 'Fetching cetral location services'}
-    services_names = request_api_github('applications/central').map { _1['name'].gsub('.json', '') }
+    services_names = request_api_github('applications/_central').map { _1['name'].gsub('.json', '') }
 
     services_names.filter_map do |service|
       info = service_info(service)
@@ -95,7 +95,7 @@ class ServiceDiscoverer
     url = "applications"
 
     unless version
-      url += "/central/#{service}.json"
+      url += "/_central/#{service}.json"
     else
       url += "/#{service}/#{release_filename(version)}"
     end
