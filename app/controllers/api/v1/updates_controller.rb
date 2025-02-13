@@ -21,6 +21,7 @@ class Api::V1::UpdatesController < ApplicationController
     service_name = params[:service_name]
     required_service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
     update_service(service_name, required_service)
+    ServiceDiscoverer.instance.build_cache
     no_content
   end
 

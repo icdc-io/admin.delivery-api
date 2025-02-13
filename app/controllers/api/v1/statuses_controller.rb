@@ -7,7 +7,7 @@ class Api::V1::StatusesController < ApplicationController
   before_action :setup_prefix, only: [:apps, :show]
 
   def apps
-    resp = ServiceDiscoverer.instance.services_cache
+    resp = ServiceDiscoverer.instance.get_cached
     filtered_resp = apply_rbac(resp.dup)
 
     render json: filtered_resp, status: :ok
@@ -47,7 +47,7 @@ class Api::V1::StatusesController < ApplicationController
     return unless data
 
     data.each_with_object([]) do |d, result|
-      next if !d[:roles].to_s.empty? && User.current.role != "operator" && d[:roles] != User.current.role
+      next if !d[:roles].to_s.empty? && User.current.role != "operator" && !d[:roles].include?(User.current.role)
 
       filtered_entry = d.dup
       filtered_entry[:apps] = apply_rbac(d[:apps].dup) if d[:apps]

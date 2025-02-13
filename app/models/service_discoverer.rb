@@ -3,24 +3,48 @@ class ServiceDiscoverer
   include Authenticator
   include OsHelper
   include SystemServices
-
-  attr_accessor :services_cache
-
-  def cache
-    unless self.services_cache
-      self.services_cache = fetch_services_cache
+    
+  def build_cache
+    if mutex.lock
+      begin
+        cache_store.set('_service-api', discovery_services.to_json)
+      ensure
+        mutex.unlock
+      end
+    else
+      Rails.logger.warn { '[ServiceDiscoverer::build_cache] can not access to a locked cache' }
     end
-    self.services_cache
+  rescue => e
+    Rails.logger.error { "[ServiceDiscoverer:build_cache] can't build cache in redis, skipping... #{e.message}" }
+  end
+
+  def get_cached
+    if cache_store
+      response = JSON.parse cache_store.get('_service-api')
+    else
+      Rails.logger.warn { '[ServiceDiscoverer:get_cache] cache was skipped...' }
+      response = discovery_services
+    end
+
+    response.map(&:deep_symbolize_keys)
   end
 
   private
-
-  def fetch_services_cache
-    discovery_services.map(&:deep_symbolize_keys)
+  
+  def cache_store
+    @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL'))
+  rescue => e
+    Rails.logger.error { "[ServiceDiscoverer:cache_store] can't connect to a redis-server, skipping cache... #{e.message}" }
+    nil
   end
-
+  
+  def mutex
+    RedisClassy.redis = cache_store
+    RedisMutex.new('_service-api', expire: 30)
+  end
+  
   def discovery_services
-    Rails.logger.info { '[ServiceDiscoverer] building services apps cache...' }
+    Rails.logger.info { '[ServiceDiscoverer:discovery_services] building services apps cache...' }
     build_services_versions
   end
 
@@ -53,7 +77,6 @@ class ServiceDiscoverer
   end
 
   def central_location_services
-    Rails.logger.debug { 'Fetching cetral location services'}
     services_names = request_api_github('applications/_central').map { _1['name'].gsub('.json', '') }
 
     services_names.filter_map do |service|
@@ -111,7 +134,7 @@ class ServiceDiscoverer
   end
 
   def services_list
-    Rails.logger.info { '[ServiceDiscoverer] fetching installed services...' }
+    Rails.logger.info { '[ServiceDiscoverer:service_list] fetching installed services...' }
     valid_namespaces.map { |ns| ns.gsub("#{prefix}-", '') }
   end
 
