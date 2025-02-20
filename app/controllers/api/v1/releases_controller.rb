@@ -26,7 +26,7 @@ class Api::V1::ReleasesController < ApplicationController
     service_name = params[:service_name]
     stream_hash = image_stream_by_service(service_name)
     reponse = upgrade_service_version(stream_hash, service_name)
-    ServiceDiscoverer.instance.build_cache
+    ServiceDiscoverer.instance.invalidate_cache
 
     render json: response
   end

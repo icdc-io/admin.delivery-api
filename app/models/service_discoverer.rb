@@ -3,14 +3,16 @@ class ServiceDiscoverer
   include Authenticator
   include OsHelper
   include SystemServices
-    
+
   def build_cache
     if mutex.lock
       begin
-        cache_store.set('_service-api', discovery_services.to_json)
+        discovered_services = discovery_services.to_json
+        cache_store.set('discovered_services', discovered_services)
       ensure
         mutex.unlock
       end
+      discovered_services
     else
       Rails.logger.warn { '[ServiceDiscoverer::build_cache] can not access to a locked cache' }
     end
@@ -20,7 +22,8 @@ class ServiceDiscoverer
 
   def get_cached
     if cache_store
-      response = JSON.parse cache_store.get('_service-api')
+      response = JSON.parse cache_store.get('discovered_services')
+      response ||= build_cache
     else
       Rails.logger.warn { '[ServiceDiscoverer:get_cache] cache was skipped...' }
       response = discovery_services
@@ -29,20 +32,26 @@ class ServiceDiscoverer
     response.map(&:deep_symbolize_keys)
   end
 
+  def invalidate_cache
+    cache_store.set('discovered_services', nil)
+  rescue => e
+    Rails.logger.error { "[ServiceDiscoverer:invalidate_cache] can't invalidate cache... #{e.message}" }
+  end
+
   private
-  
+
   def cache_store
     @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL'))
   rescue => e
     Rails.logger.error { "[ServiceDiscoverer:cache_store] can't connect to a redis-server, skipping cache... #{e.message}" }
     nil
   end
-  
+
   def mutex
     RedisClassy.redis = cache_store
-    RedisMutex.new('_service-api', expire: 30)
+    RedisMutex.new('discovered_services', expire: 30)
   end
-  
+
   def discovery_services
     Rails.logger.info { '[ServiceDiscoverer:discovery_services] building services apps cache...' }
     build_services_versions
