@@ -428,13 +428,76 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Service'
-      
+  /services:
+    get:
+      summary: Get list of available services
+      tags:
+        - 'Services'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Services'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /services/{service_name}:
+    get:
+      summary: Get information on the specific service
+      tags:
+        - 'Services'
+      parameters:
+        - $ref: "#/components/parameters/Service"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   responses:
-    UnauthorizedError:
+    BadRequest:
+      description: Invalid parameters provided in request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: 400
+            message: Invalid parameters
+    Unauthorized:
       description: Access token is missing or invalid
-    AccountAccessError:
-      description: Account access is denied
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: 401
+            message: Not authorized to perform operation
+    Forbidden:
+      description: Insufficient permissions to perform the operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: 403
+            message: Insufficient permissions to perform the operation
+    NotFound:
+      description: Specified object was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: 404
+            message: Service not found
   securitySchemes:
     bearerAuth:
       type: http
@@ -458,17 +521,58 @@ components:
       properties:
         name:
           type: string
-          example: account
+          example: billing
         title:
           type: string
-          example: Account Settings
+          example: Billing
         label:
           type: string
-          example: SVC_ACCOUNT
+          example: BILLING
           description: is a default language display name of service/application (or translated if internalization is implemented on backend)
+        status: 
+          type: string
+          example: installed
+        current_version:
+          type: string
+          example: 1.3.0
+        update_version:
+          type: string
+          example: 
+        upgrade_version:
+          type: string
+          example: 
+        available_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Version'
+    Services:
+      description: >
+        List of services
+      type: array
+      items:
+        $ref: '#/components/schemas/Service'
+    Version:
+      type: object
+      properties:
         version:
           type: string
-          example: 5.1
+          example: 1.3.0
+        tag:
+          type: string
+          example: latest
+        release:
+          type: string
+          example: 1.3
+        date:
+          type: string
+          example: 2024-07-10
+        platform_version:
+          type: string
+          example: 4.03
+        required:
+          type: array
+          items:
+            $ref: '#/components/schemas/Requirements'
         apps:
           type: array
           items:
@@ -478,16 +582,85 @@ components:
       properties:
         name:
           type: string
-          example: billing
-        title:
-          type: string
-          example: Billing
-        version:
+          example: engine
+        tag:
           type: string
           example: 1.2.2
+        title:
+          type: string
+          example: Engine
         label:
           type: string
           example: APP_ACCOUNT_BILLING
           description: is a default language display name of service/application (or translated if internalization is implemented on backend)
+        description:
+          $ref: '#/components/schemas/ChangeLogDescription'
+    Requirements:
+      type: object
+      properties:
+        admin:
+          type: string
+          example: 1.2.0
+        compute:
+          type: string
+          example: 1.0.0
+    ChangeLogDescription:
+      type: object
+      properties:
+        warnings:
+          type: string
+          example: warnings
+        features:
+          type: string
+          example: features
+        enhancements:
+          type: string
+          example: enhancements
+        security_fixes:
+          type: string
+          example: security_fixes
+        bug_fixes:
+          type: string
+          example: bug_fixes
+        deprecated:
+          type: string
+          example: deprecated
+        known_issues:
+          type: string
+          example: known_issues
+    # Schema for error response body
+    Error:
+      type: object
+      properties:
+        status:
+          description: HTTP status code
+          type: integer
+        message:
+          description: Localized human-readable error message passed into error pop-ups on frontend
+          type: string
+        code:
+          description: Application-specific error code
+          type: string
+        errors:
+          type: array
+          description: Verbose error messages or multiple validation errors
+          items:
+            type: string
+          example:
+            - "Name value is not unique"
+            - "Amount value is not integer"
+      required:
+        - status
+        - message
+  parameters:
+    Service:
+      in: path
+      name: name
+      description: >
+        Name of the service
+      required: true
+      schema:
+        type: string
+      example: billing
 security:
   - bearerAuth: []
