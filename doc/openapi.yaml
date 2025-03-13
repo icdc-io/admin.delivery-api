@@ -25,17 +25,18 @@ tags:
 
 paths:
   /service/{service_name}/version:
-    parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
     get:
       tags:
        - 'Service'
       summary: Get available versions to install
       operationId: getVersions
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      parameters:
+        - $ref: "#/components/parameters/Service"
       responses:
         '200':
           description: 'Success'
@@ -66,18 +67,14 @@ paths:
   /service/{service_name}/install:
     post:
       operationId: installService
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
-      - in: query
-        name: version
-        schema:
-          type: string
-          example: 2.0.2
-        required: true
+        - $ref: "#/components/parameters/Service"
+        - $ref: "#/components/parameters/Version"
       tags:
         - 'Service'
       summary: Install service
@@ -86,12 +83,13 @@ paths:
           description: 'No content'
     get:
       operationId: getInstalledVersion
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
+        - $ref: "#/components/parameters/Service"
       tags:
         - 'Service'
       summary: Get installed version
@@ -113,12 +111,13 @@ paths:
   /service/{service_name}:
     get:
       operationId: describeService
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
+        - $ref: "#/components/parameters/Service"
       tags:
         - 'Service'
       summary: Explore installed service version details
@@ -172,26 +171,27 @@ paths:
                           known_issues: ""
     delete:
       operationId: deleteService
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-      - in: path
-        name: service_name
-        schema:
-          type: string
-        required: true
-      - in: query
-        name: delete_persistent_data
-        schema:
-          type: string
-#          default: false
-#          example: true
-        description: Default value is empty (false)
-      - in: query
-        name: delete_backup_data
-        schema:
-          type: string
-#          default: false
-#          example: true
-        description: Default value is empty (false)
+        - $ref: "#/components/parameters/Service"
+        - in: query
+          name: delete_persistent_data
+          schema:
+            type: string
+  #          default: false
+  #          example: true
+          description: Default value is empty (false)
+        - in: query
+          name: delete_backup_data
+          schema:
+            type: string
+  #          default: false
+  #          example: true
+          description: Default value is empty (false)
       tags:
         - 'Service'
       summary: Delete service
@@ -200,19 +200,15 @@ paths:
           description: 'No content'
 
   /service/{service_name}/update:
-#    parameters:
-#      - in: path
-#        name: service_name
-#        schema:
-#          type: string
-#        required: true
     get:
+      operationId: GetUpdateVersion
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
+        - $ref: "#/components/parameters/Service"
       tags:
        - 'Service'
       summary: Get update vesion
@@ -243,18 +239,15 @@ paths:
                             depricated: "* depricated1\r\n* depricated2"
                             known_issues: ""
     put:
+      operationId: updateService
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
-          schema:
-            type: string
-            example: 1.0.2
-          required: true
+        - $ref: "#/components/parameters/Service"
+        - $ref: "#/components/parameters/Version"
       tags:
        - 'Service'
       summary: Update version from update overview
@@ -265,14 +258,16 @@ paths:
           description: 'No content'
   /service/{service_name}/release:
     get:
+      operationId: GetUpgradeVersion
       tags:
         - 'Service'
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
+        - $ref: "#/components/parameters/Service"
       summary: Get release version
       responses:
         '200':
@@ -302,20 +297,17 @@ paths:
                             known_issues: ""
 
     put:
+      operationId: upgradeService
       tags:
         - 'Service'
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
-          schema:
-            type: string
-            example: 2.0.2
-          required: true
+        - $ref: "#/components/parameters/Service"
+        - $ref: "#/components/parameters/Version"
       summary: Upgrade version from release overview
       responses:
         '200':
@@ -325,12 +317,14 @@ paths:
 
   /service/{service_name}/downgrade:
     get:
+      operationId: GetDowngradeVersion
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
+        - $ref: "#/components/parameters/Service"
       tags:
         - 'Service'
       summary: Get all installed versions for downgrade
@@ -351,18 +345,15 @@ paths:
                       - "2.0.2"
                       - "2.0.1"
     put:
+      operationId: downgradeService
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
-        - in: path
-          name: service_name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
-          schema:
-            type: string
-            example: 2.0.1
-          required: true
+        - $ref: "#/components/parameters/Service"
+        - $ref: "#/components/parameters/Version"
       tags:
        - 'Service'
       summary: Downgrade version from version overview
@@ -384,9 +375,15 @@ paths:
 
   /services/status:
     get:
+      operationId: getServicesStatus
       tags:
         - 'Services'
       summary: Get services statuses
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       responses:
         '200':
           description: 'Success'
@@ -430,9 +427,15 @@ paths:
                   $ref: '#/components/schemas/Service'
   /services:
     get:
+      operationId: ServicesList
       summary: Get list of available services
       tags:
         - 'Services'
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       responses:
         "200":
           description: OK
@@ -444,9 +447,15 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /services/{service_name}:
     get:
+      operationId: getService
       summary: Get information on the specific service
       tags:
         - 'Services'
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
       parameters:
         - $ref: "#/components/parameters/Service"
       responses:
@@ -655,12 +664,19 @@ components:
   parameters:
     Service:
       in: path
-      name: name
+      name: service_name
       description: >
         Name of the service
       required: true
       schema:
         type: string
       example: billing
+    Version:
+      in: query
+      name: version
+      schema:
+        type: string
+      example: 2.0.2
+      required: true
 security:
   - bearerAuth: []
