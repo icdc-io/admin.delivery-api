@@ -1,6 +1,7 @@
 class Api::V1::UpdatesController < ApplicationController
   include SystemServices
-  before_action :login
+  # before_action :login
+  before_action :operator_required
 
   def show
     installed_version = get_latest_image_version(params[:service_name])
@@ -20,6 +21,7 @@ class Api::V1::UpdatesController < ApplicationController
     service_name = params[:service_name]
     required_service = get_latest_versions(service_name).select{|service| service["version"] == params["version"]}.first
     update_service(service_name, required_service)
+    ServiceDiscoverer.instance.invalidate_cache
     no_content
   end
 
