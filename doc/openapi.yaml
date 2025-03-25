@@ -2,9 +2,7 @@ openapi: 3.0.0
 info:
   title: 'Service Delivery API'
   description: 'Service API. Authorization SSO JWT token is required to test API'
-#  contact:
-#    email: dmemekh@ibagroup.eu
-  version: 1.0
+  version: '1.0'
 externalDocs:
   description: Service Delivery API design
   url: https://support.icdc.io/projects/locationadmin/wiki/Service_Delivery_Design
@@ -410,6 +408,27 @@ paths:
                       web-server-db:
                         service_installed: true
                         service_status: Complete
+  /services/apps:
+    get:
+      operationId: getServicesApps
+      description: Get info about installed services and apps
+      tags:
+        - 'Services'
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+      
 components:
   responses:
     UnauthorizedError:
@@ -421,5 +440,54 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    Account:
+      type: apiKey
+      in: header
+      name: x-auth-account
+    Role:
+      type: apiKey
+      in: header
+      name: x-auth-role
+    Group:
+      type: apiKey
+      in: header
+      name: x-auth-group
+  schemas:
+    Service:
+      type: object
+      properties:
+        name:
+          type: string
+          example: account
+        title:
+          type: string
+          example: Account Settings
+        label:
+          type: string
+          example: SVC_ACCOUNT
+          description: is a default language display name of service/application (or translated if internalization is implemented on backend)
+        version:
+          type: string
+          example: 5.1
+        apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/App'
+    App:
+      type: object
+      properties:
+        name:
+          type: string
+          example: billing
+        title:
+          type: string
+          example: Billing
+        version:
+          type: string
+          example: 1.2.2
+        label:
+          type: string
+          example: APP_ACCOUNT_BILLING
+          description: is a default language display name of service/application (or translated if internalization is implemented on backend)
 security:
   - bearerAuth: []

@@ -34,6 +34,8 @@ group :development do
   gem 'listen', '~> 3.3'
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
+  gem 'dotenv'
+  gem 'pry'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
@@ -42,3 +44,7 @@ gem 'tzinfo-data'
 
 gem "coredns", "~> 1.0"
 gem 'resolve-hostname', '~> 0.1.0'
+
+gem "redis", "~> 5.3"
+
+gem "redis-mutex", "~> 4.0"

@@ -7,7 +7,8 @@ class Api::V1::ServicesController < ApplicationController
   include OsCreateHelper
   include OsDeleteHelper
   include ServiceHelper
-  before_action :login
+  # before_action :login
+  before_action :operator_required
 
   def index
     image_names = list_images
@@ -59,6 +60,7 @@ class Api::V1::ServicesController < ApplicationController
     #update
     service_name = params[:service_name]
     update_service(service_name, service)
+    ServiceDiscoverer.instance.invalidate_cache
     no_content
   end
 
@@ -71,6 +73,8 @@ class Api::V1::ServicesController < ApplicationController
         #delete_dns_record(params[:service_name])
         template = get_service_repository(params[:service_name])
         delete_dns_records(template)
+        ServiceDiscoverer.instance.invalidate_cache
+
         return '204'
       end
       sleep 5
@@ -80,6 +84,7 @@ class Api::V1::ServicesController < ApplicationController
   def downgrade
     required_version = get_required_version(params[:service_name], params[:version]).select{|tst|  tst if tst["version"] == params[:version]}.first
     update_service(params[:service_name], required_version)
+    ServiceDiscoverer.instance.invalidate_cache
     no_content
   end
 
@@ -91,6 +96,7 @@ class Api::V1::ServicesController < ApplicationController
     deploy_template(service_name, service)
     service_name = params[:service_name]
     update_service(service_name, service)
+    ServiceDiscoverer.instance.invalidate_cache
     no_content
   end
 end

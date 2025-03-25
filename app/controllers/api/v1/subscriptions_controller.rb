@@ -1,6 +1,8 @@
 class Api::V1::SubscriptionsController < ApplicationController
   include SystemServices
-  
+
+  before_action :operator_required
+
   def index
     image_names = list_images
     services = []
@@ -33,7 +35,7 @@ class Api::V1::SubscriptionsController < ApplicationController
     when "customer"
     else
       raise "Wrong location statemant."
-    end 
+    end
     end
   end
 
