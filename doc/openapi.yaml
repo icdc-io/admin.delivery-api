@@ -531,29 +531,17 @@ components:
         name:
           type: string
           example: billing
-        title:
-          type: string
-          example: Billing
-        label:
-          type: string
-          example: BILLING
-          description: is a default language display name of service/application (or translated if internalization is implemented on backend)
-        status: 
-          type: string
-          example: installed
         current_version:
           type: string
           example: 1.3.0
-        update_version:
-          type: string
-          example: 
-        upgrade_version:
-          type: string
-          example: 
-        available_versions:
+        downgrade_version:
           type: array
           items:
-            $ref: '#/components/schemas/Version'
+            example: 1.2.0, 1.1.0
+        update_version:
+          $ref: '#/components/schemas/Version'
+        upgrade_version:
+          $ref: '#/components/schemas/Version'
     Services:
       description: >
         List of services
@@ -575,14 +563,11 @@ components:
         date:
           type: string
           example: 2024-07-10
-        platform_version:
-          type: string
-          example: 4.03
         required:
           type: array
           items:
             $ref: '#/components/schemas/Requirements'
-        apps:
+        applications:
           type: array
           items:
             $ref: '#/components/schemas/App'
@@ -595,12 +580,6 @@ components:
         tag:
           type: string
           example: 1.2.2
-        title:
-          type: string
-          example: Engine
-        label:
-          type: string
-          example: APP_ACCOUNT_BILLING
           description: is a default language display name of service/application (or translated if internalization is implemented on backend)
         description:
           $ref: '#/components/schemas/ChangeLogDescription'
