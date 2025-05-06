@@ -5,7 +5,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
         # services
-        get     '/services',                                  to: 'services#index'
+        get     '/services',                                 to: 'services#index'
+        get     '/services/:service_name',                   to: 'services#show'
         post    '/service/:service_name/install',            to: 'services#create',                        constraints: { :service_name => /[0-z\.\-]+/ }
         delete  '/service/:service_name',                    to: 'services#delete',                        constraints: { :service_name => /[0-z\.\-]+/ }
         get     '/service/:service_name',                    to: 'services#overview',                      constraints: { :service_name => /[0-z\.\-]+/ }
