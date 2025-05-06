@@ -31,7 +31,7 @@ module OsCreateHelper
     unless object_exists?("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{name}")
       post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services", source.to_json)# if body
     else
-      post_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{name}", source.to_json)# if body
+      patch_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{name}", source.to_json)# if body
     end
   end
 
