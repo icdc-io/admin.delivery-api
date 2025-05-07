@@ -139,7 +139,6 @@ class Api::V1::ServicesController < ApplicationController
 
   def get_upgrade_version(service_name, current_version)
     latest_release = get_latest_version(service_name)
-    current_version = installed_service_version(service_name)
     return latest_release if current_version.nil?
 
     update_versions = request_raw_github("changelogs/#{service_name}/release-#{current_version.split('.')[...-1].join('.')}.json")
