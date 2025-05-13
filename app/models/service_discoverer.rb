@@ -75,7 +75,9 @@ class ServiceDiscoverer
     info.merge(
       description: location_service["description"],
       position: location_service["position"],
-      display_name: location_service["display_name"]
+      display_name: location_service["display_name"],
+      path: location_service["path"],
+      url: location_service["url"]
     )
   end
 
@@ -97,7 +99,9 @@ class ServiceDiscoverer
       info.merge(
         description: location_service["description"],
         position: location_service["position"],
-        display_name: location_service["display_name"]
+        display_name: location_service["display_name"],
+        path: location_service["path"],
+        url: location_service["url"]
       )
     end
 
