@@ -14,7 +14,8 @@ class Api::V1::ServicesController < ApplicationController
     prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
     namespaces = get_all_namespaces.select { |ns| ns.start_with?(prefix) }
     services = namespaces.map do |namespace|
-      service_name = namespace.split('-').last
+      @namespace = namespace
+      service_name = @namespace.split('-').last
       service_data(service_name)
     end.compact
     render json: services
@@ -105,7 +106,6 @@ class Api::V1::ServicesController < ApplicationController
     no_content
   end
 
-
   def upgrade
     return abort("No such namespace") unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
     service_name = params[:service_name]
@@ -120,35 +120,66 @@ class Api::V1::ServicesController < ApplicationController
   private
 
   def service_data(service_name)
-    service = get_installed_service(service_name)
-    return if service == '404'
+    service = service_image_stream(service_name)
+    return if service["code"] == 404
 
-    tags = service['spec']['tags']
-    current_version = tags.collect { |tag| tag['from']['name'] if tag['name'] == 'latest' }.compact.first
-    downgrade_version = tags.collect do |tag|
-      tag['name'] if tag['name'] != 'latest' && tag
-    end.compact.take_while { |version| version != current_version }
-    update_versions = request_raw_github("changelogs/#{service_name}/release-#{current_version.split('.')[...-1].join('.')}.json")
-    update_version = update_versions.find { |x| x['tag'] == '' && x['version'] != current_version }
-    upgrade_version = get_upgrade_version(service_name, current_version)
-    service = service['metadata']['name']
-
-    { name: service, current_version: current_version, downgrade_version: downgrade_version,
-      update_version: update_version, upgrade_version: upgrade_version }
+    name = service.dig('metadata', 'name')
+    tags = service.dig('spec', 'tags')
+    current_version = installed_version(tags)
+    downgrade_versions =  all_installed_versions(tags).take_while { |version| version != current_version }
+    current_release_version = current_version.split('.')[0...2].join('.')
+    versions_from_release = release_changelogs(service_name, current_release_version)
+    update_version = latest_update_version(versions_from_release, current_version)
+    upgrade_version = latest_upgrade_version(service_name, current_release_version)
+    { name:, current_version:, downgrade_versions:, update_version:, upgrade_version: }
   end
 
-  def get_upgrade_version(service_name, current_version)
-    latest_release = get_latest_version(service_name)
-    return latest_release if current_version.nil?
+  #TODO move methods to the helpers
+  def installed_version(tags)
+    tags.find { |tag| tag['name'] == 'latest' }&.dig('from', 'name')
+  end
 
-    update_versions = request_raw_github("changelogs/#{service_name}/release-#{current_version.split('.')[...-1].join('.')}.json")
-    update_version = update_versions.find { |x| x['tag'] == 'latest' }
-    return latest_release unless update_version
+  def service_image_stream(service_name)
+    @namespace ||= get_os_namespace(service_name)
+    request_openshift("apis/image.openshift.io/v1/namespaces/#{@namespace}/imagestreams/#{service_name}")
+  end
 
-    if current_version != latest_release['version'] && update_version['version'] != latest_release['version']
-      return latest_release
+  def all_installed_versions(tags)
+    tags.map { |tag| tag['name'] if tag['name'] != 'latest' }.compact
+  end
+
+  def release_changelogs(service_name, release_version)
+    request_githubusercontent("changelogs/#{service_name}/release-#{release_version}.json")
+  end
+
+  def latest_update_version(versions_list, current_version) 
+    versions_list.take_while { |version| version['version'] != current_version }
+                 .find { |x| x['tag'].empty? && x['version'] != current_version }
+  end
+
+  def latest_release_version(service_name)
+    download_urls = service_changelogs(service_name).map { |changelog| changelog["download_url"] }
+                                                    .select { |url| url.include?("release") }.reverse
+    download_urls.map do |url|
+      uri = URI.parse(url)
+      request = Net::HTTP::Get.new(uri)
+      response = Net::HTTP.start(uri.hostname, uri.port, { use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE }) do |http|
+        http.request(request)
+      end
+      version = JSON.parse(response.body).find { |resp| resp["tag"] == "latest" }
+      return version unless version.blank?
     end
+  end
 
-    'release is actual'
+  def service_changelogs(service_name)
+    request_github("changelogs/#{service_name}")
+  end
+
+  def latest_upgrade_version(service_name, current_release_version)
+    upgrade_version = latest_release_version(service_name)
+    if current_release_version == upgrade_version['release']
+      upgrade_version = 'release is actual'
+    end
+    upgrade_version
   end
 end
