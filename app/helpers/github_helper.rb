@@ -1,6 +1,10 @@
 module GithubHelper
   include RequestHelper
 
+  def service_changelogs(service_name)
+    request_github("changelogs/#{service_name}")
+  end
+
   def service_repository(data, version)
     data.dig("spec","tags").select { |d| d["name"] == version }.first.dig("from","name")
   end

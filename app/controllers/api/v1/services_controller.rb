@@ -158,21 +158,9 @@ class Api::V1::ServicesController < ApplicationController
   end
 
   def latest_release_version(service_name)
-    download_urls = service_changelogs(service_name).map { |changelog| changelog["download_url"] }
-                                                    .select { |url| url.include?("release") }.reverse
-    download_urls.map do |url|
-      uri = URI.parse(url)
-      request = Net::HTTP::Get.new(uri)
-      response = Net::HTTP.start(uri.hostname, uri.port, { use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE }) do |http|
-        http.request(request)
-      end
-      version = JSON.parse(response.body).find { |resp| resp["tag"] == "latest" }
-      return version unless version.blank?
-    end
-  end
-
-  def service_changelogs(service_name)
-    request_github("changelogs/#{service_name}")
+    releases_list = ServiceChangelogs.instance.get_cached(service_name)
+    releases_list = ServiceChangelogs.instance.build_cache(service_name) if releases_list["ttl"] < DateTime.now
+    releases_list[service_name].values.last[0]
   end
 
   def latest_upgrade_version(service_name, current_release_version)

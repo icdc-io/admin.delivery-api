@@ -48,3 +48,5 @@ gem 'resolve-hostname', '~> 0.1.0'
 gem "redis", "~> 5.3"
 
 gem "redis-mutex", "~> 4.0"
+
+gem "rubocop", "~> 1.75"
