@@ -6,9 +6,14 @@ class Api::V1::StatusesController < ApplicationController
   before_action :setup_prefix, only: [:apps, :show]
 
   def apps
-    resp = ServiceDiscoverer.instance.get_cached
-    filtered_resp = apply_rbac(resp.dup)
+    mock_data = Rails.root.join(ENV.fetch('MOCKDATA_FILENAME', 'config/extra/apps.json'))
+    if File.exist?(mock_data)
+      resp = JSON.parse(File.read(mock_data)).map(&:deep_symbolize_keys)
+    else
+      resp = ServiceDiscoverer.instance.get_cached
+    end
 
+    filtered_resp = apply_rbac(resp.dup)
     render json: filtered_resp, status: :ok
   end
 
