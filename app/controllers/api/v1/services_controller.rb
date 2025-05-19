@@ -121,12 +121,12 @@ class Api::V1::ServicesController < ApplicationController
 
   def service_data(service_name)
     service = service_image_stream(service_name)
-    return if service["code"] == 404
+    return if service['code'] == 404
 
     name = service.dig('metadata', 'name')
     tags = service.dig('spec', 'tags')
     current_version = installed_version(tags)
-    downgrade_versions =  all_installed_versions(tags).take_while { |version| version != current_version }
+    downgrade_versions = all_installed_versions(tags).take_while { |version| version != current_version }
     current_release_version = current_version.split('.')[0...2].join('.')
     versions_from_release = release_changelogs(service_name, current_release_version)
     update_version = latest_update_version(versions_from_release, current_version)
@@ -134,7 +134,7 @@ class Api::V1::ServicesController < ApplicationController
     { name:, current_version:, downgrade_versions:, update_version:, upgrade_version: }
   end
 
-  #TODO move methods to the helpers
+  # TODO: move methods to the helpers
   def installed_version(tags)
     tags.find { |tag| tag['name'] == 'latest' }&.dig('from', 'name')
   end
@@ -152,22 +152,21 @@ class Api::V1::ServicesController < ApplicationController
     request_githubusercontent("changelogs/#{service_name}/release-#{release_version}.json")
   end
 
-  def latest_update_version(versions_list, current_version) 
+  def latest_update_version(versions_list, current_version)
     versions_list.take_while { |version| version['version'] != current_version }
                  .find { |x| x['tag'].empty? && x['version'] != current_version }
   end
 
   def latest_release_version(service_name)
     releases_list = ServiceChangelogs.instance.get_cached
-    releases_list = ServiceChangelogs.instance.build_cache if releases_list["ttl"] < DateTime.now.to_i
-    releases_list[service_name].values.last[0]
+    releases_list = ServiceChangelogs.instance.build_cache if releases_list['ttl'] < DateTime.now.to_i
+    release_version = releases_list[service_name].keys.max_by { |release| Gem::Version.new(release) }
+    releases_list[service_name][release_version].max_by { |version| Gem::Version.new(version['version']) }
   end
 
   def latest_upgrade_version(service_name, current_release_version)
     upgrade_version = latest_release_version(service_name)
-    if current_release_version == upgrade_version['release']
-      upgrade_version = 'release is actual'
-    end
+    upgrade_version = 'release is actual' if current_release_version == upgrade_version['release']
     upgrade_version
   end
 end
