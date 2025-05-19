@@ -158,8 +158,8 @@ class Api::V1::ServicesController < ApplicationController
   end
 
   def latest_release_version(service_name)
-    releases_list = ServiceChangelogs.instance.get_cached(service_name)
-    releases_list = ServiceChangelogs.instance.build_cache(service_name) if releases_list["ttl"] < DateTime.now
+    releases_list = ServiceChangelogs.instance.get_cached
+    releases_list = ServiceChangelogs.instance.build_cache if releases_list["ttl"] < DateTime.now.to_i
     releases_list[service_name].values.last[0]
   end
 

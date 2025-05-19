@@ -3,17 +3,24 @@
 class ServiceChangelogs
   include Singleton
   include GithubHelper
+  include OsHelper
 
-  def build_cache(service_name)
-    service_changelogs = github_changelogs(service_name)
-    cache_store.set("#{service_name}_changelogs", service_changelogs.to_json)
-    service_changelogs
+  def build_cache
+    namespaces = get_all_namespaces.select { |ns| ns.start_with?(ENV.fetch('NAMESPACE_PREFIX', 'cloud')) }
+    changelogs = {}
+    namespaces.each do |namespace|
+      service_name = namespace.split('-').last
+      changelogs.merge!(service_name => github_changelogs(service_name))
+    end
+    changelogs.merge!('ttl' => DateTime.now.to_i + 3600)
+    cache_store.set('service_changelogs', changelogs.to_json)
+    changelogs
   end
 
-  def get_cached(service_name)
+  def get_cached
     if cache_store
-      response = cache_store.get("#{service_name}_changelogs")
-      response ||= build_cache(service_name)
+      response = cache_store.get('service_changelogs')
+      response ||= build_cache
       JSON.parse(response)
     else
       Rails.logger.warn { '[ServiceChangelogs:get_cache] cache was skipped...' }
@@ -21,8 +28,8 @@ class ServiceChangelogs
     end
   end
 
-  def invalidate_cache(service_name)
-    cache_store.set("#{service_name}_changelogs", nil)
+  def invalidate_cache
+    cache_store.set('service_changelogs', nil)
   rescue StandardError => e
     Rails.logger.error { "[ServiceChangelogs:invalidate_cache] can't invalidate cache... #{e.message}" }
   end
@@ -39,8 +46,10 @@ class ServiceChangelogs
   end
 
   def github_changelogs(service_name)
-    download_urls = service_changelogs(service_name).map { |changelog| changelog['download_url'] }
-                                                    .select { |url| url.include?('release') }
+    download_urls = service_changelogs(service_name).select do |changelog|
+      changelog['download_url']
+        &.include?('release')
+    end.map { |changelog| changelog['download_url'] }
     releases = {}
     download_urls.map do |url|
       uri = URI.parse(url)
@@ -53,6 +62,6 @@ class ServiceChangelogs
       release_version = response[0]['release']
       releases[release_version] = response
     end
-    { ttl: DateTime.now + 1.hour, service_name => releases }
+    releases
   end
 end
