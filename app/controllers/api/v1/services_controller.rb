@@ -50,8 +50,8 @@ module Api
 
       def overview
         service = get_installed_service(params[:service_name])
-        latest_version = service['spec']['tags'].collect do |tag|
-          tag['from']['name'] if tag['name'] == 'latest'
+        latest_version = service.dig('spec', 'tags').collect do |tag|
+          tag.dig('from', 'name') if tag['name'] == 'latest'
         end.compact.first
         service_version = describe_service_version(params[:service_name], latest_version)[0]
 
@@ -154,7 +154,7 @@ module Api
       def service_image_stream(service_name)
         @namespace ||= get_os_namespace(service_name)
         @image_streams['items'].find do |item|
-          item['metadata']['name'] == service_name && item['metadata']['namespace'] == @namespace
+          item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == @namespace
         end
       end
 
@@ -164,7 +164,7 @@ module Api
 
       def release_changelogs(service_name, release_version)
         releases_list = changelogs_cache
-        releases_list[service_name][release_version]
+        releases_list.dig(service_name, release_version)
       end
 
       def latest_update_version(versions_list, current_version)
@@ -175,7 +175,7 @@ module Api
       def latest_release_version(service_name)
         releases_list = changelogs_cache
         release_version = releases_list[service_name].keys&.max_by { |release| Gem::Version.new(release) }
-        releases_list[service_name][release_version]&.max_by { |version| Gem::Version.new(version['version']) }
+        releases_list.dig(service_name, release_version)&.max_by { |version| Gem::Version.new(version['version']) }
       end
 
       def latest_upgrade_version(service_name, current_release_version)
