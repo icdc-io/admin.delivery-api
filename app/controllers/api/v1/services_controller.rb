@@ -19,7 +19,7 @@ module Api
         namespaces = get_all_namespaces.select { |ns| ns.start_with?(prefix) }
         services = namespaces.map do |namespace|
           @namespace = namespace
-          service_name = @namespace.split('-').last
+          service_name = @namespace.gsub("#{prefix}-", '')
           service_data(service_name)
         end.compact
         render json: services

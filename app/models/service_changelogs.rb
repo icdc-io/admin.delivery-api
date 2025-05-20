@@ -6,10 +6,11 @@ class ServiceChangelogs
   include OsHelper
 
   def build_cache
-    namespaces = get_all_namespaces.select { |ns| ns.start_with?(ENV.fetch('NAMESPACE_PREFIX', 'cloud')) }
+    prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
+    namespaces = get_all_namespaces.select { |ns| ns.start_with?(prefix) }
     changelogs = {}
     namespaces.each do |namespace|
-      service_name = namespace.split('-').last
+      service_name = namespace.gsub("#{prefix}-", '')
       changelogs.merge!(service_name => github_changelogs(service_name))
     end
     changelogs.merge!('ttl' => DateTime.now.to_i + 3600)
