@@ -134,7 +134,6 @@ class Api::V1::ServicesController < ApplicationController
     { name:, current_version:, downgrade_versions:, update_version:, upgrade_version: }
   end
 
-  # TODO: move methods to the helpers
   def installed_version(tags)
     tags.find { |tag| tag['name'] == 'latest' }&.dig('from', 'name')
   end
@@ -149,24 +148,34 @@ class Api::V1::ServicesController < ApplicationController
   end
 
   def release_changelogs(service_name, release_version)
-    request_githubusercontent("changelogs/#{service_name}/release-#{release_version}.json")
+    releases_list = changelogs_cache
+    releases_list[service_name][release_version]
   end
 
   def latest_update_version(versions_list, current_version)
-    versions_list.take_while { |version| version['version'] != current_version }
-                 .find { |x| x['tag'].empty? && x['version'] != current_version }
+    versions_list&.take_while { |version| version['version'] != current_version }
+                 &.find { |x| x['tag'].empty? && x['version'] != current_version }
   end
 
   def latest_release_version(service_name)
-    releases_list = ServiceChangelogs.instance.get_cached
-    releases_list = ServiceChangelogs.instance.build_cache if releases_list['ttl'] < DateTime.now.to_i
-    release_version = releases_list[service_name].keys.max_by { |release| Gem::Version.new(release) }
-    releases_list[service_name][release_version].max_by { |version| Gem::Version.new(version['version']) }
+    releases_list = changelogs_cache
+    release_version = releases_list[service_name].keys&.max_by { |release| Gem::Version.new(release) }
+    releases_list[service_name][release_version]&.max_by { |version| Gem::Version.new(version['version']) }
   end
 
   def latest_upgrade_version(service_name, current_release_version)
     upgrade_version = latest_release_version(service_name)
-    upgrade_version = 'release is actual' if current_release_version == upgrade_version['release']
+    return 'release is actual' unless upgrade_version
+
+    if Gem::Version.new(current_release_version) >= Gem::Version.new(upgrade_version['release'])
+      upgrade_version = 'release is actual'
+    end
     upgrade_version
+  end
+
+  def changelogs_cache
+    releases_list = ServiceChangelogs.instance.get_cached
+    releases_list = ServiceChangelogs.instance.build_cache if releases_list['ttl'] < DateTime.now.to_i
+    releases_list
   end
 end

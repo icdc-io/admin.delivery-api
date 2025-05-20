@@ -20,21 +20,6 @@ module RequestHelper
     JSON.parse(response.body)
   end
 
-  def request_githubusercontent(resource, options = nil)
-    github_creds = service_creds('github')
-    account = github_creds["account"] || "#{ENV["GITHUB_REPO"]}-io"
-    repo = github_creds["repo"] || 'services'
-    ref = github_creds["ref"] || 'main'
-    url = "https://raw.githubusercontent.com/#{account}/#{repo}/#{ref}/#{resource}?#{options}"
-    uri = URI.parse(url)
-    request = Net::HTTP::Get.new(uri)
-    request["Authorization"] = "Bearer #{ENV['GITHUB_TOKEN']}"
-    response = Net::HTTP.start(uri.hostname, uri.port, { use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE }) do |http|
-      http.request(request)
-    end
-    JSON.parse(response.body)
-  end
-
   def request_openshift(resource, options = nil)
     os_creds = service_creds('os_api')
     url = os_creds["url"]

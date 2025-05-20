@@ -47,8 +47,7 @@ class ServiceChangelogs
 
   def github_changelogs(service_name)
     download_urls = service_changelogs(service_name).select do |changelog|
-      changelog['download_url']
-        &.include?('release')
+      changelog['download_url']&.include?('release')
     end.map { |changelog| changelog['download_url'] }
     releases = {}
     download_urls.map do |url|
