@@ -5,6 +5,34 @@ require 'openssl'
 module RequestHelper
   include Authenticator
 
+  def request_github(resource, options = nil)
+    github_creds = service_creds('github')
+    account = github_creds["account"] || "#{ENV["GITHUB_REPO"]}-io"
+    repo = github_creds["repo"] || 'services'
+    ref = github_creds["ref"] || 'main'
+    url = "#{service_creds('github_api')["url"]}/repos/#{account}/#{repo}/contents/#{resource}?ref=#{ref}"
+    uri = URI.parse(url)
+    request = Net::HTTP::Get.new(uri)
+    request["Authorization"] = "Bearer #{ENV['GITHUB_TOKEN']}"
+    response = Net::HTTP.start(uri.hostname, uri.port, { use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE }) do |http|
+      http.request(request)
+    end
+    JSON.parse(response.body)
+  end
+
+  def request_openshift(resource, options = nil)
+    os_creds = service_creds('os_api')
+    url = os_creds["url"]
+    url = "#{url}/#{resource}?#{options}"
+    uri = URI.parse(url)
+    request = Net::HTTP::Get.new(uri)
+    request["Authorization"] = "Bearer #{os_creds["token"]}"
+    response = Net::HTTP.start(uri.hostname, uri.port, { use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE }) do |http|
+      http.request(request)
+    end
+    JSON.parse(response.body)
+  end
+
   def request_api_github(resource, options = nil)
     account = service_creds('github')["account"] || "#{ENV["GITHUB_REPO"]}-io"
     repo = service_creds('github')["repo"] || 'services'
