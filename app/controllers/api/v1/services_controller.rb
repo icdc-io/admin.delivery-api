@@ -13,6 +13,7 @@ module Api
       include ServiceHelper
       # before_action :login
       before_action :operator_required
+      before_action :image_stream_list, only: %i[index show]
 
       def index
         prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
@@ -127,9 +128,13 @@ module Api
 
       private
 
+      def image_stream_list
+        @image_streams = request_openshift('apis/image.openshift.io/v1/imagestreams')
+      end
+
       def service_data(service_name)
         service = service_image_stream(service_name)
-        return if service['code'] == 404
+        return unless service
 
         name = service.dig('metadata', 'name')
         tags = service.dig('spec', 'tags')
@@ -148,7 +153,9 @@ module Api
 
       def service_image_stream(service_name)
         @namespace ||= get_os_namespace(service_name)
-        request_openshift("apis/image.openshift.io/v1/namespaces/#{@namespace}/imagestreams/#{service_name}")
+        @image_streams['items'].find do |item|
+          item['metadata']['name'] == service_name && item['metadata']['namespace'] == @namespace
+        end
       end
 
       def all_installed_versions(tags)
