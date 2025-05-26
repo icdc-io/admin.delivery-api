@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ServiceChangelogs
+class Changelog
   include Singleton
   include GithubHelper
   include OsHelper
@@ -24,7 +24,7 @@ class ServiceChangelogs
       response ||= build_cache
       JSON.parse(response)
     else
-      Rails.logger.warn { '[ServiceChangelogs:get_cache] cache was skipped...' }
+      Rails.logger.warn { '[Changelog:get_cache] cache was skipped...' }
       GithubClient.changelogs(service_name)
     end
   end
@@ -32,12 +32,12 @@ class ServiceChangelogs
   def invalidate_cache
     cache_store.set('service_changelogs', nil)
   rescue StandardError => e
-    Rails.logger.error { "[ServiceChangelogs:invalidate_cache] can't invalidate cache... #{e.message}" }
+    Rails.logger.error { "[Changelog:invalidate_cache] can't invalidate cache... #{e.message}" }
   end
 
   def self.all_changelogs_cache
-    releases_list = ServiceChangelogs.instance.get_cached
-    releases_list = ServiceChangelogs.instance.build_cache if releases_list['ttl'] < DateTime.now.to_i
+    releases_list = Changelog.instance.get_cached
+    releases_list = Changelog.instance.build_cache if releases_list['ttl'] < DateTime.now.to_i
     releases_list
   end
 
@@ -64,7 +64,7 @@ class ServiceChangelogs
     @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL'))
   rescue StandardError => e
     Rails.logger.error do
-      "[ServiceChangelogs:cache_store] can't connect to a redis-server, skipping cache... #{e.message}"
+      "[Changelog:cache_store] can't connect to a redis-server, skipping cache... #{e.message}"
     end
     nil
   end

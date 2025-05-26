@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+include Authenticator
 class OkdClient
   def self.all_namespaces
     get_resource('api/v1/namespaces')['items'].map { |namespace| namespace.dig('metadata', 'name') }
