@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require './lib/okd_api'
 module OKD
   class ImageStream
     attr_accessor :name, :namespace, :current_version, :current_release_version, :downgrade_versions
@@ -16,7 +15,7 @@ module OKD
     def self.all
       image_stream_list = list
       prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
-      namespaces = OkdApi.get_all_namespaces.select { |ns| ns.start_with?(prefix) }
+      namespaces = OkdClient.all_namespaces.select { |ns| ns.start_with?(prefix) }
       namespaces.map do |namespace|
         service_name = namespace.gsub("#{prefix}-", '')
         image_stream = find(image_stream_list, service_name, namespace)
@@ -36,7 +35,7 @@ module OKD
     end
 
     def self.list
-      OkdApi.get_resource('apis/image.openshift.io/v1/imagestreams')
+      OkdClient.get_resource('apis/image.openshift.io/v1/imagestreams')
     end
 
     def self.find(imagestreams, service_name, namespace)

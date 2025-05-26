@@ -22,6 +22,7 @@ module Api
       def show
         service = Service.find_by_name(params[:service_name])
         return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless service
+
         render json: service, status: :ok
       end
 

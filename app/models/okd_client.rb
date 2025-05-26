@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
-module OkdApi
+class OkdClient
+  def self.all_namespaces
+    get_resource('api/v1/namespaces')['items'].map { |namespace| namespace.dig('metadata', 'name') }
+  end
+
   def self.get_resource(resource, options = nil)
-    os_creds = credentials
+    os_creds = service_creds('os_api')
     uri = URI.parse("#{os_creds['url']}/#{resource}?#{options}")
     request = Net::HTTP::Get.new(uri)
     request['Authorization'] = "Bearer #{os_creds['token']}"
@@ -11,17 +15,5 @@ module OkdApi
       http.request(request)
     end
     JSON.parse(response.body)
-  end
-
-  def self.get_all_namespaces
-    get_resource('api/v1/namespaces')['items'].map { |namespace| namespace.dig('metadata', 'name') }
-  end
-
-  private
-
-  def self.credentials
-    config_template = ERB.new File.new(File.join(Rails.root, 'config/credentials.yml')).read
-    config_file = YAML.load config_template.result(binding)
-    os_creds = config_file.dig('environment', ENV['RAILS_ENV'], 'os_api')
   end
 end
