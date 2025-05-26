@@ -141,7 +141,7 @@
         "label": "",
         "description": "Collaborate with team members. Build, deploy, and run your applications faster.",
         "position": 7,
-        "display_name": "code",
+        "display_name": "Code",
         "path": "",
         "url": "https://code.dcz.lab.icdc.io"
     },
@@ -277,5 +277,54 @@
         "display_name": "Compliance",
         "path": "",
         "url": "https://compliance.dcz.lab.icdc.io"
+    },
+    {
+        "title": "Message Queue",
+        "name": "mq",
+        "label": "",
+        "apps": [
+            {
+                "name": "brokers",
+                "title": "Brokers",
+                "roles": ""
+            },
+            {
+                "name": "configurations",
+                "title": "Configurations",
+                "roles": ""
+            }
+        ],
+        "description": "A service that simplifies the setup, operation and scaling of brokers in a cloud environment.",
+        "position": 14,
+        "display_name": "Message Queue",
+        "path": "/mq",
+        "url": ""
+    },
+    {
+        "title": "Telemetry",
+        "name": "telemetry",
+        "label": "",
+        "apps": [
+            {
+                "name": "events",
+                "title": "Events",
+                "roles": ""
+            },
+            {
+                "name": "notification-settings",
+                "title": "Notification Settings",
+                "roles": ""
+            },
+            {
+                "name": "notifications",
+                "title": "Notifications",
+                "roles": ""
+            }
+        ],
+        "description": "A service that simplifies the setup, operation and scaling of databases in a cloud environment.",
+        "position": 15,
+        "display_name": "Telemetry",
+        "path": "/telemetry",
+        "url": ""
     }
 ]
