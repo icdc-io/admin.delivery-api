@@ -245,7 +245,7 @@
         "description": "Managed invoices, reports and payments for all accounts.",
         "position": 11,
         "display_name": "Billing",
-        "path": "/admin",
+        "path": "/billing",
         "url": ""
     },
     {
