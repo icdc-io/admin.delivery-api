@@ -79,7 +79,7 @@
                 "roles": ""
             },
             {
-                "name": "load_balancer",
+                "name": "alb",
                 "title": "Load Balancer",
                 "roles": ""
             },
