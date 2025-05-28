@@ -111,7 +111,7 @@
         "label": "",
         "apps": [
             {
-                "name": "amazon",
+                "name": "objects",
                 "title": "Amazon S3/Swift"
             },
             {
