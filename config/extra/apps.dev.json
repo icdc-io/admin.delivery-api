@@ -122,7 +122,7 @@
         "description": "A reliable distributed storage system with the object, file system, and block device interfaces.",
         "position": 5,
         "display_name": "Storage",
-        "path": "/storage2",
+        "path": "/storage",
         "url": ""
     },
     {
