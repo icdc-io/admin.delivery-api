@@ -13,6 +13,7 @@ module Api
       include ServiceHelper
       # before_action :login
       before_action :operator_required
+      before_action :check_version, only: [:downgrade]
 
       def index
         services = Service.all
@@ -25,6 +26,7 @@ module Api
 
         render json: service, status: :ok
       end
+# TODO: Unnecessary code:
 
       # def index
       #   image_names = list_images
@@ -53,31 +55,49 @@ module Api
         nil
       end
 
+      # def create
+      #   prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+      #   create_namespace(params[:service_name]) unless get_all_namespaces.include?("#{prefix}-#{params[:service_name]}")
+      #   service_name = params[:service_name]
+      #   service = get_latest_versions(service_name).select { |service| service['version'] == params['version'] }.first
+      #   # required_services = service["required"]
+      #   # installed_version = get_installed_service(service_name)
+      #   # required_services.keys.each do |required_service|
+      #   #   installed_version = get_installed_service(required_service)
+      #   #   next if installed_version == "404"
+      #   #   if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
+      #   #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
+      #   #   end
+      #   # end
+      #   deploy_template(service_name, service)
+      #   # update
+      #   service_name = params[:service_name]
+      #   update_service(service_name, service)
+      #   ServiceDiscoverer.instance.invalidate_cache
+      #   no_content
+      # end
+
+      # def downgrade
+      #   required_version = get_required_version(params[:service_name], params[:version]).select do |tst|
+      #     tst if tst['version'] == params[:version]
+      #   end.first
+      #   update_service(params[:service_name], required_version)
+      #   ServiceDiscoverer.instance.invalidate_cache
+      #   no_content
+      # end
+
+# end TODO
+
       def create
-        prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
-
-        create_namespace(params[:service_name]) unless get_all_namespaces.include?("#{prefix}-#{params[:service_name]}")
-
         service_name = params[:service_name]
-        service = get_latest_versions(service_name).select { |service| service['version'] == params['version'] }.first
-
-        # required_services = service["required"]
-        # installed_version = get_installed_service(service_name)
-        # required_services.keys.each do |required_service|
-        #   installed_version = get_installed_service(required_service)
-        #   next if installed_version == "404"
-        #   if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
-        #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
-        #   end
-        # end
-
-        deploy_template(service_name, service)
-
-        # update
-        service_name = params[:service_name]
-        update_service(service_name, service)
+        version = params[:version]
+        prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
+        OkdClient.create_namespace(service_name) unless OkdClient.namespaces.include?("#{prefix}-#{service_name}")
+        version = Github::Changelog.find_version(service_name, version)
+        deploy_template(service_name, version)
+        Service.find_by_name(service_name).update_version(version)
         ServiceDiscoverer.instance.invalidate_cache
-        no_content
+        render json: Service.find_by_name(service_name), status: :ok
       end
 
       def delete
@@ -99,12 +119,10 @@ module Api
       end
 
       def downgrade
-        required_version = get_required_version(params[:service_name], params[:version]).select do |tst|
-          tst if tst['version'] == params[:version]
-        end.first
-        update_service(params[:service_name], required_version)
+        downgrade_version = Github::Changelog.find_version(@service.name, params[:version])
+        @service.update_version(downgrade_version)
         ServiceDiscoverer.instance.invalidate_cache
-        no_content
+        render json: Service.find_by_name(@service.name), status: :ok
       end
 
       def upgrade
@@ -117,6 +135,18 @@ module Api
         update_service(service_name, service)
         ServiceDiscoverer.instance.invalidate_cache
         no_content
+      end
+
+      private
+
+      def check_version
+        @service = Service.find_by_name(params[:service_name])
+        return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
+
+        return if @service.downgrade_versions.include?(params[:version])
+
+        render json: { message: 'Bad request, version for downgrade is incorrect', code: 400 },
+               status: :bad_request
       end
     end
   end

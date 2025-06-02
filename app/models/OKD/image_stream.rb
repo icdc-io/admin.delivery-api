@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+include OsCommonHelper
+include OsHelper
 module OKD
   class ImageStream
     attr_accessor :name, :namespace, :current_version, :current_release_version, :downgrade_versions
@@ -13,35 +15,28 @@ module OKD
     end
 
     def self.all
-      image_stream_list = list
+      image_stream_list = OkdClient.get_resource('apis/image.openshift.io/v1/imagestreams')
       prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
-      namespaces = OkdClient.all_namespaces.select { |ns| ns.start_with?(prefix) }
-      namespaces.map do |namespace|
+      OkdClient.namespaces(prefix).map do |namespace|
         service_name = namespace.gsub("#{prefix}-", '')
-        image_stream = find(image_stream_list, service_name, namespace)
+        image_stream = image_stream_list['items'].find do |item|
+          item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == namespace
+        end
         next unless image_stream
 
         new(service_data(image_stream, service_name, namespace))
       end.compact
     end
 
-    def self.get(name)
-      image_stream_list = list
-      namespace = "#{(ENV['NAMESPACE_PREFIX'].present? ? ENV['NAMESPACE_PREFIX'] : 'cloud').to_s.downcase}-#{name}"
-      image_stream = find(image_stream_list, name, namespace)
-      return unless image_stream
-
-      new(service_data(image_stream, name, namespace))
-    end
-
-    def self.list
-      OkdClient.get_resource('apis/image.openshift.io/v1/imagestreams')
-    end
-
-    def self.find(imagestreams, service_name, namespace)
-      imagestreams['items'].find do |item|
+    def self.get(service_name)
+      image_stream_list = OkdClient.get_resource('apis/image.openshift.io/v1/imagestreams')
+      namespace = "#{(ENV['NAMESPACE_PREFIX'].present? ? ENV['NAMESPACE_PREFIX'] : 'cloud').to_s.downcase}-#{service_name}"
+      image_stream = image_stream_list['items'].find do |item|
         item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == namespace
       end
+      return unless image_stream
+
+      new(service_data(image_stream, service_name, namespace))
     end
 
     def self.service_data(image_stream, name, namespace)
