@@ -306,8 +306,8 @@
         "label": "",
         "apps": [
             {
-                "name": "events",
-                "title": "Events",
+                "name": "notifications",
+                "title": "Notifications",
                 "roles": ""
             },
             {
@@ -316,8 +316,8 @@
                 "roles": ""
             },
             {
-                "name": "notifications",
-                "title": "Notifications",
+                "name": "events",
+                "title": "Events",
                 "roles": ""
             }
         ],
