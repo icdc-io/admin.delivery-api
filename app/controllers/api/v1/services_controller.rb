@@ -5,16 +5,11 @@ require 'yaml'
 module Api
   module V1
     class ServicesController < ApplicationController
-      include SystemServices
-      include OsCommonHelper
-      include OsHelper
-      include OsCreateHelper
-      include OsDeleteHelper
-      include ServiceHelper
       # before_action :login
       before_action :operator_required
       before_action :check_downgrade_version, only: [:downgrade]
       before_action :check_upgrade_version, only: [:upgrade]
+      before_action :check_update_version, only: [:update]
 
       def index
         services = Service.all
@@ -27,7 +22,7 @@ module Api
 
         render json: service, status: :ok
       end
-# TODO: Delete unnecessary code:
+      # TODO: Delete unnecessary code:
 
       # def index
       #   image_names = list_images
@@ -99,7 +94,7 @@ module Api
       #   no_content
       # end
 
-# end TODO
+      # end TODO
 
       def create
         service_name = params[:service_name]
@@ -108,7 +103,7 @@ module Api
         OkdClient.create_namespace(service_name) unless OkdClient.namespaces.include?("#{prefix}-#{service_name}")
         version = Github::Changelog.find_version(service_name, version)
         OKD::Template.deploy(service_name, version)
-        Service.find_by_name(service_name).update_version(version)
+        Service.find_by_name(service_name).update_service_version(version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(service_name), status: :ok
       end
@@ -133,14 +128,20 @@ module Api
 
       def downgrade
         downgrade_version = Github::Changelog.find_version(@service.name, params[:version])
-        @service.update_version(downgrade_version)
+        @service.update_service_version(downgrade_version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service.name), status: :ok
       end
 
       def upgrade
         OKD::Template.deploy(@service_name, @upgrade_version)
-        Service.find_by_name(@service_name).update_version(version)
+        Service.find_by_name(@service_name).update_service_version(version)
+        ServiceDiscoverer.instance.invalidate_cache
+        render json: Service.find_by_name(@service_name), status: :ok
+      end
+
+      def update
+        @service.update_service_version(@update_version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service_name), status: :ok
       end
@@ -163,12 +164,33 @@ module Api
         return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless service
 
         @upgrade_version = service.upgrade_version
-        return render json: { message: 'Bad request, version for upgrade is incorrect', code: 400 },
-                                            status: :bad_request if @upgrade_version['version'] != params[:version]
+        if @upgrade_version['version'] != params[:version]
+          return render json: { message: 'Bad request, version for upgrade is incorrect', code: 400 },
+                        status: :bad_request
+        end
 
         prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
-        return render json: { message: 'Bad request, namespace for this service not found', code: 404 },
-                              status: :not_found unless OkdClient.namespaces.include?("#{prefix}-#{@service_name}")
+        return if OkdClient.namespaces.include?("#{prefix}-#{@service_name}")
+
+        render json: { message: 'Bad request, namespace for this service not found', code: 404 },
+               status: :not_found
+      end
+
+      def check_update_version
+        @service_name = params[:service_name]
+        @service = Service.find_by_name(@service_name)
+        return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
+
+        @update_version = @service.update_version
+        unless @update_version
+          return render json: { message: 'Bad request, update is actual', code: 400 },
+                        status: :bad_request
+        end
+
+        return unless @update_version['version'] != params[:version]
+
+        render json: { message: 'Bad request, version for update is incorrect', code: 400 },
+               status: :bad_request
       end
     end
   end

@@ -31,7 +31,7 @@ class Service
     service
   end
 
-  def update_version(version)
+  def update_service_version(version)
     service_repository = "#{GithubClient.registry_server(name)}/#{namespace}"
     version['applications'].compact.map do |app|
       app_name = app['name']
