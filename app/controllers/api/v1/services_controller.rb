@@ -13,7 +13,8 @@ module Api
       include ServiceHelper
       # before_action :login
       before_action :operator_required
-      before_action :check_version, only: [:downgrade]
+      before_action :check_downgrade_version, only: [:downgrade]
+      before_action :check_upgrade_version, only: [:upgrade]
 
       def index
         services = Service.all
@@ -26,7 +27,7 @@ module Api
 
         render json: service, status: :ok
       end
-# TODO: Unnecessary code:
+# TODO: Delete unnecessary code:
 
       # def index
       #   image_names = list_images
@@ -86,6 +87,18 @@ module Api
       #   no_content
       # end
 
+      # def upgrade
+      #   return abort('No such namespace') unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
+
+      #   service_name = params[:service_name]
+      #   service = get_latest_versions(service_name).select { |service| service['version'] == params[:version] }.first
+      #   deploy_template(service_name, service)
+      #   service_name = params[:service_name]
+      #   update_service(service_name, service)
+      #   ServiceDiscoverer.instance.invalidate_cache
+      #   no_content
+      # end
+
 # end TODO
 
       def create
@@ -94,7 +107,7 @@ module Api
         prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
         OkdClient.create_namespace(service_name) unless OkdClient.namespaces.include?("#{prefix}-#{service_name}")
         version = Github::Changelog.find_version(service_name, version)
-        deploy_template(service_name, version)
+        OKD::Template.deploy(service_name, version)
         Service.find_by_name(service_name).update_version(version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(service_name), status: :ok
@@ -126,20 +139,15 @@ module Api
       end
 
       def upgrade
-        return abort('No such namespace') unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
-
-        service_name = params[:service_name]
-        service = get_latest_versions(service_name).select { |service| service['version'] == params[:version] }.first
-        deploy_template(service_name, service)
-        service_name = params[:service_name]
-        update_service(service_name, service)
+        OKD::Template.deploy(@service_name, @upgrade_version)
+        Service.find_by_name(@service_name).update_version(version)
         ServiceDiscoverer.instance.invalidate_cache
-        no_content
+        render json: Service.find_by_name(@service_name), status: :ok
       end
 
       private
 
-      def check_version
+      def check_downgrade_version
         @service = Service.find_by_name(params[:service_name])
         return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
 
@@ -147,6 +155,20 @@ module Api
 
         render json: { message: 'Bad request, version for downgrade is incorrect', code: 400 },
                status: :bad_request
+      end
+
+      def check_upgrade_version
+        @service_name = params[:service_name]
+        service = Service.find_by_name(@service_name)
+        return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless service
+
+        @upgrade_version = service.upgrade_version
+        return render json: { message: 'Bad request, version for upgrade is incorrect', code: 400 },
+                                            status: :bad_request if @upgrade_version['version'] != params[:version]
+
+        prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
+        return render json: { message: 'Bad request, namespace for this service not found', code: 404 },
+                              status: :not_found unless OkdClient.namespaces.include?("#{prefix}-#{@service_name}")
       end
     end
   end

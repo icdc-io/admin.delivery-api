@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class GithubClient
-  module Params
-    def self.template_with_updated_params(template, applications, _service, version, namespace)
+  module Template
+    def self.with_updated_params(template, applications, version, namespace)
       white_list = %w[VERSION APPLICATION_DOMAIN NAMESPACE REGISTRY_SERVER REGISTRY_PROXY_SERVER
                       NAMESPACE_PREFIX]
       configmaps_env_loc = OkdClient.configmaps_env_loc(namespace)
@@ -35,18 +35,18 @@ class GithubClient
       end
       template
     end
-  end
 
-  def dns_template_params(dns_param)
-    case dns_param
-    when /HOSTNAME_SYS_*/
-      ENV.fetch('DNS_HOST_SYS', "sys.cloudgw-account.#{ENV['LOCATION_DOMAIN']}")
-    when /HOSTNAME_INT_*/
-      ENV.fetch('DNS_HOST_INT', "gwint.sys.ocp.#{ENV['LOCATION_DOMAIN']}")
-    when /HOSTNAME_EXT_*/
-      ENV.fetch('DNS_HOST_EXT', "gwext.sys.ocp.#{ENV['LOCATION_DOMAIN']}")
-    when /HOSTNAME_VPN_*/
-      ENV.fetch('DNS_HOST_VPN', "gwvpn.sys.ocp.#{ENV['LOCATION_DOMAIN']}")
+    def self.dns_params(dns_param)
+      case dns_param
+      when /HOSTNAME_SYS_*/
+        ENV.fetch('DNS_HOST_SYS', "sys.cloudgw-account.#{ENV['LOCATION_DOMAIN']}")
+      when /HOSTNAME_INT_*/
+        ENV.fetch('DNS_HOST_INT', "gwint.sys.ocp.#{ENV['LOCATION_DOMAIN']}")
+      when /HOSTNAME_EXT_*/
+        ENV.fetch('DNS_HOST_EXT', "gwext.sys.ocp.#{ENV['LOCATION_DOMAIN']}")
+      when /HOSTNAME_VPN_*/
+        ENV.fetch('DNS_HOST_VPN', "gwvpn.sys.ocp.#{ENV['LOCATION_DOMAIN']}")
+      end
     end
   end
 end

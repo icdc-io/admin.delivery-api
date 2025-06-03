@@ -3,7 +3,6 @@
 include Authenticator
 class OkdClient
   extend OkdClient::RequestBody
-  extend GithubClient::Params
   # attr_accessor :service_name, :template
 
   # def initialize(service_name)
@@ -23,7 +22,7 @@ class OkdClient
 
   def self.create_namespace(service_name)
     Rails.logger.debug { "create_namespace: #{service_name}" }
-    url = "apis/project.openshift.io/v1/projectrequests"
+    url = 'apis/project.openshift.io/v1/projectrequests'
     body = OkdClient.namespace_body(service_name)
     post_resource(url, body)
   end
@@ -31,8 +30,7 @@ class OkdClient
   def self.create_image_stream_tag(service, app_name, app_version, service_repository)
     service_name = service.name
     Rails.logger.debug { "create_image_stream_tag: #{app_name}, #{service_name}, #{app_version}" }
-    namespace = service.namespace
-    url = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreamtags"
+    url = "apis/image.openshift.io/v1/namespaces/#{service.namespace}/imagestreamtags"
     body = OkdClient.image_stream_tag_body(app_name, app_version, service_repository, service_name)
     post_resource(url, body)
   end
@@ -51,30 +49,11 @@ class OkdClient
     post_resource(url, body)
   end
 
-  def self.deploy_template(service_name, version)
-    template = Github::Template.find_by_service_name(service_name)
-    applications = {}
-    version["applications"].map{|app| applications[app["name"]] = app["tag"]}
-    namespace = "#{ENV.fetch('NAMESPACE_PREFIX', 'cloud')}-#{service_name}"
-    template = GithubClient.template_with_updated_params(template, applications, service_name, version["version"], namespace)
-    create_dns_records(template)
-    generated_service_template = generate_service_template(template, service_name)
-    generated_service_template["objects"].map do |obj|
-      obj_name = obj.dig('metadata', 'name')
-      eval("create_#{obj['kind'].underscore}(#{obj}, '#{service_name}', '#{obj_name}')")
-      puts "debug object #{obj}\n"
-    end
-  end
-
-  def self.create_dns_records(template)
-    dns_params = template.dig("parameters").select { |param| param["name"] =~ /HOSTNAME/ }
-
-    dns_params.each do |dns_param|
-      dns_host = GithubClient.dns_template_params(dns_param["name"])
-      next unless dns_host
-      hostname = dns_param["value"]
-      create_dns_record(hostname, dns_host)
-    end
+  def self.generate_service_template(template, service_name, namespace)
+    Rails.logger.debug { "generate_service_template: #{service_name}, #{template}" }
+    url = "apis/template.openshift.io/v1/namespaces/#{namespace}/processedtemplates"
+    body = template.to_json
+    post_resource(url, body)
   end
 
   def self.get_resource(resource, options = nil)
