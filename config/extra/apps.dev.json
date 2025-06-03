@@ -306,6 +306,11 @@
         "label": "",
         "apps": [
             {
+                "name": "events",
+                "title": "Events",
+                "roles": ""
+            },
+            {
                 "name": "notifications",
                 "title": "Notifications",
                 "roles": ""
@@ -313,11 +318,6 @@
             {
                 "name": "notification-settings",
                 "title": "Notification Settings",
-                "roles": ""
-            },
-            {
-                "name": "events",
-                "title": "Events",
                 "roles": ""
             }
         ],
