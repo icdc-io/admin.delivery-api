@@ -22,7 +22,7 @@ module Api
 
         render json: service, status: :ok
       end
-      # TODO: Delete unnecessary code:
+      # TODO: Remove
 
       # def index
       #   image_names = list_images
@@ -97,33 +97,15 @@ module Api
       # end TODO
 
       def create
+        version = Github::Changelog.find_version(params[:service_name], params[:version])
+        return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found unless version
+
         service_name = params[:service_name]
-        version = params[:version]
         prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
         OkdClient.create_namespace(service_name) unless OkdClient.namespaces.include?("#{prefix}-#{service_name}")
-        version = Github::Changelog.find_version(service_name, version)
-        OKD::Template.deploy(service_name, version)
-        Service.find_by_name(service_name).update_service_version(version)
+        Service.install(service_name, params[:version])
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(service_name), status: :ok
-      end
-
-      def delete
-        $deleting[params[:service_name]] = 'deleting'
-        10.times do
-          delete_code = delete_service(params[:service_name], params[:delete_persistent_data],
-                                       params[:delete_backup_data])
-          if delete_code.to_i == 204
-            $deleting.delete(params[:service_name])
-            # delete_dns_record(params[:service_name])
-            template = get_service_repository(params[:service_name])
-            delete_dns_records(template)
-            ServiceDiscoverer.instance.invalidate_cache
-
-            return '204'
-          end
-          sleep 5
-        end
       end
 
       def downgrade

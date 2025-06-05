@@ -31,6 +31,12 @@ class Service
     service
   end
 
+  def self.install(service_name, version)
+    version = Github::Changelog.find_version(service_name, version)
+    OKD::Template.deploy(service_name, version)
+    Service.find_by_name(service_name).update_service_version(version)
+  end
+
   def update_service_version(version)
     service_repository = "#{GithubClient.registry_server(name)}/#{namespace}"
     version['applications'].compact.map do |app|
