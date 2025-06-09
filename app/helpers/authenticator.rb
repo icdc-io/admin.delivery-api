@@ -10,11 +10,12 @@ module Authenticator
   def service_creds(service)
     config_file.dig("environment", ENV["RAILS_ENV"], service.downcase)
   end
-
+  # TODO: Remove
   def basic_token(service)
     creds = config_file.dig("environment", ENV["RAILS_ENV"], service.downcase)
     creds["token"] ? creds["token"] : Base64.encode64("#{creds["username"]}:#{creds["password"]}").strip!
   end
+  # end TODO
 
   def operator_jwt
     get_jwt_token(ENV['OPERATOR_USERNAME'], ENV['OPERATOR_PASSWORD'])

@@ -5,8 +5,8 @@ require 'yaml'
 module Api
   module V1
     class ServicesController < ApplicationController
-      # before_action :login
       before_action :operator_required
+      before_action :find_service, only: [:downgrade, :upgrade, :update, :delete]
       before_action :check_downgrade_version, only: [:downgrade]
       before_action :check_upgrade_version, only: [:upgrade]
       before_action :check_update_version, only: [:update]
@@ -94,6 +94,23 @@ module Api
       #   no_content
       # end
 
+      # def delete
+      #   $deleting[params[:service_name]] = 'deleting'
+      #   10.times do
+      #     delete_code = delete_service(params[:service_name], params[:delete_persistent_data],
+      #                                  params[:delete_backup_data])
+      #     if delete_code.to_i == 204
+      #       $deleting.delete(params[:service_name])
+      #       # delete_dns_record(params[:service_name])
+      #       template = get_service_repository(params[:service_name])
+      #       delete_dns_records(template)
+      #       ServiceDiscoverer.instance.invalidate_cache
+
+      #       return '204'
+      #     end
+      #     sleep 5
+      #   end
+      # end
       # end TODO
 
       def create
@@ -101,8 +118,6 @@ module Api
         return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found unless version
 
         service_name = params[:service_name]
-        prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
-        OkdClient.create_namespace(service_name) unless OkdClient.namespaces.include?("#{prefix}-#{service_name}")
         Service.install(service_name, params[:version])
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(service_name), status: :ok
@@ -128,12 +143,25 @@ module Api
         render json: Service.find_by_name(@service_name), status: :ok
       end
 
+      def delete
+        $deleting[@service_name] = 'deleting'
+        @service.delete(params[:delete_persistent_data], params[:delete_backup_data])
+        template = Github::Template.find_by_service_name(@service_name)
+        DNS.delete_dns_records(template)
+        $deleting.delete(@service_name)  
+        ServiceDiscoverer.instance.invalidate_cache
+        render json: nil, status: :no_content
+      end
+ 
       private
 
-      def check_downgrade_version
-        @service = Service.find_by_name(params[:service_name])
+      def find_service
+        @service_name = params[:service_name]
+        @service = Service.find_by_name(@service_name)
         return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
+      end
 
+      def check_downgrade_version
         return if @service.downgrade_versions.include?(params[:version])
 
         render json: { message: 'Bad request, version for downgrade is incorrect', code: 400 },
@@ -141,11 +169,7 @@ module Api
       end
 
       def check_upgrade_version
-        @service_name = params[:service_name]
-        service = Service.find_by_name(@service_name)
-        return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless service
-
-        @upgrade_version = service.upgrade_version
+        @upgrade_version = @service.upgrade_version
         if @upgrade_version['version'] != params[:version]
           return render json: { message: 'Bad request, version for upgrade is incorrect', code: 400 },
                         status: :bad_request
@@ -159,10 +183,6 @@ module Api
       end
 
       def check_update_version
-        @service_name = params[:service_name]
-        @service = Service.find_by_name(@service_name)
-        return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
-
         @update_version = @service.update_version
         unless @update_version
           return render json: { message: 'Bad request, update is actual', code: 400 },

@@ -1,3 +1,4 @@
+#TODO: Remove
 module ServiceHelper
     include OsHelper
     def create_dns_record(hostname, dns_host)
@@ -35,3 +36,4 @@ module ServiceHelper
       CoreDns::Etcd.new(ENV['DNS_SERVER'])
     end
 end
+# end TODO

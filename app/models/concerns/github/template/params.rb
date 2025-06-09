@@ -9,7 +9,7 @@ module Github
         configmaps_env_loc = OkdClient.configmaps_env_loc(namespace)
         white_list << 'LOCATION_DOMAIN' unless configmaps_env_loc['location_domain'].nil?
         white_list << 'LOCATION_TIMEZONE' unless configmaps_env_loc['location_timezone'].nil?
-        applications.keys.map { |a| white_list.append "TAG_#{a.underscore.upcase}" }
+        applications.keys.map { |app| white_list.append "TAG_#{app.underscore.upcase}" }
         template['parameters'].map do |param|
           next unless white_list.include?(param['name'])
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 include Authenticator
+include OsRequestHelper
 class OkdClient
   extend OkdClient::RequestBody
   # attr_accessor :service_name, :template
@@ -35,7 +36,7 @@ class OkdClient
     post_resource(url, body)
   end
 
-  def self.update_image_stream_tag(name, version, namespace)
+  def self.set_latest_tag_version(name, version, namespace)
     url = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreamtags/#{name}:latest"
     body = OkdClient.latest_image_stream_tag_body(name, version)
     put_resource(url, body).dig('tag', 'from', 'name')
@@ -56,64 +57,244 @@ class OkdClient
     post_resource(url, body)
   end
 
-  def self.get_resource(resource, options = nil)
-    os_creds = service_creds('os_api')
-    url = os_creds['url']
-    response = RestClient::Request.execute(
-      method: :get,
-      url: "#{url}/#{resource}?#{options}",
-      headers: {
-        Authorization: "Bearer #{os_creds['token']}"
-      },
-      verify_ssl: Rails.env.production?
-    )
-    JSON.parse(response.body)
+  def self.create_service(body, namespace, name = nil)
+    Rails.logger.debug { "create_service: #{namespace}" }
+    resource = "api/v1/namespaces/#{namespace}/services"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
   end
 
-  def self.post_resource(resource, body)
-    os_creds = service_creds('os_api')
-    url = "#{os_creds['url']}/#{resource}"
-    response = RestClient::Request.execute(
-      method: :post,
-      url: url,
-      payload: body,
-      headers: {
-        content_type: 'application/json',
-        Authorization: "Bearer #{os_creds['token']}",
-        Accept: 'application/json'
-      },
-      verify_ssl: Rails.env.production?
-    )
-    JSON.parse(response.body)
-    # Net::HTTP request
-      # url = "#{url}/#{resource}"
-      # uri = URI.parse(url)
-      # request = Net::HTTP::Post.new(uri)
-      # request.content_type = "application/json"
-      # request["Authorization"] = "Bearer #{os_creds["token"]}"
-      # request["Accept"] = "application/json"
-      # request.body = body
-      # response = Net::HTTP.start(uri.hostname, uri.port, req_options(uri)) do |http|
-      #   http.request(request)
-      # end
-  rescue StandardError => e
-    Rails.logger.info { "POST #{url} request failed: #{e}" }
+  def self.create_deployment_config(body, namespace, name = nil)
+    Rails.logger.debug { "create_deployment_config: #{namespace}" }
+    resource = "apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
   end
 
-  def self.put_resource(resource, body)
-    os_creds = service_creds('os_api')
-    url = os_creds['url']
-    response = RestClient::Request.execute(
-      method: :put,
-      url: "#{url}/#{resource}",
-      payload: body,
-      headers: {
-        content_type: 'application/json',
-        Authorization: "Bearer #{os_creds['token']}",
-        Accept: 'application/json'
-      },
-      verify_ssl: Rails.env.production?
-    )
-    JSON.parse(response.body)
+  def create_deployment(body, namespace, name = nil)
+    Rails.logger.debug { "create_deployment: #{namespace}" }
+    resource = "/apis/apps/v1/namespaces/#{namespace}/deployments/#{name}"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
+  end
+
+  def self.create_route(body, namespace, name = nil)
+    Rails.logger.debug { "create_route: #{namespace}" }
+    resource = "apis/route.openshift.io/v1/namespaces/#{namespace}/routes"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
+  end
+
+  def self.create_secret(body, namespace, _name = nil)
+    Rails.logger.debug { "create_secret: #{namespace}" }
+    resource = "api/v1/namespaces/#{namespace}/secrets"
+    post_resource(resource, body.to_json)
+  end
+
+  def self.create_service_account(body, namespace, _name = nil)
+    Rails.logger.debug { "create_service_account: #{namespace}" }
+    resource = "api/v1/namespaces/#{namespace}/serviceaccounts"
+    post_resource(resource, body.to_json)
+  end
+
+  def self.create_config_map(body, namespace, name = nil)
+    Rails.logger.debug { "create_config_map: #{namespace} " }
+    resource = "api/v1/namespaces/#{namespace}/configmaps/#{name}"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
+  end
+
+  def self.create_persistent_volume_claim(body, namespace, name = nil)
+    Rails.logger.debug { "create_persistent_volume_claim: #{namespace}" }
+    resource = "api/v1/namespaces/#{namespace}/persistentvolumeclaims/#{name}"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
+  end
+
+  def self.create_image_stream(body, namespace, name = nil)
+    Rails.logger.debug { "create_image_stream: #{namespace}" }
+    resource = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
+  end
+
+  def self.create_role(body, namespace, _name = nil)
+    Rails.logger.debug { "create_role: #{namespace}" }
+    resource = "apis/rbac.authorization.k8s.io/v1/namespaces/#{namespace}/roles"
+    post_resource(resource, body.to_json)
+  end
+
+  def self.create_role_binding(body, namespace, _name = nil)
+    Rails.logger.debug { "create_role_binding: #{namespace}" }
+    resource = "apis/rbac.authorization.k8s.io/v1/namespaces/#{namespace}/rolebindings"
+    post_resource(resource, body.to_json)
+  end
+
+  def self.create_cron_job(body, namespace, name = nil)
+    Rails.logger.debug { "create_cron_job: #{namespace}" }
+    resource = "apis/batch/v1/namespaces/#{namespace}/cronjobs"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
+  end
+
+  def create_job(body, namespace, name = nil)
+    Rails.logger.debug { "create_job: #{service_name}" }
+    resource = "apis/batch/v1/namespaces/#{namespace}/jobs"
+    body = body.to_json
+    if object_exists?("#{resource}/#{name}")
+      patch_resource("#{resource}/#{name}", body)
+    else
+      post_resource(resource, body)
+    end
+  end
+
+  def self.delete_image_stream(service_name, namespace)
+    resource = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_route(service_name, namespace)
+    resource = "apis/route.openshift.io/v1/namespaces/#{namespace}/routes"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_service(service_name, namespace)
+    resource = "api/v1/namespaces/#{namespace}/services"
+    options = "labelSelector=service=#{service_name}"
+    service_names = get_resource(resource, options)['items'].map { |service| service.dig('metadata', 'name') }
+    service_names.each do |name|
+      delete_resource("#{resource}/#{name}")
+    end
+  end
+
+  def self.delete_deployment_config(service_name, namespace)
+    resource = "apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs"
+    options = "labelSelector=service=#{service_name}"
+    deploymentconfig_names = get_resource(resource, options)['items'].map { |dc| dc.dig('metadata', 'name') }
+    deploymentconfig_names.each do |name|
+      delete_resource("#{resource}/#{name}")
+    end
+  end
+
+  def self.delete_deployment(service_name, namespace)
+    resource = "apis/apps/v1/namespaces/#{namespace}/deployments"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_stateful_set(service_name, namespace)
+    resource = "apis/apps/v1/namespaces/#{namespace}/statefulsets"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_job(service_name, namespace)
+    resource = "apis/batch/v1/namespaces/#{namespace}/jobs"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_cron_job(service_name, namespace)
+    resource = "apis/batch/v1/namespaces/#{namespace}/cronjobs"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_service_account(service_name, namespace)
+    resource = "api/v1/namespaces/#{namespace}/serviceaccounts"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_config_map(service_name, namespace)
+    resource = "api/v1/namespaces/#{namespace}/configmaps"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_pod(service_name, namespace)
+    resource = "api/v1/namespaces/#{namespace}/pods"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_replication_controller(service_name, namespace)
+    resource = "api/v1/namespaces/#{namespace}/replicationcontrollers"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_daemon_set(service_name, namespace)
+    resource = "apis/apps/v1/namespaces/#{namespace}/daemonsets"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_replica_set(service_name, namespace)
+    resource = "apis/apps/v1/namespaces/#{namespace}/replicasets"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_horizontal_pod_auto_scaler(service_name, namespace)
+    resource = "apis/autoscaling/v1/namespaces/#{namespace}/horizontalpodautoscalers"
+    options = "labelSelector=service=#{service_name}"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_pvc_data(service_name, namespace)
+    resource = "api/v1/namespaces/#{namespace}/persistentvolumeclaims"
+    options = "labelSelector=service=#{service_name},type=data"
+    delete_resource(resource, options)
+  end
+
+  def self.delete_pvc_backup(service_name, namespace)
+    resource = "api/v1/namespaces/#{namespace}/persistentvolumeclaims"
+    options = "labelSelector=service=#{service_name},type=backup"
+    delete_resource(resource, options)
+  end
+
+  def self.object_exists?(url)
+    get_resource(url)[:code] != 404
+  end
+
+  def self.rollout_deployment_config(service_name, namespace)
+    url = "apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs/#{service_name}/instantiate"
+    body = OkdClient.rollout_dc_template(service_name)
+    post_resource(url, body)
   end
 end

@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-
   get '/up', to: proc { [200, {}, ['Up!']] }
 
   namespace :api do
@@ -13,9 +12,11 @@ Rails.application.routes.draw do
         get     '/services/:service_name',                   to: 'services#show'
         post    '/service/:service_name/install',            to: 'services#create',                        constraints: { :service_name => /[0-z\.\-]+/ }
         delete  '/service/:service_name',                    to: 'services#delete',                        constraints: { :service_name => /[0-z\.\-]+/ }
-        get     '/service/:service_name',                    to: 'services#overview',                      constraints: { :service_name => /[0-z\.\-]+/ }
         put     '/service/:service_name/release',            to: 'services#upgrade',                       constraints: { :service_name => /[0-z\.\-]+/ }
         put     '/service/:service_name/downgrade',          to: 'services#downgrade',                     constraints: { :service_name => /[0-z\.\-]+/ }
+        put     '/service/:service_name/update',             to: 'services#update',                        constraints: { :service_name => /[0-z\.\-]+/ }
+        # TODO: Remove
+        get     '/service/:service_name',                    to: 'services#overview',                      constraints: { :service_name => /[0-z\.\-]+/ }
 
         # versions
         get     '/service/:service_name/install',            to: 'versions#show',                          constraints: { :service_name => /[0-z\.\-]+/ }
@@ -28,7 +29,7 @@ Rails.application.routes.draw do
 
         # releases
         get     '/service/:service_name/release',            to: 'releases#show',                           constraints: { :service_name => /[0-z\.\-]+/ }
-
+        # end TODO
     end
   end
 end

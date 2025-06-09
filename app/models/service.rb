@@ -44,9 +44,30 @@ class Service
       app_version = app['tag']
       OkdClient.create_image_stream_tag(self, app_name, app_version, service_repository)
       image_stream_tag_name = "#{name}-#{app_name}"
-      OkdClient.update_image_stream_tag(image_stream_tag_name, app_version, namespace)
+      OkdClient.set_latest_tag_version(image_stream_tag_name, app_version, namespace)
     end
     OkdClient.create_image_stream_service_tag(name, version['version'], namespace)
-    OkdClient.update_image_stream_tag(name, version['version'], namespace)
+    OkdClient.set_latest_tag_version(name, version['version'], namespace)
+    OkdClient.rollout_deployment_config(name, namespace)
+  end
+
+  def delete(delete_pvc_data, delete_pvc_backup)
+    OkdClient.delete_image_stream(name, namespace)
+    OkdClient.delete_route(name, namespace)
+    OkdClient.delete_service(name, namespace)
+    OkdClient.delete_deployment_config(name, namespace)
+    OkdClient.delete_deployment(name, namespace)
+    OkdClient.delete_stateful_set(name, namespace)
+    OkdClient.delete_job(name, namespace)
+    OkdClient.delete_cron_job(name, namespace)
+    OkdClient.delete_service_account(name, namespace)
+    OkdClient.delete_config_map(name, namespace)
+    OkdClient.delete_pod(name, namespace)
+    OkdClient.delete_replication_controller(name, namespace)
+    OkdClient.delete_daemon_set(name, namespace)
+    OkdClient.delete_replica_set(name, namespace)
+    OkdClient.delete_horizontal_pod_auto_scaler(name, namespace)
+    OkdClient.delete_pvc_data(name, namespace) if delete_pvc_data == 'true'
+    OkdClient.delete_pvc_backup(name, namespace) if delete_pvc_backup == 'true'
   end
 end
