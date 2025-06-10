@@ -1,3 +1,4 @@
+# TODO Remove
 require 'json'
 
 module OsHelper
@@ -7,7 +8,7 @@ module OsHelper
   include OsCreateHelper
   include OsDeleteHelper
   include OsCommonHelper
-# TODO Remove
+
   def login
     os_creds = service_creds("os_api")
     system("oc login #{os_creds['url']} --token=#{os_creds['token']} --insecure-skip-tls-verify")
@@ -54,7 +55,7 @@ module OsHelper
   rescue => e
     puts "Something went wrong #{e.message}"
   end
-# end TODO
+
   def get_replication_controller_status(service_name, revision, namespace)
     get_request_api_os("api/v1/namespaces/#{namespace}/replicationcontrollers/#{service_name}-#{revision}").dig('metadata','annotations','openshift.io/deployment.phase')
   rescue => e
@@ -64,7 +65,7 @@ module OsHelper
   def image_stream_exists?(service, namespace)
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams/#{service}") != "404"
   end
-# TODO: Remove
+
   def get_image_streams(service_name)
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
   end
@@ -123,27 +124,27 @@ module OsHelper
     is_name = image_stream_by_service(service_name).dig('metadata', 'name')
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{is_name}")
   end
-# end TODO
+
   def get_all_namespaces
     get_request_api_os("api/v1/namespaces")['items'].map{|nsp| nsp.dig("metadata", "name") }
   end
-# TODO: Remove
+
   def get_namespaces_by_label(label)
     get_request_api_os("api/v1/namespaces?labelSelector=#{label}")['items'].map{|nsp| nsp.dig("metadata", "name") }
   end
-# end TODO
+
   def get_deployment_configs(namespace)
     get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs").dig("items")
   end
-# TODO: Remove
+
   def get_deploymentconfigs(service_name)                                                        
     get_request_api_os("apis/apps.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/deploymentconfigs?labelSelector=service=#{service_name}")
   end
-# end TODO
+
   def get_installed_service(service_name)
     get_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreams/#{service_name}")
   end
-# TODO: Remove
+
   def check_os_service(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{service_name}")
   end
@@ -199,7 +200,7 @@ module OsHelper
   def check_pvc(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims/#{service_name}")
   end
-# end TODO
+
   def get_pvc(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name}")
   end
@@ -211,7 +212,7 @@ module OsHelper
   def get_pvc_backup(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/persistentvolumeclaims?labelSelector=service=#{service_name},type=backup")
   end
-# TODO Remove:
+
   def check_service(service_name)
     get_request_api_os("api/v1/namespaces/#{get_os_namespace(service_name)}/services/#{service_name}")
   end
@@ -444,5 +445,6 @@ module OsHelper
       "force": true
     }.to_json
   end
-# end TODO
+
 end
+# end TODO

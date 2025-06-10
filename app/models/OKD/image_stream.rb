@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-include OsCommonHelper
-include OsHelper
 module OKD
   class ImageStream
     attr_accessor :name, :namespace, :current_version, :current_release_version, :downgrade_versions

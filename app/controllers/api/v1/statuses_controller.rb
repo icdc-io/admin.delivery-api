@@ -3,46 +3,46 @@ class Api::V1::StatusesController < ApplicationController
   include OsCommonHelper
   include ResponseHelper
 
-  before_action :setup_prefix, only: [:apps, :show]
+  before_action :setup_prefix, only: %i[apps show]
 
   def apps
     mock_data = Rails.root.join(ENV.fetch('MOCKDATA_FILENAME', 'config/extra/apps.json'))
-    if File.exist?(mock_data)
-      resp = JSON.parse(File.read(mock_data)).map(&:deep_symbolize_keys)
-    else
-      resp = ServiceDiscoverer.instance.get_cached
-    end
+    resp = if File.exist?(mock_data)
+             JSON.parse(File.read(mock_data)).map(&:deep_symbolize_keys)
+           else
+             ServiceDiscoverer.instance.get_cached
+           end
 
     filtered_resp = apply_rbac(resp.dup)
     render json: filtered_resp, status: :ok
   end
 
   def show
-    namespaces = valid_namespaces(get_all_namespaces)
+    namespaces = valid_namespaces(OkdClient.namespaces)
     services = namespaces.map { |namespace| common_service_name(namespace) }
 
     dcs = parsed_dcs(namespaces)
     response = services.map do |service|
-      service_dcs = dcs.select { |dc| dc["service"] == service }
+      service_dcs = dcs.select { |dc| dc['service'] == service }
       {
-        "common_name" => service,
-        "common_service_status" => common_service_status(service_dcs),
-        "common_service_installed" => common_service_installed(service_dcs),
-        "common_service_deleted" => common_service_deleted(service),
-        "common_data_deleted" => common_data_deleted(service),
-        "common_backup_deleted" => common_backup_deleted(service),
-        "services" => service_dcs.map do |service_dc|
+        'common_name' => service,
+        'common_service_status' => common_service_status(service_dcs),
+        'common_service_installed' => common_service_installed(service_dcs),
+        'common_service_deleted' => common_service_deleted(service),
+        'common_data_deleted' => common_data_deleted(service),
+        'common_backup_deleted' => common_backup_deleted(service),
+        'services' => service_dcs.map do |service_dc|
           {
-            service_dc["name"] => {
-              "service_installed" => service_dc["service_installed"],
-              "service_status"  => service_dc["service_status"],
+            service_dc['name'] => {
+              'service_installed' => service_dc['service_installed'],
+              'service_status' => service_dc['service_status']
             }
           }
         end
       }
     end
 
-    return success response
+    success response
   end
 
   private
@@ -51,7 +51,7 @@ class Api::V1::StatusesController < ApplicationController
     return unless data
 
     data.each_with_object([]) do |d, result|
-      next if !d[:roles].to_s.empty? && User.current.role != "operator" && !d[:roles].include?(User.current.role)
+      next if !d[:roles].to_s.empty? && User.current.role != 'operator' && !d[:roles].include?(User.current.role)
 
       filtered_entry = d.dup
       filtered_entry[:apps] = apply_rbac(d[:apps].dup) if d[:apps]
@@ -72,39 +72,41 @@ class Api::V1::StatusesController < ApplicationController
   end
 
   def common_service_status(dcs)
-    state = dcs.map { |dc| dc["service_status"] }.uniq
+    state = dcs.map { |dc| dc['service_status'] }.uniq
     return state.first if state.count == 1
-    return "Pending" if state.include?("Pending")
-    return "Running" if state.include?("Running")
-    return "Deleting" if state.include?("Deleting")
-    return "Undefined" if state.include?("Undefined")
-    return "Error" if state.include?("Error")
-    return "Failed" if state.include?("Failed")
+    return 'Pending' if state.include?('Pending')
+    return 'Running' if state.include?('Running')
+    return 'Deleting' if state.include?('Deleting')
+    return 'Undefined' if state.include?('Undefined')
+    return 'Error' if state.include?('Error')
+
+    'Failed' if state.include?('Failed')
   end
 
   def common_service_installed(dcs)
-    uniq_statuses = dcs.map { |dc| dc["service_installed"] }.uniq
-    return false if (uniq_statuses.include?("false") || uniq_statuses.compact.empty?)
+    uniq_statuses = dcs.map { |dc| dc['service_installed'] }.uniq
+    return false if uniq_statuses.include?('false') || uniq_statuses.compact.empty?
+
     true
   end
 
   def common_service_deleted(service)
-    get_pvc(service).dig("items").empty?
+    OkdClient.get_pvc(service).dig('items').empty?
   end
 
   def common_data_deleted(service)
-    get_pvc_data(service).dig("items").empty?
+    OkdClient.get_pvc_data(service).dig('items').empty?
   end
 
   def common_backup_deleted(service)
-    get_pvc_backup(service).dig("items").empty?
+    OkdClient.get_pvc_backup(service).dig('items').empty?
   end
 
   def deployment_configs_list(namespaces)
     deployment_configs = []
 
     namespaces.each do |namespace|
-      deployment_configs << get_deployment_configs(namespace)
+      deployment_configs << OkdClient.get_deployment_configs(namespace)
     end
 
     deployment_configs.flatten
@@ -112,19 +114,19 @@ class Api::V1::StatusesController < ApplicationController
 
   def parsed_dcs(namespaces)
     deployment_configs_list(namespaces).map do |dc|
-      name = dc.dig("metadata", "name")
-      service = dc.dig("metadata", "labels", "service")
-      revision = dc.dig("status", "latestVersion")
-      ns = dc.dig("metadata", "namespace")
-      service_installed = image_stream_exists?(name, ns)
-      service_status = revision > 0 ? get_replication_controller_status(name, revision, ns) : "Error"
+      name = dc.dig('metadata', 'name')
+      service = dc.dig('metadata', 'labels', 'service')
+      revision = dc.dig('status', 'latestVersion')
+      ns = dc.dig('metadata', 'namespace')
+      service_installed = OkdClient.get_service_imagestream(name)[:code] != 404
+      service_status = revision > 0 ? OkdClient.get_replication_controller_status(name, revision, ns) : 'Error'
 
       {
-        "name" => name,
-        "service" => service,
-        "revision" => revision,
-        "service_status" => service_status,
-        "service_installed" => service_installed,
+        'name' => name,
+        'service' => service,
+        'revision' => revision,
+        'service_status' => service_status,
+        'service_installed' => service_installed
       }
     end
   end

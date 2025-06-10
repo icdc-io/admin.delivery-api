@@ -1,16 +1,16 @@
+# TODO Remove:
 module OsCreateHelper
   include OsCommonHelper
   #include OsHelper
-# TODO Remove:
   def create_image_stream_tag(app_name, version, repository, service_name)
     Rails.logger.debug { "create_image_stream_tag: #{app_name}, #{service_name}, #{version}" }
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(app_name, version, repository, service_name)) #uncomment
   end
-# end TODO
+
   def object_exists?(url)
     get_request_api_os(url) != "404"
   end
-# TODO Remove:
+
   def create_image_stream_import(app_name, version, repository, service_name)
     Rails.logger.debug { "create_image_stream_import: #{app_name}, #{service_name}, #{version}" }
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamimports", image_stream_import_body(app_name, version, repository, service_name))
@@ -127,7 +127,7 @@ module OsCreateHelper
       patch_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/jobs/#{name}", source.to_json)
     end
   end
-# end TODO
+
   def create_stateful_set(source, service_name, name = nil)
     Rails.logger.debug { "create_stateful_set: #{service_name}" }
     unless object_exists?("apis/apps/v1/namespaces/#{get_os_namespace(service_name)}/statefulsets/#{name}")
@@ -156,7 +156,7 @@ module OsCreateHelper
   end
 
   private
-# TODO Remove
+
   def create_namespace_body(service_name)
     prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
     {
@@ -168,5 +168,5 @@ module OsCreateHelper
       "displayName": "#{service_name.capitalize} Service"
    }.to_json
   end
-# end TODO
 end
+# end TODO

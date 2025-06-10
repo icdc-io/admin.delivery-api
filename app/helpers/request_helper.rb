@@ -1,3 +1,4 @@
+# TODO: Remove
 require 'net/http'
 require 'uri'
 require 'openssl'
@@ -160,3 +161,4 @@ module RequestHelper
   end
 
 end
+# end TODO

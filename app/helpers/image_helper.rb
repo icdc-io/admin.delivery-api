@@ -1,4 +1,4 @@
-# TODO Remove:
+# TODO: Remove
 module ImageHelper
   include OsHelper
 

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 include Authenticator
-include RequestHelper
 class GithubClient
   attr_reader :creds, :account, :repo, :ref, :api_url, :token
 
@@ -15,7 +14,7 @@ class GithubClient
   end
 
   def self.registry_server(service_name)
-    template = Github::Template.find_by_service_name(service_name)
+    template = Template.find_by_service_name(service_name)
     ENV['REGISTRY_SERVER'] || template['parameters'].find { |x| x['name'] == 'REGISTRY_SERVER' }['value']
   end
 

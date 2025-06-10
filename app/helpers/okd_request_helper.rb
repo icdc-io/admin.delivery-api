@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module OsRequestHelper
+module OkdRequestHelper
   include Authenticator
 
   def get_resource(resource, options = nil)
@@ -16,7 +16,7 @@ module OsRequestHelper
     )
     JSON.parse(response.body)
   rescue RestClient::NotFound => e
-    { message: e, code: 404 }
+    { message: e.message, code: 404 }
   end
 
   def post_resource(resource, body)
@@ -35,7 +35,7 @@ module OsRequestHelper
     )
     JSON.parse(response.body)
   rescue StandardError => e
-    Rails.logger.error { "POST #{url} request failed: #{e}" }
+    Rails.logger.error { "POST #{url} request failed: #{e.message}" }
   end
 
   def put_resource(resource, body)
@@ -68,7 +68,7 @@ module OsRequestHelper
     )
     JSON.parse(response.body)
   rescue StandardError => e
-    Rails.logger.error { "DELETE #{url} request failed: #{e}" }
+    Rails.logger.error { "DELETE #{url} request failed: #{e.message}" }
   end
 
   def patch_resource(resource, body)

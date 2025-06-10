@@ -6,7 +6,7 @@ module Api
   module V1
     class ServicesController < ApplicationController
       before_action :operator_required
-      before_action :find_service, only: [:downgrade, :upgrade, :update, :delete]
+      before_action :find_service, only: %i[downgrade upgrade update delete]
       before_action :check_downgrade_version, only: [:downgrade]
       before_action :check_upgrade_version, only: [:upgrade]
       before_action :check_update_version, only: [:update]
@@ -51,70 +51,70 @@ module Api
         nil
       end
 
-      # def create
-      #   prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
-      #   create_namespace(params[:service_name]) unless get_all_namespaces.include?("#{prefix}-#{params[:service_name]}")
-      #   service_name = params[:service_name]
-      #   service = get_latest_versions(service_name).select { |service| service['version'] == params['version'] }.first
-      #   # required_services = service["required"]
-      #   # installed_version = get_installed_service(service_name)
-      #   # required_services.keys.each do |required_service|
-      #   #   installed_version = get_installed_service(required_service)
-      #   #   next if installed_version == "404"
-      #   #   if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
-      #   #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
-      #   #   end
-      #   # end
-      #   deploy_template(service_name, service)
-      #   # update
-      #   service_name = params[:service_name]
-      #   update_service(service_name, service)
-      #   ServiceDiscoverer.instance.invalidate_cache
-      #   no_content
-      # end
+      def create_old
+        prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+        create_namespace(params[:service_name]) unless get_all_namespaces.include?("#{prefix}-#{params[:service_name]}")
+        service_name = params[:service_name]
+        service = get_latest_versions(service_name).select { |service| service['version'] == params['version'] }.first
+        # required_services = service["required"]
+        # installed_version = get_installed_service(service_name)
+        # required_services.keys.each do |required_service|
+        #   installed_version = get_installed_service(required_service)
+        #   next if installed_version == "404"
+        #   if installed_version.split(".").join.to_i <  required_service["version"].split(".").join.to_i
+        #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
+        #   end
+        # end
+        deploy_template(service_name, service)
+        # update
+        service_name = params[:service_name]
+        update_service(service_name, service)
+        ServiceDiscoverer.instance.invalidate_cache
+        no_content
+      end
 
-      # def downgrade
-      #   required_version = get_required_version(params[:service_name], params[:version]).select do |tst|
-      #     tst if tst['version'] == params[:version]
-      #   end.first
-      #   update_service(params[:service_name], required_version)
-      #   ServiceDiscoverer.instance.invalidate_cache
-      #   no_content
-      # end
+      def downgrade_old
+        required_version = get_required_version(params[:service_name], params[:version]).select do |tst|
+          tst if tst['version'] == params[:version]
+        end.first
+        update_service(params[:service_name], required_version)
+        ServiceDiscoverer.instance.invalidate_cache
+        no_content
+      end
 
-      # def upgrade
-      #   return abort('No such namespace') unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
+      def upgrade_old
+        return abort('No such namespace') unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
 
-      #   service_name = params[:service_name]
-      #   service = get_latest_versions(service_name).select { |service| service['version'] == params[:version] }.first
-      #   deploy_template(service_name, service)
-      #   service_name = params[:service_name]
-      #   update_service(service_name, service)
-      #   ServiceDiscoverer.instance.invalidate_cache
-      #   no_content
-      # end
+        service_name = params[:service_name]
+        service = get_latest_versions(service_name).select { |service| service['version'] == params[:version] }.first
+        deploy_template(service_name, service)
+        service_name = params[:service_name]
+        update_service(service_name, service)
+        ServiceDiscoverer.instance.invalidate_cache
+        no_content
+      end
 
-      # def delete
-      #   $deleting[params[:service_name]] = 'deleting'
-      #   10.times do
-      #     delete_code = delete_service(params[:service_name], params[:delete_persistent_data],
-      #                                  params[:delete_backup_data])
-      #     if delete_code.to_i == 204
-      #       $deleting.delete(params[:service_name])
-      #       # delete_dns_record(params[:service_name])
-      #       template = get_service_repository(params[:service_name])
-      #       delete_dns_records(template)
-      #       ServiceDiscoverer.instance.invalidate_cache
+      def delete_old
+        $deleting[params[:service_name]] = 'deleting'
+        10.times do
+          delete_code = delete_service(params[:service_name], params[:delete_persistent_data],
+                                       params[:delete_backup_data])
+          if delete_code.to_i == 204
+            $deleting.delete(params[:service_name])
+            # delete_dns_record(params[:service_name])
+            template = get_service_repository(params[:service_name])
+            delete_dns_records(template)
+            ServiceDiscoverer.instance.invalidate_cache
 
-      #       return '204'
-      #     end
-      #     sleep 5
-      #   end
-      # end
+            return '204'
+          end
+          sleep 5
+        end
+      end
       # end TODO
 
       def create
-        version = Github::Changelog.find_version(params[:service_name], params[:version])
+        version = Changelog.find_version(params[:service_name], params[:version])
         return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found unless version
 
         service_name = params[:service_name]
@@ -124,14 +124,14 @@ module Api
       end
 
       def downgrade
-        downgrade_version = Github::Changelog.find_version(@service.name, params[:version])
+        downgrade_version = Changelog.find_version(@service.name, params[:version])
         @service.update_service_version(downgrade_version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service.name), status: :ok
       end
 
       def upgrade
-        OKD::Template.deploy(@service_name, @upgrade_version)
+        Template.deploy(@service_name, @upgrade_version)
         Service.find_by_name(@service_name).update_service_version(version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service_name), status: :ok
@@ -146,19 +146,19 @@ module Api
       def delete
         $deleting[@service_name] = 'deleting'
         @service.delete(params[:delete_persistent_data], params[:delete_backup_data])
-        template = Github::Template.find_by_service_name(@service_name)
+        template = Template.find_by_service_name(@service_name)
         DNS.delete_dns_records(template)
-        $deleting.delete(@service_name)  
+        $deleting.delete(@service_name)
         ServiceDiscoverer.instance.invalidate_cache
         render json: nil, status: :no_content
       end
- 
+
       private
 
       def find_service
         @service_name = params[:service_name]
         @service = Service.find_by_name(@service_name)
-        return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
+        render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
       end
 
       def check_downgrade_version

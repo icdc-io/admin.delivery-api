@@ -1,15 +1,9 @@
 # frozen_string_literal: true
 
 include Authenticator
-include OsRequestHelper
+include OkdRequestHelper
 class OkdClient
   extend OkdClient::RequestBody
-  # attr_accessor :service_name, :template
-
-  # def initialize(service_name)
-  #   @service_name = service_name
-  #   template ||= Github::Template.find_by_service_name(service_name)
-  # end
 
   def self.namespaces(prefix = nil)
     namespaces = get_resource('api/v1/namespaces')['items'].map { |namespace| namespace.dig('metadata', 'name') }
@@ -17,8 +11,45 @@ class OkdClient
     namespaces
   end
 
+  def self.namespace(service_name)
+    ENV.fetch('NAMESPACE_PREFIX', 'cloud') + '-' + service_name
+  end
+
   def self.configmaps_env_loc(namespace)
-    get_request_api_os("api/v1/namespaces/#{namespace}/configmaps/env-loc")['data']
+    get_resource("api/v1/namespaces/#{namespace}/configmaps/env-loc")['data']
+  end
+
+  def self.get_pvc_backup(service_name)
+    resource = "api/v1/namespaces/#{namespace(service_name)}/persistentvolumeclaims"
+    options = "labelSelector=service=#{service_name},type=backup"
+    get_resource(resource, options)
+  end
+
+  def self.get_pvc_data(service_name)
+    resource = "api/v1/namespaces/#{namespace(service_name)}/persistentvolumeclaims"
+    options = "labelSelector=service=#{service_name},type=data"
+    get_resource(resource, options)
+  end
+
+  def self.get_pvc(service_name)
+    resource = "api/v1/namespaces/#{namespace(service_name)}/persistentvolumeclaims"
+    options = "labelSelector=service=#{service_name}"
+    get_resource(resource, options)
+  end
+
+  def self.get_deployment_configs(namespace)
+    get_resource("apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs").dig('items')
+  end
+
+  def self.get_replication_controller_status(service_name, revision, namespace)
+    resource = "api/v1/namespaces/#{namespace}/replicationcontrollers/#{service_name}-#{revision}"
+    get_resource(resource).dig('metadata', 'annotations', 'openshift.io/deployment.phase')
+  rescue StandardError => e
+    Rails.logger.error { "Something went wrong in controller status: #{e.message}" }
+  end
+
+  def self.get_service_imagestream(service_name)
+    get_resource("apis/image.openshift.io/v1/namespaces/#{namespace(service_name)}/imagestreams/#{service_name}")
   end
 
   def self.create_namespace(service_name)

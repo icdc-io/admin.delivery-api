@@ -12,8 +12,8 @@ class Service
     @namespace = image_stream.namespace
     @current_version = image_stream.current_version
     @downgrade_versions = image_stream.downgrade_versions
-    @update_version = Github::Changelog.last_update_version(name, image_stream.current_version)
-    @upgrade_version = Github::Changelog.last_upgrade_version(name, image_stream.current_release_version)
+    @update_version = Changelog.last_update_version(name, image_stream.current_version)
+    @upgrade_version = Changelog.last_upgrade_version(name, image_stream.current_release_version)
   end
 
   def self.all
@@ -32,8 +32,8 @@ class Service
   end
 
   def self.install(service_name, version)
-    version = Github::Changelog.find_version(service_name, version)
-    OKD::Template.deploy(service_name, version)
+    version = Changelog.find_version(service_name, version)
+    Template.deploy(service_name, version)
     Service.find_by_name(service_name).update_service_version(version)
   end
 
