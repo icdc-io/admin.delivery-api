@@ -60,6 +60,10 @@ class Changelog
     upgrade_version
   end
 
+  def self.versions_from_release(service_name, release_version)
+    all_changelogs_cache.dig(service_name, release_version)
+  end
+
   def self.find_version(service_name, version)
     release_version = version.split('.')[0...2].join('.')
     all_changelogs_cache.dig(service_name, release_version).find { |release| release['version'] == version }

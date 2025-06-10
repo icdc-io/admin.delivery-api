@@ -86,5 +86,7 @@ module OkdRequestHelper
       verify_ssl: Rails.env.production?
     )
     JSON.parse(response.body)
+    rescue StandardError => e
+      Rails.logger.error { "PATCH #{url} request failed: #{e.message}" }
   end
 end

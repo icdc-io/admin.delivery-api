@@ -132,13 +132,13 @@ module Api
 
       def upgrade
         Template.deploy(@service_name, @upgrade_version)
-        Service.find_by_name(@service_name).update_service_version(version)
+        Service.find_by_name(@service_name).update_service_version(@upgrade_version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service_name), status: :ok
       end
 
       def update
-        @service.update_service_version(@update_version)
+        @service.update_service_version(@service.update_version)
         ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service_name), status: :ok
       end
@@ -169,8 +169,10 @@ module Api
       end
 
       def check_upgrade_version
-        @upgrade_version = @service.upgrade_version
-        if @upgrade_version['version'] != params[:version]
+        @upgrade_version = Changelog.find_version(@service_name, params[:version])
+        current_release = @service.release
+        new_relese = params[:version].split('.')[0...2].join('.')
+        if (Gem::Version.new(new_relese) <= Gem::Version.new(current_release)) || @upgrade_version.nil?
           return render json: { message: 'Bad request, version for upgrade is incorrect', code: 400 },
                         status: :bad_request
         end
@@ -183,16 +185,11 @@ module Api
       end
 
       def check_update_version
-        @update_version = @service.update_version
-        unless @update_version
-          return render json: { message: 'Bad request, update is actual', code: 400 },
-                        status: :bad_request
+        versions_from_release = Changelog.versions_from_release(@service_name, @service.release)
+        if (Gem::Version.new(params[:version]) <= Gem::Version.new(@service.current_version)) ||
+           !versions_from_release.map { |v| v['version'] }.include?(params[:version])
+          render json: { message: 'Bad request, version for update is incorrect', code: 400 }, status: :bad_request
         end
-
-        return unless @update_version['version'] != params[:version]
-
-        render json: { message: 'Bad request, version for update is incorrect', code: 400 },
-               status: :bad_request
       end
     end
   end
