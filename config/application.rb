@@ -23,7 +23,9 @@ module ServicesNodb
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.1
+    # TODO: Remove
     $deleting = {}
+    #end TODO
 
     # Configuration for the application, engines, and railties goes here.
     #

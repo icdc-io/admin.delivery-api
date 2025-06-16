@@ -53,22 +53,8 @@ class Service
   end
 
   def delete(delete_pvc_data, delete_pvc_backup)
-    OkdClient.delete_image_stream(name, namespace)
-    OkdClient.delete_route(name, namespace)
-    OkdClient.delete_service(name, namespace)
-    OkdClient.delete_deployment_config(name, namespace)
-    OkdClient.delete_deployment(name, namespace)
-    OkdClient.delete_stateful_set(name, namespace)
-    OkdClient.delete_job(name, namespace)
-    OkdClient.delete_cron_job(name, namespace)
-    OkdClient.delete_service_account(name, namespace)
-    OkdClient.delete_config_map(name, namespace)
-    OkdClient.delete_pod(name, namespace)
-    OkdClient.delete_replication_controller(name, namespace)
-    OkdClient.delete_daemon_set(name, namespace)
-    OkdClient.delete_replica_set(name, namespace)
-    OkdClient.delete_horizontal_pod_auto_scaler(name, namespace)
-    OkdClient.delete_pvc_data(name, namespace) if delete_pvc_data == 'true'
-    OkdClient.delete_pvc_backup(name, namespace) if delete_pvc_backup == 'true'
+    OkdClient.delete_service_objects(name, namespace, delete_pvc_data, delete_pvc_backup)
+    template = Template.find_by_service_name(name)
+    DNS.delete_dns_records(template)
   end
 end

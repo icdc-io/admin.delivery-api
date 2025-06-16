@@ -5,11 +5,20 @@ require 'yaml'
 module Api
   module V1
     class ServicesController < ApplicationController
+      # TODO: Remove
+      include SystemServices
+      include OsCommonHelper
+      include OsHelper
+      include OsCreateHelper
+      include OsDeleteHelper
+      include ServiceHelper
+      # end TODO
       before_action :operator_required
       before_action :find_service, only: %i[downgrade upgrade update delete]
       before_action :check_downgrade_version, only: [:downgrade]
       before_action :check_upgrade_version, only: [:upgrade]
       before_action :check_update_version, only: [:update]
+      after_action :invalidate_cache, only: [:create, :downgrade, :upgrade, :update, :delete]
 
       def index
         services = Service.all
@@ -119,37 +128,28 @@ module Api
 
         service_name = params[:service_name]
         Service.install(service_name, params[:version])
-        ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(service_name), status: :ok
       end
 
       def downgrade
         downgrade_version = Changelog.find_version(@service.name, params[:version])
         @service.update_service_version(downgrade_version)
-        ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service.name), status: :ok
       end
 
       def upgrade
         Template.deploy(@service_name, @upgrade_version)
         Service.find_by_name(@service_name).update_service_version(@upgrade_version)
-        ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service_name), status: :ok
       end
 
       def update
         @service.update_service_version(@service.update_version)
-        ServiceDiscoverer.instance.invalidate_cache
         render json: Service.find_by_name(@service_name), status: :ok
       end
 
       def delete
-        $deleting[@service_name] = 'deleting'
         @service.delete(params[:delete_persistent_data], params[:delete_backup_data])
-        template = Template.find_by_service_name(@service_name)
-        DNS.delete_dns_records(template)
-        $deleting.delete(@service_name)
-        ServiceDiscoverer.instance.invalidate_cache
         render json: nil, status: :no_content
       end
 
@@ -190,6 +190,10 @@ module Api
            !versions_from_release.map { |v| v['version'] }.include?(params[:version])
           render json: { message: 'Bad request, version for update is incorrect', code: 400 }, status: :bad_request
         end
+      end
+
+      def invalidate_cache
+        ServiceDiscoverer.instance.invalidate_cache
       end
     end
   end

@@ -19,9 +19,9 @@ class GithubClient
   end
 
   def self.changelogs(service_name)
-    download_urls = get_resource("changelogs/#{service_name}").select do |changelog|
-      changelog['download_url']&.include?('release')
-    end.map { |changelog| changelog['download_url'] }
+    download_urls = GithubClient.get_resource("changelogs/#{service_name}").map do |changelog|
+      changelog['download_url'] if changelog['download_url']&.include?('release')
+    end.compact
     releases = {}
     download_urls.map do |url|
       response = RestClient::Request.execute(

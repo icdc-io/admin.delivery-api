@@ -45,5 +45,11 @@ module OKD
       current_release_version = current_version.split('.')[0...2].join('.')
       { name:, namespace:, current_version:, versions:, downgrade_versions:, current_release_version: }
     end
+
+    def self.find_from_list(list, service_name, namespace)
+      list.find do |item|
+        item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == namespace
+      end
+    end
   end
 end

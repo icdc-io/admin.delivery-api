@@ -15,37 +15,51 @@ class OkdClient
     ENV.fetch('NAMESPACE_PREFIX', 'cloud') + '-' + service_name
   end
 
+  def self.select_service_dcs(list, namespace, service_name)
+    list.select { |dc| dc.dig('metadata', 'namespace') == namespace && dc.dig('metadata', 'labels', 'service') == service_name }
+  end
+
+  def self.find_replecation_controller(list, app_name, revision, namespace)
+    replecation_controllers = list.find do |rc|
+      rc.dig('metadata','namespace') == namespace && rc.dig('metadata', 'name') == "#{app_name}-#{revision}"
+    end
+    replecation_controllers.dig('metadata', 'annotations', 'openshift.io/deployment.phase')
+  end
+  
+  def self.select_service_pvc(list, namespace, service_name)
+    list.select do |pvc|
+      pvc.dig('metadata', 'namespace') == namespace && pvc.dig('metadata', 'labels', 'service') == service_name
+    end
+  end
+
+  def self.select_service_pvc_by_type(list, namespace, service_name, type)
+    list.select do |pvc|
+      pvc.dig('metadata', 'namespace') == namespace && pvc.dig('metadata', 'labels', 'service') == service_name && pvc.dig('metadata', 'labels', 'type') == type
+    end
+  end
+
   def self.configmaps_env_loc(namespace)
     get_resource("api/v1/namespaces/#{namespace}/configmaps/env-loc")['data']
   end
 
-  def self.get_pvc_backup(service_name)
-    resource = "api/v1/namespaces/#{namespace(service_name)}/persistentvolumeclaims"
-    options = "labelSelector=service=#{service_name},type=backup"
-    get_resource(resource, options)
-  end
-
-  def self.get_pvc_data(service_name)
-    resource = "api/v1/namespaces/#{namespace(service_name)}/persistentvolumeclaims"
-    options = "labelSelector=service=#{service_name},type=data"
-    get_resource(resource, options)
-  end
-
-  def self.get_pvc(service_name)
-    resource = "api/v1/namespaces/#{namespace(service_name)}/persistentvolumeclaims"
-    options = "labelSelector=service=#{service_name}"
-    get_resource(resource, options)
-  end
-
-  def self.get_deployment_configs(namespace)
-    get_resource("apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs").dig('items')
-  end
-
-  def self.get_replication_controller_status(service_name, revision, namespace)
-    resource = "api/v1/namespaces/#{namespace}/replicationcontrollers/#{service_name}-#{revision}"
-    get_resource(resource).dig('metadata', 'annotations', 'openshift.io/deployment.phase')
-  rescue StandardError => e
-    Rails.logger.error { "Something went wrong in controller status: #{e.message}" }
+  def self.delete_service_objects(service_name, namespace, delete_pvc_data, delete_pvc_backup)
+    delete_image_stream(service_name, namespace)
+    delete_route(service_name, namespace)
+    delete_service(service_name, namespace)
+    delete_deployment_config(service_name, namespace)
+    delete_deployment(service_name, namespace)
+    delete_stateful_set(service_name, namespace)
+    delete_job(service_name, namespace)
+    delete_cron_job(service_name, namespace)
+    delete_service_account(service_name, namespace)
+    delete_config_map(service_name, namespace)
+    delete_pod(service_name, namespace)
+    delete_replication_controller(service_name, namespace)
+    delete_daemon_set(service_name, namespace)
+    delete_replica_set(service_name, namespace)
+    delete_horizontal_pod_auto_scaler(service_name, namespace)
+    delete_pvc_data(service_name, namespace) if delete_pvc_data == 'true'
+    delete_pvc_backup(service_name, namespace) if delete_pvc_backup == 'true'
   end
 
   def self.get_service_imagestream(service_name)
@@ -110,7 +124,7 @@ class OkdClient
     end
   end
 
-  def create_deployment(body, namespace, name = nil)
+  def self.create_deployment(body, namespace, name = nil)
     Rails.logger.debug { "create_deployment: #{namespace}" }
     resource = "/apis/apps/v1/namespaces/#{namespace}/deployments/#{name}"
     body = body.to_json
