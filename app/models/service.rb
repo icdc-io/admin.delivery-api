@@ -49,7 +49,6 @@ class Service
     end
     OkdClient.create_image_stream_service_tag(name, version['version'], namespace)
     OkdClient.set_latest_tag_version(name, version['version'], namespace)
-    OkdClient.rollout_deployment_config(name, namespace)
   end
 
   def delete(delete_pvc_data, delete_pvc_backup)

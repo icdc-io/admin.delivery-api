@@ -22,7 +22,7 @@ class Template
     generated_template = OkdClient.generate_service_template(github_template, service_name, namespace)
     generated_template['objects'].map do |object|
       object_name = object.dig('metadata', 'name')
-      eval("OkdClient.create_#{object['kind'].underscore}('#{object}', '#{namespace}', '#{object_name}')")
+      eval("OkdClient.create_#{object['kind'].underscore}(#{object}, '#{namespace}', '#{object_name}')")
     end
   end
 end

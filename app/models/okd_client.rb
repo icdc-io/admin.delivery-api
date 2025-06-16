@@ -336,10 +336,4 @@ class OkdClient
   def self.object_exists?(url)
     get_resource(url)[:code] != 404
   end
-
-  def self.rollout_deployment_config(service_name, namespace)
-    url = "apis/apps.openshift.io/v1/namespaces/#{namespace}/deploymentconfigs/#{service_name}/instantiate"
-    body = OkdClient.rollout_dc_template(service_name)
-    post_resource(url, body)
-  end
 end

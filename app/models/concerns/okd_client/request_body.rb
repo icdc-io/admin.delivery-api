@@ -84,15 +84,5 @@ class OkdClient
         "displayName": "#{service_name.capitalize} Service"
       }.to_json
     end
-
-    def rollout_dc_template(name)
-      {
-        "kind": 'DeploymentRequest',
-        "apiVersion": 'apps.openshift.io/v1',
-        "name": name.to_s,
-        "latest": true,
-        "force": true
-      }.to_json
-    end
   end
 end

@@ -30,8 +30,7 @@ class Template
         when 'NAMESPACE_PREFIX'
           param['value'] = ENV['NAMESPACE_PREFIX'] if ENV['NAMESPACE_PREFIX']
         else
-          param['value'] =
-            applications[param['name'].split('_')[1..].join('-').downcase]
+          param['value'] = applications[param['name'].split('_')[1..].join('-').downcase]
         end
       end
       template
