@@ -41,7 +41,7 @@ class ServiceDiscoverer
   private
 
   def cache_store
-    @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL'))
+    @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL', 'redis://redis:6379/0'))
   rescue => e
     Rails.logger.error { "[ServiceDiscoverer:cache_store] can't connect to a redis-server, skipping cache... #{e.message}" }
     nil
