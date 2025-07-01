@@ -21,28 +21,19 @@ class ServiceDiscoverer
   end
 
   def get_cached
-    unless cache_store
-      Rails.logger.warn { '[ServiceDiscoverer:get_cache] Cache was skipped...' }
-      return discovery_services.map(&:deep_symbolize_keys)
+    if cache_store
+      response = JSON.parse cache_store.get('discovered_services')
+      response = build_cache if response.empty?
+    else
+      Rails.logger.warn { '[ServiceDiscoverer:get_cache] cache was skipped...' }
+      response = discovery_services
     end
-
-    cached_value = cache_store.get('discovered_services')
-    response = if cached_value
-                begin
-                  JSON.parse(cached_value)
-                rescue JSON::ParserError => e
-                  Rails.logger.error { "[ServiceDiscoverer:get_cache] Failed to parse cache value: #{e.message}" }
-                  build_cache
-                end
-              else
-                build_cache
-              end
 
     response.map(&:deep_symbolize_keys)
   end
 
   def invalidate_cache
-    cache_store.set('discovered_services', nil)
+    cache_store.set('discovered_services', {})
   rescue => e
     Rails.logger.error { "[ServiceDiscoverer:invalidate_cache] can't invalidate cache... #{e.message}" }
   end
