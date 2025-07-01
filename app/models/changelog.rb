@@ -72,7 +72,7 @@ class Changelog
   private
 
   def cache_store
-    @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL'))
+    @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL', 'redis://redis:6379/0'))
   rescue StandardError => e
     Rails.logger.error do
       "[Changelog:cache_store] can't connect to a redis-server, skipping cache... #{e.message}"
