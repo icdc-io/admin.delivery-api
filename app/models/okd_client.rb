@@ -16,16 +16,18 @@ class OkdClient
   end
 
   def self.select_service_dcs(list, namespace, service_name)
-    list.select { |dc| dc.dig('metadata', 'namespace') == namespace && dc.dig('metadata', 'labels', 'service') == service_name }
+    list.select do |dc|
+      dc.dig('metadata', 'namespace') == namespace && dc.dig('metadata', 'labels', 'service') == service_name
+    end
   end
 
   def self.find_replecation_controller(list, app_name, revision, namespace)
     replecation_controllers = list.find do |rc|
-      rc.dig('metadata','namespace') == namespace && rc.dig('metadata', 'name') == "#{app_name}-#{revision}"
+      rc.dig('metadata', 'namespace') == namespace && rc.dig('metadata', 'name') == "#{app_name}-#{revision}"
     end
     replecation_controllers.dig('metadata', 'annotations', 'openshift.io/deployment.phase')
   end
-  
+
   def self.select_service_pvc(list, namespace, service_name)
     list.select do |pvc|
       pvc.dig('metadata', 'namespace') == namespace && pvc.dig('metadata', 'labels', 'service') == service_name
@@ -34,7 +36,8 @@ class OkdClient
 
   def self.select_service_pvc_by_type(list, namespace, service_name, type)
     list.select do |pvc|
-      pvc.dig('metadata', 'namespace') == namespace && pvc.dig('metadata', 'labels', 'service') == service_name && pvc.dig('metadata', 'labels', 'type') == type
+      pvc.dig('metadata', 'namespace') == namespace && pvc.dig('metadata', 'labels', 'service') == service_name &&
+        pvc.dig('metadata', 'labels', 'type') == type
     end
   end
 
@@ -126,7 +129,7 @@ class OkdClient
 
   def self.create_deployment(body, namespace, name = nil)
     Rails.logger.debug { "create_deployment: #{namespace}" }
-    resource = "/apis/apps/v1/namespaces/#{namespace}/deployments/#{name}"
+    resource = "/apis/apps/v1/namespaces/#{namespace}/deployments"
     body = body.to_json
     if object_exists?("#{resource}/#{name}")
       patch_resource("#{resource}/#{name}", body)
@@ -160,7 +163,7 @@ class OkdClient
 
   def self.create_config_map(body, namespace, name = nil)
     Rails.logger.debug { "create_config_map: #{namespace} " }
-    resource = "api/v1/namespaces/#{namespace}/configmaps/#{name}"
+    resource = "api/v1/namespaces/#{namespace}/configmaps"
     body = body.to_json
     if object_exists?("#{resource}/#{name}")
       patch_resource("#{resource}/#{name}", body)
@@ -171,7 +174,7 @@ class OkdClient
 
   def self.create_persistent_volume_claim(body, namespace, name = nil)
     Rails.logger.debug { "create_persistent_volume_claim: #{namespace}" }
-    resource = "api/v1/namespaces/#{namespace}/persistentvolumeclaims/#{name}"
+    resource = "api/v1/namespaces/#{namespace}/persistentvolumeclaims"
     body = body.to_json
     if object_exists?("#{resource}/#{name}")
       patch_resource("#{resource}/#{name}", body)
@@ -184,11 +187,7 @@ class OkdClient
     Rails.logger.debug { "create_image_stream: #{namespace}" }
     resource = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams"
     body = body.to_json
-    if object_exists?("#{resource}/#{name}")
-      patch_resource("#{resource}/#{name}", body)
-    else
-      post_resource(resource, body)
-    end
+    post_resource(resource, body) unless object_exists?("#{resource}/#{name}")
   end
 
   def self.create_role(body, namespace, _name = nil)
