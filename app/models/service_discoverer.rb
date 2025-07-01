@@ -23,7 +23,10 @@ class ServiceDiscoverer
   def get_cached
     if cache_store
       response = JSON.parse cache_store.get('discovered_services')
-      response = build_cache if response.empty?
+      if response.empty?
+        build_cache
+        response = discovery_services
+      end
     else
       Rails.logger.warn { '[ServiceDiscoverer:get_cache] cache was skipped...' }
       response = discovery_services
