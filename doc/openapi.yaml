@@ -531,10 +531,16 @@ components:
         name:
           type: string
           example: billing
+        namespace:
+          type: string
+          example: dev-sd-billing
+        release:
+          type: string
+          example: 1.3
         current_version:
           type: string
           example: 1.3.0
-        downgrade_version:
+        downgrade_versions:
           type: array
           items:
             example: 1.2.0, 1.1.0
