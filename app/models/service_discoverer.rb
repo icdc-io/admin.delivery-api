@@ -36,7 +36,7 @@ class ServiceDiscoverer
   end
 
   def invalidate_cache
-    cache_store.set('discovered_services', nil)
+    cache_store.set('discovered_services', {})
   rescue => e
     Rails.logger.error { "[ServiceDiscoverer:invalidate_cache] can't invalidate cache... #{e.message}" }
   end
