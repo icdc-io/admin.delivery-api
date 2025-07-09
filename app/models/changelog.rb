@@ -28,7 +28,7 @@ class Changelog
   end
 
   def invalidate_cache
-    cache_store.set('service_changelogs', nil)
+    cache_store.set('service_changelogs', {})
   rescue StandardError => e
     Rails.logger.error { "[Changelog:invalidate_cache] can't invalidate cache... #{e.message}" }
   end

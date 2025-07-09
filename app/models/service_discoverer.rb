@@ -24,7 +24,10 @@ class ServiceDiscoverer
   def get_cached
     if cache_store
       response = JSON.parse cache_store.get('discovered_services')
-      response ||= build_cache
+      if response.empty?
+        build_cache
+        response = discovery_services
+      end
     else
       Rails.logger.warn { '[ServiceDiscoverer:get_cache] cache was skipped...' }
       response = discovery_services
@@ -34,7 +37,7 @@ class ServiceDiscoverer
   end
 
   def invalidate_cache
-    cache_store.set('discovered_services', nil)
+    cache_store.set('discovered_services', {})
   rescue StandardError => e
     Rails.logger.error { "[ServiceDiscoverer:invalidate_cache] can't invalidate cache... #{e.message}" }
   end
