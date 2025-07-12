@@ -12,7 +12,7 @@ module OkdRequestHelper
       headers: {
         Authorization: "Bearer #{os_creds['token']}"
       },
-      verify_ssl: Rails.env.production?
+      verify_ssl: ENV.fetch('VERIFY_SSL', false)
     )
     JSON.parse(response.body)
   rescue RestClient::NotFound => e
@@ -31,7 +31,7 @@ module OkdRequestHelper
         Authorization: "Bearer #{os_creds['token']}",
         Accept: 'application/json'
       },
-      verify_ssl: Rails.env.production?
+      verify_ssl: ENV.fetch('VERIFY_SSL', false)
     )
     JSON.parse(response.body)
   rescue StandardError => e
@@ -50,7 +50,7 @@ module OkdRequestHelper
         Authorization: "Bearer #{os_creds['token']}",
         Accept: 'application/json'
       },
-      verify_ssl: Rails.env.production?
+      verify_ssl: ENV.fetch('VERIFY_SSL', false)
     )
     JSON.parse(response.body)
   end
@@ -64,7 +64,7 @@ module OkdRequestHelper
       headers: {
         Authorization: "Bearer #{os_creds['token']}"
       },
-      verify_ssl: Rails.env.production?
+      verify_ssl: ENV.fetch('VERIFY_SSL', false)
     )
     JSON.parse(response.body)
   rescue StandardError => e
@@ -83,10 +83,10 @@ module OkdRequestHelper
         Authorization: "Bearer #{os_creds['token']}",
         Accept: 'application/json'
       },
-      verify_ssl: Rails.env.production?
+      verify_ssl: ENV.fetch('VERIFY_SSL', false)
     )
     JSON.parse(response.body)
-    rescue StandardError => e
-      Rails.logger.error { "PATCH #{url} request failed: #{e.message}" }
+  rescue StandardError => e
+    Rails.logger.error { "PATCH #{url} request failed: #{e.message}" }
   end
 end

@@ -45,7 +45,7 @@ class Status
       revision = dc.dig('status', 'latestVersion')
       namespace = dc.dig('metadata', 'namespace')
       if revision.positive?
-        OkdClient.find_replecation_controller(replication_controller_list, app_name, revision, namespace)
+        OkdClient.find_replication_controller(replication_controller_list, app_name, revision, namespace)
       else
         'Error'
       end

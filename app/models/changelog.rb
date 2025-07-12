@@ -33,7 +33,7 @@ class Changelog
     Rails.logger.error { "[Changelog:invalidate_cache] can't invalidate cache... #{e.message}" }
   end
 
-  def self.all_changelogs_cache
+  def self.all
     releases_list = Changelog.instance.get_cached
     releases_list = Changelog.instance.build_cache if releases_list['ttl'] < DateTime.now.to_i
     releases_list
@@ -41,13 +41,13 @@ class Changelog
 
   def self.last_update_version(service_name, current_version)
     current_release_version = current_version.split('.')[0...2].join('.')
-    all_changelogs_cache.dig(service_name, current_release_version)
-                        &.take_while { |version| version['version'] != current_version }
-                        &.find { |x| x['tag'].empty? && x['version'] != current_version }
+    all.dig(service_name, current_release_version)
+       &.take_while { |version| version['version'] != current_version }
+       &.find { |x| x['tag'].empty? && x['version'] != current_version }
   end
 
   def self.last_upgrade_version(service_name, current_release_version)
-    releases_list = all_changelogs_cache
+    releases_list = all
     release_version = releases_list[service_name].keys&.max_by { |release| Gem::Version.new(release) }
     upgrade_version = releases_list.dig(service_name, release_version)&.max_by do |version|
       Gem::Version.new(version['version'])
@@ -61,12 +61,12 @@ class Changelog
   end
 
   def self.versions_from_release(service_name, release_version)
-    all_changelogs_cache.dig(service_name, release_version)
+    all.dig(service_name, release_version)
   end
 
   def self.find_version(service_name, version)
     release_version = version.split('.')[0...2].join('.')
-    all_changelogs_cache.dig(service_name, release_version).find { |release| release['version'] == version }
+    all.dig(service_name, release_version).find { |release| release['version'] == version }
   end
 
   private

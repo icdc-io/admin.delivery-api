@@ -1,0 +1,58 @@
+---
+Service:
+  endpoint: services
+  api_group: api/v1
+DeploymentConfig:
+  endpoint: deploymentconfigs
+  api_group: apis/apps.openshift.io/v1
+Deployment:
+  endpoint: deployments
+  api_group: /apis/apps/v1
+Route:
+  endpoint: routes
+  api_group: apis/route.openshift.io/v1
+Secret:
+  endpoint: secrets
+  api_group: api/v1
+ServiceAccount:
+  endpoint: serviceaccounts
+  api_group: api/v1
+ConfigMap:
+  endpoint: configmaps
+  api_group: api/v1
+PersistentVolumeClaim:
+  endpoint: persistentvolumeclaims
+  api_group: api/v1
+ImageStream:
+  endpoint: imagestreams
+  api_group: apis/image.openshift.io/v1
+Role:
+  endpoint: roles
+  api_group: apis/rbac.authorization.k8s.io/v1
+RoleBinding:
+  endpoint: rolebindings
+  api_group: apis/rbac.authorization.k8s.io/v1
+CronJob:
+  endpoint: cronjobs
+  api_group: apis/batch/v1
+Job:
+  endpoint: jobs
+  api_group: apis/batch/v1
+StatefulSet:
+  endpoint: statefulsets
+  api_group: apis/apps/v1
+Pod:
+  endpoint: pods
+  api_group: api/v1
+ReplicationController:
+  endpoint: replicationcontrollers
+  api_group: api/v1
+DaemonSet:
+  endpoint: daemonsets
+  api_group: apis/apps/v1
+ReplicaSet:
+  endpoint: replicasets
+  api_group: apis/apps/v1
+HorizontalPodAutoscaler:
+  endpoint: horizontalpodautoscalers
+  api_group: apis/autoscaling/v2

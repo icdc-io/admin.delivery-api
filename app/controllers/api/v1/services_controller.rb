@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'yaml'
-
 module Api
   module V1
     class ServicesController < ApplicationController
@@ -18,15 +16,15 @@ module Api
       before_action :check_downgrade_version, only: [:downgrade]
       before_action :check_upgrade_version, only: [:upgrade]
       before_action :check_update_version, only: [:update]
-      after_action :invalidate_cache, only: [:create, :downgrade, :upgrade, :update, :delete]
+      after_action :invalidate_cache, only: %i[create downgrade upgrade update delete]
 
       def index
         services = Service.all
-        render json: services
+        render json: services, status: :ok
       end
 
       def show
-        service = Service.find_by_name(params[:service_name])
+        service = Service.find_by(name: params[:service_name])
         return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless service
 
         render json: service, status: :ok
@@ -126,26 +124,25 @@ module Api
         version = Changelog.find_version(params[:service_name], params[:version])
         return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found unless version
 
-        service_name = params[:service_name]
-        Service.install(service_name, params[:version])
-        render json: Service.find_by_name(service_name), status: :ok
+        Service.install(params[:service_name], params[:version])
+        render json: Service.find_by(name: params[:service_name]), status: :ok
       end
 
       def downgrade
         downgrade_version = Changelog.find_version(@service.name, params[:version])
-        @service.update_service_version(downgrade_version)
-        render json: Service.find_by_name(@service.name), status: :ok
+        @service.update(version: downgrade_version)
+        render json: Service.find_by(name: @service.name), status: :ok
       end
 
       def upgrade
         Template.deploy(@service_name, @upgrade_version)
-        Service.find_by_name(@service_name).update_service_version(@upgrade_version)
-        render json: Service.find_by_name(@service_name), status: :ok
+        Service.find_by(name: @service_name).update(version: @upgrade_version)
+        render json: Service.find_by(name: @service_name), status: :ok
       end
 
       def update
-        @service.update_service_version(@service.update_version)
-        render json: Service.find_by_name(@service_name), status: :ok
+        @service.update(version: @service.update_version)
+        render json: Service.find_by(name: @service_name), status: :ok
       end
 
       def delete
@@ -157,7 +154,7 @@ module Api
 
       def find_service
         @service_name = params[:service_name]
-        @service = Service.find_by_name(@service_name)
+        @service = Service.find_by(name: @service_name)
         render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
       end
 

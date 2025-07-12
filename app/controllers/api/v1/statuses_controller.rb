@@ -46,7 +46,7 @@ module Api
       end
 
       def setup_prefix
-        @prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+        @prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
       end
     end
   end

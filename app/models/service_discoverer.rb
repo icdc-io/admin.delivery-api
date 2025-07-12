@@ -46,8 +46,10 @@ class ServiceDiscoverer
 
   def cache_store
     @cache_store ||= Redis.new(url: ENV.fetch('REDIS_URL', 'redis://redis:6379/0'))
-  rescue => e
-    Rails.logger.error { "[ServiceDiscoverer:cache_store] can't connect to a redis-server, skipping cache... #{e.message}" }
+  rescue StandardError => e
+    Rails.logger.error do
+      "[ServiceDiscoverer:cache_store] can't connect to a redis-server, skipping cache... #{e.message}"
+    end
     nil
   end
 
@@ -87,7 +89,7 @@ class ServiceDiscoverer
 
   def location_services
     @location_services ||= JSON.parse(location_response.body)['locations'].detect do |loc|
-      loc['name'] == ENV['LOCATION_NAME']
+      loc['name'] == ENV.fetch('LOCATION_NAME')
     end['services']
   end
 
@@ -112,14 +114,14 @@ class ServiceDiscoverer
 
   def location_response
     RestClient.get(
-      "#{ENV['CPV_API_GATEWAY']}/api/accounts/v1/account",
+      "#{ENV.fetch('CPV_API_GATEWAY')}/api/accounts/v1/account",
       authorization_headers
     )
   end
 
   def authorization_headers
     {
-      'x-auth-group': ENV['OPERATOR_GROUP'],
+      'x-auth-group': ENV.fetch('OPERATOR_GROUP'),
       Authorization: "Bearer #{operator_jwt}"
     }
   end

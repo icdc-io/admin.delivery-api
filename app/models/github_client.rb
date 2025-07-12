@@ -6,16 +6,16 @@ class GithubClient
 
   def initialize
     @creds = service_creds('github')
-    @account = creds['account'] || "#{ENV['GITHUB_REPO']}-io"
+    @account = creds['account'] || "#{ENV.fetch('GITHUB_REPO')}-io"
     @repo = creds['repo'] || 'services'
     @ref = creds['ref'] || 'main'
     @api_url = service_creds('github_api')['url']
-    @token = ENV['GITHUB_TOKEN']
+    @token = ENV.fetch('GITHUB_TOKEN')
   end
 
   def self.registry_server(service_name)
-    template = Template.find_by_service_name(service_name)
-    ENV['REGISTRY_SERVER'] || template['parameters'].find { |x| x['name'] == 'REGISTRY_SERVER' }['value']
+    template = Template.find_by(service_name:)
+    ENV.fetch('REGISTRY_SERVER', template['parameters'].find { |x| x['name'] == 'REGISTRY_SERVER' }&.dig('value'))
   end
 
   def self.changelogs(service_name)
@@ -27,7 +27,7 @@ class GithubClient
       response = RestClient::Request.execute(
         method: :get,
         url: url,
-        verify_ssl: Rails.env.production?
+        verify_ssl: ENV.fetch('VERIFY_SSL', false)
       )
       response = JSON.parse(response.body)
       release_version = response[0]['release']
@@ -45,7 +45,7 @@ class GithubClient
       headers: {
         Authorization: "Bearer #{github_client.token}"
       },
-      verify_ssl: Rails.env.production?
+      verify_ssl: ENV.fetch('VERIFY_SSL', false)
     )
     JSON.parse(response.body)
   rescue RestClient::NotFound
@@ -61,7 +61,7 @@ class GithubClient
       headers: {
         Authorization: "Bearer #{github_client.token}"
       },
-      verify_ssl: Rails.env.production?
+      verify_ssl: ENV.fetch('VERIFY_SSL', false)
     )
     JSON.parse(response.body)
   rescue RestClient::NotFound

@@ -28,7 +28,7 @@ module OKD
 
     def self.get(service_name)
       image_stream_list = OkdClient.get_resource('apis/image.openshift.io/v1/imagestreams')
-      namespace = "#{(ENV['NAMESPACE_PREFIX'].present? ? ENV['NAMESPACE_PREFIX'] : 'cloud').to_s.downcase}-#{service_name}"
+      namespace = "#{ENV.fetch('NAMESPACE_PREFIX', 'cloud').to_s.downcase}-#{service_name}"
       image_stream = image_stream_list['items'].find do |item|
         item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == namespace
       end

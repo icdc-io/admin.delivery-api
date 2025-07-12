@@ -25,7 +25,7 @@ class Service
     end
   end
 
-  def self.find_by_name(name)
+  def self.find_by(name:)
     service = new(name)
     return if service.instance_variables.empty?
 
@@ -35,17 +35,15 @@ class Service
   def self.install(service_name, version)
     version = Changelog.find_version(service_name, version)
     Template.deploy(service_name, version)
-    Service.find_by_name(service_name).update_service_version(version)
+    Service.find_by(name: service_name).update(version:)
   end
 
-  def update_service_version(version)
+  def update(version:)
     service_repository = "#{GithubClient.registry_server(name)}/#{namespace}"
     version['applications'].compact.map do |app|
-      app_name = app['name']
-      app_version = app['tag']
-      OkdClient.create_image_stream_tag(self, app_name, app_version, service_repository)
-      image_stream_tag_name = "#{name}-#{app_name}"
-      OkdClient.set_latest_tag_version(image_stream_tag_name, app_version, namespace)
+      OkdClient.create_image_stream_tag(self, app['name'], app['tag'], service_repository)
+      image_stream_tag_name = "#{name}-#{app['name']}"
+      OkdClient.set_latest_tag_version(image_stream_tag_name, app['tag'], namespace)
     end
     OkdClient.create_image_stream_service_tag(name, version['version'], namespace)
     OkdClient.set_latest_tag_version(name, version['version'], namespace)
@@ -53,7 +51,7 @@ class Service
 
   def delete(delete_pvc_data, delete_pvc_backup)
     OkdClient.delete_service_objects(name, namespace, delete_pvc_data, delete_pvc_backup)
-    template = Template.find_by_service_name(name)
-    DNS.delete_dns_records(template)
+    template = Template.find_by(service_name: name)
+    DNS.delete_records(template)
   end
 end

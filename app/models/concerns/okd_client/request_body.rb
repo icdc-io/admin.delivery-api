@@ -74,7 +74,7 @@ class OkdClient
     end
 
     def namespace_body(service_name)
-      prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
+      prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
       {
         "apiVersion": 'project.openshift.io/v1',
         "kind": 'ProjectRequest',
