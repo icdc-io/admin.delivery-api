@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::API
+  include ApiExceptionsHandler
   include ResponseHelper
 
   before_action :setup_user
+  around_action :handle_exceptions
 
   def setup_user
     userid, account, role = auth_headers
