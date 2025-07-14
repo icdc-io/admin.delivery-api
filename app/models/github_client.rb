@@ -15,7 +15,7 @@ class GithubClient
 
   def self.registry_server(service_name)
     template = Template.find_by(service_name:)
-    ENV.fetch('REGISTRY_SERVER', template['parameters'].find { |x| x['name'] == 'REGISTRY_SERVER' }&.dig('value'))
+    ENV.fetch('REGISTRY_SERVER', template['parameters']&.find { |x| x['name'] == 'REGISTRY_SERVER' }&.dig('value'))
   end
 
   def self.changelogs(service_name)
@@ -30,7 +30,7 @@ class GithubClient
         verify_ssl: ENV.fetch('VERIFY_SSL', false)
       )
       response = JSON.parse(response.body)
-      release_version = response[0]['release']
+      release_version = response.dig(0, 'release')
       releases[release_version] = response
     end
     releases

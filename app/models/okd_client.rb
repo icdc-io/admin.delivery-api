@@ -51,7 +51,7 @@ class OkdClient
       delete_object(object_name, service_name, namespace)
     end
     %w[Service DeploymentConfig].map do |object_name|
-      delete_objects(object_name, service_name, namespace)
+      delete_object_items(object_name, service_name, namespace)
     end
     delete_pvc_object('data', service_name, namespace) if delete_pvc_data == 'true'
     delete_pvc_object('backup', service_name, namespace) if delete_pvc_backup == 'true'
@@ -84,46 +84,45 @@ class OkdClient
 
   def self.create_image_stream_service_tag(name, version, namespace)
     params = { 'NAME' => name, 'VERSION' => version }
-    Rails.logger.info { "create_image_stream_service_tag: #{params}" }
+    Rails.logger.info { "Create image_stream service tag: #{params}" }
     url = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreamtags"
     body = OkdClient.service_image_stream_tag_body(params)
     post_resource(url, body)
   end
 
   def self.generate_service_template(template, service_name, namespace)
-    Rails.logger.info { "generate_service_template: #{service_name}, #{template}" }
+    Rails.logger.info { "Generate service template: #{service_name}, #{template}" }
     url = "apis/template.openshift.io/v1/namespaces/#{namespace}/processedtemplates"
     body = template.to_json
     post_resource(url, body)
   end
 
   def self.create_object_from_template(type, body, namespace, app_name)
-    Rails.logger.info { "create #{type}: #{namespace}" }
+    Rails.logger.info { "Create #{type} (#{namespace})" }
     api_groups = YAML.load_file('config/okd_api_groups.yml')
-    api_group = api_groups[type]['api_group']
-    endpoint = api_groups[type]['endpoint']
-    resource = "#{api_group}/namespaces/#{namespace}/#{endpoint}"
-    body = body
+    api_url = api_groups.dig(type, 'api_group')
+    endpoint = api_groups.dig(type, 'endpoint')
+    resource = "#{api_url}/namespaces/#{namespace}/#{endpoint}"
     return if object_exists?("#{resource}/#{app_name}")
 
     post_resource(resource, body.to_json)
   end
 
   def self.delete_object(object_name, service_name, namespace)
-    Rails.logger.info { "delete #{object_name}: #{namespace}" }
+    Rails.logger.info { "Delete #{object_name} (#{namespace})" }
     api_groups = YAML.load_file('config/okd_api_groups.yml')
-    api_url = api_groups[object_name]['api_group']
-    endpoint = api_groups[object_name]['endpoint']
+    api_url = api_groups.dig(object_name, 'api_group')
+    endpoint = api_groups.dig(object_name, 'endpoint')
     resource = "#{api_url}/namespaces/#{namespace}/#{endpoint}"
     options = "labelSelector=service=#{service_name}"
     delete_resource(resource, options)
   end
 
-  def self.delete_objects(object_name, service_name, namespace)
-    Rails.logger.info { "delete #{object_name}: #{namespace}" }
+  def self.delete_object_items(object_name, service_name, namespace)
+    Rails.logger.info { "Delete #{object_name} (#{namespace})" }
     api_groups = YAML.load_file('config/okd_api_groups.yml')
-    api_url = api_groups[object_name]['api_group']
-    endpoint = api_groups[object_name]['endpoint']
+    api_url = api_groups.dig(object_name, 'api_group')
+    endpoint = api_groups.dig(object_name, 'endpoint')
     resource = "#{api_url}/namespaces/#{namespace}/#{endpoint}"
     options = "labelSelector=service=#{service_name}"
     obj_names = get_resource(resource, options)['items'].map { |obj_name| obj_name.dig('metadata', 'name') }
