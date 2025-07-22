@@ -97,7 +97,7 @@ class ServiceDiscoverer
       info = service_info(service)
       location_service = location_services.detect { _1["name"] == service }
 
-      return unless info && location_service
+      next unless info && location_service
 
       info.merge(
         description: location_service["description"],
