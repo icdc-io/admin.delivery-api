@@ -112,7 +112,7 @@
         "apps": [
             {
                 "name": "objects",
-                "title": "Amazon S3/Swift"
+                "title": "S3 Object Storage"
             },
             {
                 "name": "iscsi",
