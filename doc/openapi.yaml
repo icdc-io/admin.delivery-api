@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: 'Service Delivery API'
-  description: 'Service API. Authorization SSO JWT token is required to test API'
+  title: Service Delivery API
+  description: Service API. Authorization SSO JWT token is required to test API
   version: '1.0'
 externalDocs:
   description: Service Delivery API design
@@ -18,16 +18,17 @@ servers:
 - url: https://service-api.icdc.d3.zby.icdc.io/api/v1
   description: Service API Route
 tags:
-  - name: Service
-    description: Service API
+  - name: Service (old)
+    description: Old version of Service API
   - name: Services
     description: Services API
 
 paths:
+# TODO: Remove
   /service/{service_name}/version:
     get:
       tags:
-       - 'Service'
+       - 'Service (old)'
       summary: Get available versions to install
       operationId: getVersions
       security:
@@ -76,7 +77,7 @@ paths:
         - $ref: "#/components/parameters/Service"
         - $ref: "#/components/parameters/Version"
       tags:
-        - 'Service'
+        - 'Service (old)'
       summary: Install service
       responses:
         '204':
@@ -91,7 +92,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/Service"
       tags:
-        - 'Service'
+        - 'Service (old)'
       summary: Get installed version
       responses:
         '200':
@@ -119,7 +120,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/Service"
       tags:
-        - 'Service'
+        - 'Service (old)'
       summary: Explore installed service version details
       responses:
         '200':
@@ -193,7 +194,7 @@ paths:
   #          example: true
           description: Default value is empty (false)
       tags:
-        - 'Service'
+        - 'Service (old)'
       summary: Delete service
       responses:
         '204':
@@ -210,7 +211,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/Service"
       tags:
-       - 'Service'
+       - 'Service (old)'
       summary: Get update vesion
       responses:
         '200':
@@ -249,7 +250,7 @@ paths:
         - $ref: "#/components/parameters/Service"
         - $ref: "#/components/parameters/Version"
       tags:
-       - 'Service'
+       - 'Service (old)'
       summary: Update version from update overview
       responses:
         '200':
@@ -260,7 +261,7 @@ paths:
     get:
       operationId: GetUpgradeVersion
       tags:
-        - 'Service'
+        - 'Service (old)'
       security:
         - bearerAuth: []
           Account: []
@@ -299,7 +300,7 @@ paths:
     put:
       operationId: upgradeService
       tags:
-        - 'Service'
+        - 'Service (old)'
       security:
         - bearerAuth: []
           Account: []
@@ -326,7 +327,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/Service"
       tags:
-        - 'Service'
+        - 'Service (old)'
       summary: Get all installed versions for downgrade
       responses:
         '200':
@@ -355,7 +356,7 @@ paths:
         - $ref: "#/components/parameters/Service"
         - $ref: "#/components/parameters/Version"
       tags:
-       - 'Service'
+       - 'Service (old)'
       summary: Downgrade version from version overview
 #      requestBody:
 #        required: true
@@ -372,12 +373,12 @@ paths:
           description: 'Success'
         '204':
           description: 'No content'
-
+# end TODO
   /services/status:
     get:
       operationId: getServicesStatus
       tags:
-        - 'Services'
+        - Services
       summary: Get services statuses
       security:
         - bearerAuth: []
@@ -385,128 +386,269 @@ paths:
           Role: []
           Group: []
       responses:
-        '200':
-          description: 'Success'
-          content:
-            application/json:
-              schema:
-                type: array
-                example:
-                  - common_name: web-server
-                    common_status: Complete
-                    common_service_installed: true
-                    common_service_deleted: true
-                    common_data_deleted: true
-                    common_backup_deleted: true
-                    services:
-                      web-server-api:
-                        service_installed: true
-                        service_status: Complete
-                      web-server-db:
-                        service_installed: true
-                        service_status: Complete
-  /services/apps:
-    get:
-      operationId: getServicesApps
-      description: Get info about installed services and apps
-      tags:
-        - 'Services'
-      security:
-        - bearerAuth: []
-          Account: []
-          Role: []
-          Group: []
-      responses:
-        '200':
-          description: 'Success'
+        200:
+          description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Service'
-  /services:
+                  $ref: '#/components/schemas/Status'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /services/apps:
     get:
-      operationId: ServicesList
-      summary: Get list of available services
+      operationId: getServicesApps
+      summary: Get info about installed services and apps
       tags:
-        - 'Services'
+        - Services
       security:
         - bearerAuth: []
           Account: []
           Role: []
           Group: []
       responses:
-        "200":
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GithubApp'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /services:
+    get:
+      operationId: ServicesList
+      summary: Get list of available services
+      tags:
+        - Services
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      responses:
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Services'
-        '403':
+        403:
           $ref: '#/components/responses/Forbidden'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /services/{service_name}:
     get:
       operationId: getService
-      summary: Get information on the specific service
+      summary: Get information of the specific service
       tags:
-        - 'Services'
+        - Services
       security:
         - bearerAuth: []
           Account: []
           Role: []
           Group: []
       parameters:
-        - $ref: "#/components/parameters/Service"
+        - $ref: '#/components/parameters/Service'
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Service'
-        '403':
+        403:
           $ref: '#/components/responses/Forbidden'
-        '404':
+        404:
           $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      operationId: serviceDelete
+      summary: Delete service
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      parameters:
+        - $ref: '#/components/parameters/Service'
+        - in: query
+          name: delete_persistent_data
+          schema:
+            type: string
+            default: false
+            example: true
+        - in: query
+          name: delete_backup_data
+          schema:
+            type: string
+            default: false
+            example: true
+      tags:
+        - Services
+      responses:
+        204:
+          description: No content
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /services/{service_name}/install:
+    post:
+      operationId: serviceInstall
+      summary: Install service
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      parameters:
+        - $ref: '#/components/parameters/Service'
+        - $ref: '#/components/parameters/Version'
+      tags:
+        - Services
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /services/{service_name}/downgrade:
+    put:
+      operationId: serviceDowngrade
+      summary: Downgrade service version
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      parameters:
+        - $ref: '#/components/parameters/Service'
+        - $ref: '#/components/parameters/Version'
+      tags:
+        - Services
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /services/{service_name}/update:
+    put:
+      operationId: serviceUpdate
+      summary: Update service version
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      parameters:
+        - $ref: '#/components/parameters/Service'
+        - $ref: '#/components/parameters/Version'
+      tags:
+        - Services
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /services/{service_name}/release:
+    put:
+      operationId: serviceUpgrade
+      summary: Upgrade service version
+      security:
+        - bearerAuth: []
+          Account: []
+          Role: []
+          Group: []
+      parameters:
+        - $ref: '#/components/parameters/Service'
+        - $ref: '#/components/parameters/Version'
+      tags:
+        - Services
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 components:
   responses:
     BadRequest:
-      description: Invalid parameters provided in request
+      description: Bad request
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             status: 400
-            message: Invalid parameters
-    Unauthorized:
-      description: Access token is missing or invalid
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-          example:
-            status: 401
-            message: Not authorized to perform operation
+            message: Bad request, version is incorrect
     Forbidden:
-      description: Insufficient permissions to perform the operation
+      description: Forbidden
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             status: 403
-            message: Insufficient permissions to perform the operation
+            message: You're not authorized to perform action.
     NotFound:
-      description: Specified object was not found
+      description: Not found
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             status: 404
-            message: Service not found
+            message: Bad request, service not found
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 500
+            message: Internal server error
   securitySchemes:
     bearerAuth:
       type: http
@@ -545,21 +687,21 @@ components:
           items:
             example: 1.2.0, 1.1.0
         update_version:
-          $ref: '#/components/schemas/Version'
+          $ref: '#/components/schemas/UpdateVersion'
         upgrade_version:
-          $ref: '#/components/schemas/Version'
+          $ref: '#/components/schemas/UpgradeVersion'
     Services:
       description: >
         List of services
       type: array
       items:
         $ref: '#/components/schemas/Service'
-    Version:
+    UpdateVersion:
       type: object
       properties:
         version:
           type: string
-          example: 1.3.0
+          example: 1.3.1
         tag:
           type: string
           example: latest
@@ -576,8 +718,31 @@ components:
         applications:
           type: array
           items:
-            $ref: '#/components/schemas/App'
-    App:
+            $ref: '#/components/schemas/Application'
+    UpgradeVersion:
+      type: object
+      properties:
+        version:
+          type: string
+          example: 1.4.0
+        tag:
+          type: string
+          example: latest
+        release:
+          type: string
+          example: 1.4
+        date:
+          type: string
+          example: 2024-07-10
+        required:
+          type: array
+          items:
+            $ref: '#/components/schemas/Requirements'
+        applications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+    Application:
       type: object
       properties:
         name:
@@ -589,6 +754,59 @@ components:
           description: is a default language display name of service/application (or translated if internalization is implemented on backend)
         description:
           $ref: '#/components/schemas/ChangeLogDescription'
+    Status:
+      type: object
+      properties:
+        common_name:
+          type: string
+          example: admin
+        common_status:
+          type: string
+          example: Complete
+        common_service_installed:
+          type: boolean
+          example: true
+        common_service_deleted:
+          type: boolean
+          example: true
+        common_data_deleted:
+          type: boolean
+          example: true
+        common_backup_deleted:
+          type: boolean
+          example: true
+    GithubApp:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Account Settings
+        label:
+          type: string
+          example: SVC_ACCOUNT
+          description: is a default language display name of service/application (or translated if internalization is implemented on backend)
+        apps:
+          type: array
+          items:
+            example:
+              - name: billing
+                title: Billing
+                roles: operator,owner,billing
+        description:
+          type: string
+          example: Manage account settings, users and billing.
+        position:
+          type: number
+          example: 6
+        display_name:
+          type: string
+          example: Account
+        path:
+          type: string
+          example: /account
+        url:
+          type: string
+          example: url
     Requirements:
       type: object
       properties:
@@ -641,8 +859,8 @@ components:
           items:
             type: string
           example:
-            - "Name value is not unique"
-            - "Amount value is not integer"
+            - 'Name value is not unique'
+            - 'Amount value is not integer'
       required:
         - status
         - message
@@ -659,9 +877,11 @@ components:
     Version:
       in: query
       name: version
+      description: >
+        Version of the service
       schema:
         type: string
-      example: 2.0.2
+      example: 1.3.0
       required: true
 security:
   - bearerAuth: []
