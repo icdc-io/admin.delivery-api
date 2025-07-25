@@ -129,7 +129,7 @@ class ServiceDiscoverer
   def service_info(service, version = nil)
     Rails.logger.info { "[ServiceDiscoverer] fetching #{service}: #{version} info" }
     content = fetch_service_content(service, version)
-    decode_content(content) unless content == '404'
+    decode_content(content) unless content.empty?
   end
 
   def fetch_service_content(service, version = nil)
