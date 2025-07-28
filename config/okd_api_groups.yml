@@ -7,7 +7,7 @@ DeploymentConfig:
   api_group: apis/apps.openshift.io/v1
 Deployment:
   endpoint: deployments
-  api_group: /apis/apps/v1
+  api_group: apis/apps/v1
 Route:
   endpoint: routes
   api_group: apis/route.openshift.io/v1
