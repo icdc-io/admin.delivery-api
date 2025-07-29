@@ -17,8 +17,8 @@ class Template
     def build_whitelist(applications, namespace)
       base_whitelist = %w[VERSION APPLICATION_DOMAIN NAMESPACE REGISTRY_SERVER REGISTRY_PROXY_SERVER NAMESPACE_PREFIX]
       @configmaps_env_loc = OkdClient.configmaps_env_loc(namespace)
-      base_whitelist << 'LOCATION_DOMAIN' if @configmaps_env_loc['location_domain'].present?
-      base_whitelist << 'LOCATION_TIMEZONE' if @configmaps_env_loc['location_timezone'].present?
+      base_whitelist << 'LOCATION_DOMAIN' if @configmaps_env_loc['LOCATION_DOMAIN'].present?
+      base_whitelist << 'LOCATION_TIMEZONE' if @configmaps_env_loc['LOCATION_TIMEZONE'].present?
       applications.each_key do |app|
         base_whitelist << "TAG_#{app.underscore.upcase}"
       end
@@ -34,7 +34,7 @@ class Template
       when 'APPLICATION_DOMAIN'
         param['value'] = ENV.fetch('LOCATION_DOMAIN', '')
       when 'LOCATION_DOMAIN', 'LOCATION_TIMEZONE'
-        param['value'] = @configmaps_env_loc[param['name'].downcase]
+        param['value'] = @configmaps_env_loc[param['name'].upcase]
       when 'REGISTRY_SERVER', 'REGISTRY_PROXY_SERVER', 'NAMESPACE_PREFIX'
         param['value'] = ENV[param['name']] if ENV[param['name']].present?
       else

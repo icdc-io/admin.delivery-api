@@ -18,7 +18,7 @@ module ApiExceptionsHandler
     render json: { message: exception,
                    status: 500,
                    # TODO: leave this field for backward compatibility, remove it in future
-                   data: exception }
+                   data: exception }, status: 500
     # end TODO
   end
 
@@ -28,13 +28,13 @@ module ApiExceptionsHandler
                    status: 500,
                    errors: rest_client_error_message(exception),
                    # TODO: leave this field for backward compatibility, remove it in future
-                   data: exception }
+                   data: exception }, status: 500
     # end TODO
   end
 
   def log_exception(exception)
     Rails.logger.error exception.class.to_s
-    Rails.logger.error { rest_client_error_message(exception) } if exception.response
+    Rails.logger.error { rest_client_error_message(exception) } if exception.is_a?(RestClient::Exception)
     Rails.logger.error exception.to_s
     Rails.logger.error exception.backtrace.join("\n")
   end

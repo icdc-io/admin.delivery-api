@@ -12,7 +12,7 @@ class OkdClient
   end
 
   def self.namespace(service_name)
-    ENV.fetch('NAMESPACE_PREFIX', 'cloud') + '-' + service_name
+    "#{ENV.fetch('NAMESPACE_PREFIX', 'cloud')}-#{service_name}"
   end
 
   def self.select_service_dcs(list, namespace, service_name)
@@ -26,6 +26,11 @@ class OkdClient
       rc.dig('metadata', 'namespace') == namespace && rc.dig('metadata', 'name') == "#{app_name}-#{revision}"
     end
     replication_controllers.dig('metadata', 'annotations', 'openshift.io/deployment.phase')
+  end
+
+  def self.imagestreamtag(name, namespace, version)
+    url = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams/#{name}"
+    get_resource(url).dig('spec', 'tags')&.find { |tag| tag['name'] == version }
   end
 
   def self.select_service_pvc(list, namespace, service_name)
@@ -70,10 +75,12 @@ class OkdClient
 
   def self.create_image_stream_tag(service, app_name, app_version, service_repository)
     service_name = service.name
-    Rails.logger.info { "create_image_stream_tag: #{app_name}, #{service_name}, #{app_version}" }
-    url = "apis/image.openshift.io/v1/namespaces/#{service.namespace}/imagestreamtags"
+    namespace = service.namespace
+    Rails.logger.info { "Create image_stream tag: #{app_name}, #{service_name}, #{app_version}" }
+    url = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreamtags"
     body = OkdClient.image_stream_tag_body(app_name, app_version, service_repository, service_name)
-    post_resource(url, body)
+    imagestream_name = "#{service_name}-#{app_name}"
+    post_resource(url, body) unless imagestreamtag(imagestream_name, namespace, app_version)
   end
 
   def self.set_latest_tag_version(name, version, namespace)
@@ -87,7 +94,7 @@ class OkdClient
     Rails.logger.info { "Create image_stream service tag: #{params}" }
     url = "apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreamtags"
     body = OkdClient.service_image_stream_tag_body(params)
-    post_resource(url, body)
+    post_resource(url, body) unless imagestreamtag(name, namespace, version)
   end
 
   def self.generate_service_template(template, service_name, namespace)
