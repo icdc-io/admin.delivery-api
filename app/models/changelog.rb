@@ -66,7 +66,7 @@ class Changelog
 
   def self.find_version(service_name, version)
     release_version = version.split('.')[0...2].join('.')
-    all.dig(service_name, release_version).find { |release| release['version'] == version }
+    all.dig(service_name, release_version)&.find { |release| release['version'] == version }
   end
 
   private
