@@ -303,8 +303,8 @@ module OsHelper
 
   def update_template_parametrs(template, applications, service, version, namespace)
     white_list = ["VERSION", "APPLICATION_DOMAIN", "NAMESPACE", "REGISTRY_SERVER", "REGISTRY_PROXY_SERVER", "NAMESPACE_PREFIX"]
-    white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "location_domain").empty?
-    white_list << "LOCATION_TIMEZONE" unless check_config_map_env_loc(service).dig("data", "location_timezone").empty?
+    white_list << "LOCATION_DOMAIN" unless check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN").empty?
+    white_list << "LOCATION_TIMEZONE" unless check_config_map_env_loc(service).dig("data", "LOCATION_TIMEZONE").empty?
     applications.keys.map{|a| white_list.append "TAG_#{a.underscore.upcase}"}
     template["parameters"].map do |param|
       next unless white_list.include?(param["name"])
@@ -316,9 +316,9 @@ module OsHelper
       when "APPLICATION_DOMAIN"
         param["value"] = "#{ENV["LOCATION_DOMAIN"]}"
       when "LOCATION_DOMAIN"
-        param["value"] = check_config_map_env_loc(service).dig("data", "location_domain")
+        param["value"] = check_config_map_env_loc(service).dig("data", "LOCATION_DOMAIN")
       when "LOCATION_TIMEZONE"
-        param["value"] = check_config_map_env_loc(service).dig("data", "location_timezone")
+        param["value"] = check_config_map_env_loc(service).dig("data", "LOCATION_TIMEZONE")
       when "REGISTRY_SERVER"
         param["value"] = ENV["REGISTRY_SERVER"] if ENV["REGISTRY_SERVER"]
       when "REGISTRY_PROXY_SERVER"
