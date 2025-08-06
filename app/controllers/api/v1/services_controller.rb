@@ -1,37 +1,35 @@
 # frozen_string_literal: true
 
-require 'yaml'
-
 module Api
   module V1
     class ServicesController < ApplicationController
+      # TODO: Remove
       include SystemServices
       include OsCommonHelper
       include OsHelper
       include OsCreateHelper
       include OsDeleteHelper
       include ServiceHelper
-      # before_action :login
+      # end TODO
       before_action :operator_required
-      before_action :image_stream_list, only: %i[index show]
+      before_action :find_service, only: %i[downgrade upgrade update delete]
+      before_action :check_downgrade_version, only: [:downgrade]
+      before_action :check_upgrade_version, only: [:upgrade]
+      before_action :check_update_version, only: [:update]
+      after_action :invalidate_cache, only: %i[create downgrade upgrade update delete]
 
       def index
-        prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
-        namespaces = get_all_namespaces.select { |ns| ns.start_with?(prefix) }
-        services = namespaces.map do |namespace|
-          @namespace = namespace
-          service_name = @namespace.gsub("#{prefix}-", '')
-          service_data(service_name)
-        end.compact
-        render json: services
+        services = Service.all
+        render json: services, status: :ok
       end
 
       def show
-        service = service_data(params[:service_name])
+        service = Service.find_by(name: params[:service_name])
         return render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless service
 
         render json: service, status: :ok
       end
+      # TODO: Remove
 
       # def index
       #   image_names = list_images
@@ -60,14 +58,11 @@ module Api
         nil
       end
 
-      def create
+      def create_old
         prefix = ENV['NAMESPACE_PREFIX'] || 'cloud'
-
         create_namespace(params[:service_name]) unless get_all_namespaces.include?("#{prefix}-#{params[:service_name]}")
-
         service_name = params[:service_name]
         service = get_latest_versions(service_name).select { |service| service['version'] == params['version'] }.first
-
         # required_services = service["required"]
         # installed_version = get_installed_service(service_name)
         # required_services.keys.each do |required_service|
@@ -77,9 +72,7 @@ module Api
         #     update_service(service_name, required_service) if installed_version.split(".").join.to_i != 0
         #   end
         # end
-
         deploy_template(service_name, service)
-
         # update
         service_name = params[:service_name]
         update_service(service_name, service)
@@ -87,7 +80,28 @@ module Api
         no_content
       end
 
-      def delete
+      def downgrade_old
+        required_version = get_required_version(params[:service_name], params[:version]).select do |tst|
+          tst if tst['version'] == params[:version]
+        end.first
+        update_service(params[:service_name], required_version)
+        ServiceDiscoverer.instance.invalidate_cache
+        no_content
+      end
+
+      def upgrade_old
+        return abort('No such namespace') unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
+
+        service_name = params[:service_name]
+        service = get_latest_versions(service_name).select { |service| service['version'] == params[:version] }.first
+        deploy_template(service_name, service)
+        service_name = params[:service_name]
+        update_service(service_name, service)
+        ServiceDiscoverer.instance.invalidate_cache
+        no_content
+      end
+
+      def delete_old
         $deleting[params[:service_name]] = 'deleting'
         10.times do
           delete_code = delete_service(params[:service_name], params[:delete_persistent_data],
@@ -104,94 +118,79 @@ module Api
           sleep 5
         end
       end
+      # end TODO
+
+      def create
+        version = Changelog.find_version(params[:service_name], params[:version])
+        return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found unless version
+
+        Service.install(params[:service_name], params[:version])
+        render json: Service.find_by(name: params[:service_name]), status: :ok
+      end
 
       def downgrade
-        required_version = get_required_version(params[:service_name], params[:version]).select do |tst|
-          tst if tst['version'] == params[:version]
-        end.first
-        update_service(params[:service_name], required_version)
-        ServiceDiscoverer.instance.invalidate_cache
-        no_content
+        downgrade_version = Changelog.find_version(@service.name, params[:version])
+        @service.update(version: downgrade_version)
+        render json: Service.find_by(name: @service.name), status: :ok
       end
 
       def upgrade
-        return abort('No such namespace') unless get_all_namespaces.include?(get_os_namespace(params[:service_name]))
+        Template.deploy(@service_name, @upgrade_version)
+        Service.find_by(name: @service_name).update(version: @upgrade_version)
+        render json: Service.find_by(name: @service_name), status: :ok
+      end
 
-        service_name = params[:service_name]
-        service = get_latest_versions(service_name).select { |service| service['version'] == params[:version] }.first
-        deploy_template(service_name, service)
-        service_name = params[:service_name]
-        update_service(service_name, service)
-        ServiceDiscoverer.instance.invalidate_cache
-        no_content
+      def update
+        @service.update(version: @service.update_version)
+        render json: Service.find_by(name: @service_name), status: :ok
+      end
+
+      def delete
+        @service.delete(params[:delete_persistent_data], params[:delete_backup_data])
+        render json: nil, status: :no_content
       end
 
       private
 
-      def image_stream_list
-        @image_streams = request_openshift('apis/image.openshift.io/v1/imagestreams')
+      def find_service
+        @service_name = params[:service_name]
+        @service = Service.find_by(name: @service_name)
+        render json: { message: 'Bad request, service not found', code: 404 }, status: :not_found unless @service
       end
 
-      def service_data(service_name)
-        service = service_image_stream(service_name)
-        return unless service
+      def check_downgrade_version
+        return if @service.downgrade_versions.include?(params[:version])
 
-        name = service.dig('metadata', 'name')
-        tags = service.dig('spec', 'tags')
-        current_version = installed_version(tags)
-        downgrade_versions = all_installed_versions(tags).take_while { |version| version != current_version }
-        current_release_version = current_version.split('.')[0...2].join('.')
-        versions_from_release = release_changelogs(service_name, current_release_version)
-        update_version = latest_update_version(versions_from_release, current_version)
-        upgrade_version = latest_upgrade_version(service_name, current_release_version)
-        { name:, current_version:, downgrade_versions:, update_version:, upgrade_version: }
+        render json: { message: 'Bad request, version for downgrade is incorrect', code: 400 },
+               status: :bad_request
       end
 
-      def installed_version(tags)
-        tags.find { |tag| tag['name'] == 'latest' }&.dig('from', 'name')
+      def check_upgrade_version
+        @upgrade_version = Changelog.find_version(@service_name, params[:version])
+        current_release = @service.release
+        new_relese = params[:version].split('.')[0...2].join('.')
+        if (Gem::Version.new(new_relese) <= Gem::Version.new(current_release)) || @upgrade_version.nil?
+          return render json: { message: 'Bad request, version for upgrade is incorrect', code: 400 },
+                        status: :bad_request
+        end
+
+        prefix = ENV.fetch('NAMESPACE_PREFIX', 'cloud')
+        return if OkdClient.namespaces.include?("#{prefix}-#{@service_name}")
+
+        render json: { message: 'Bad request, namespace for this service not found', code: 404 },
+               status: :not_found
       end
 
-      def service_image_stream(service_name)
-        @namespace ||= get_os_namespace(service_name)
-        @image_streams['items'].find do |item|
-          item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == @namespace
+      def check_update_version
+        versions_from_release = Changelog.versions_from_release(@service_name, @service.release)
+        if (Gem::Version.new(params[:version]) <= Gem::Version.new(@service.current_version)) ||
+           !versions_from_release.map { |v| v['version'] }.include?(params[:version])
+          render json: { message: 'Bad request, version for update is incorrect', code: 400 }, status: :bad_request
         end
       end
 
-      def all_installed_versions(tags)
-        tags.map { |tag| tag['name'] if tag['name'] != 'latest' }.compact
-      end
-
-      def release_changelogs(service_name, release_version)
-        releases_list = changelogs_cache
-        releases_list.dig(service_name, release_version)
-      end
-
-      def latest_update_version(versions_list, current_version)
-        versions_list&.take_while { |version| version['version'] != current_version }
-                     &.find { |x| x['tag'].empty? && x['version'] != current_version }
-      end
-
-      def latest_release_version(service_name)
-        releases_list = changelogs_cache
-        release_version = releases_list[service_name].keys&.max_by { |release| Gem::Version.new(release) }
-        releases_list.dig(service_name, release_version)&.max_by { |version| Gem::Version.new(version['version']) }
-      end
-
-      def latest_upgrade_version(service_name, current_release_version)
-        upgrade_version = latest_release_version(service_name)
-        return 'release is actual' unless upgrade_version
-
-        if Gem::Version.new(current_release_version) >= Gem::Version.new(upgrade_version['release'])
-          upgrade_version = 'release is actual'
-        end
-        upgrade_version
-      end
-
-      def changelogs_cache
-        releases_list = ServiceChangelogs.instance.get_cached
-        releases_list = ServiceChangelogs.instance.build_cache if releases_list['ttl'] < DateTime.now.to_i
-        releases_list
+      def invalidate_cache
+        ServiceDiscoverer.instance.invalidate_cache
       end
     end
   end

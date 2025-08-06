@@ -1,7 +1,7 @@
+# TODO Remove:
 module OsCreateHelper
   include OsCommonHelper
   #include OsHelper
-
   def create_image_stream_tag(app_name, version, repository, service_name)
     Rails.logger.debug { "create_image_stream_tag: #{app_name}, #{service_name}, #{version}" }
     post_request_api_os("apis/image.openshift.io/v1/namespaces/#{get_os_namespace(service_name)}/imagestreamtags", image_stream_tag_body(app_name, version, repository, service_name)) #uncomment
@@ -168,5 +168,5 @@ module OsCreateHelper
       "displayName": "#{service_name.capitalize} Service"
    }.to_json
   end
-
 end
+# end TODO
