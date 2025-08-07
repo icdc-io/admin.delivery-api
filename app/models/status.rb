@@ -29,7 +29,7 @@ class Status
 
   def common_service_status(namespace, service_name)
     @service_dcs = OkdClient.select_service_dcs(deployment_config_list, namespace, service_name)
-    states = service_apps_statuses.uniq
+    states = service_dcs_statuses.uniq
     return states.first if states.count == 1
 
     priority = %w[Pending Running Deleting Undefined Error Failed Complete]
@@ -43,7 +43,7 @@ class Status
     OKD::ImageStream.find_from_list(image_stream_list, name, namespace) ? true : false
   end
 
-  def service_apps_statuses
+  def service_dcs_statuses
     @service_dcs.map do |dc|
       dc_name = dc.dig('metadata', 'name')
       namespace = dc.dig('metadata', 'namespace')
