@@ -775,6 +775,20 @@ components:
         common_backup_deleted:
           type: boolean
           example: true
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              api-proxy:
+                type: object
+                properties:
+                  service_installed:
+                    type: boolean
+                    example: true
+                  service_status:
+                    type: string
+                    example: Complete
     GithubApp:
       type: object
       properties:

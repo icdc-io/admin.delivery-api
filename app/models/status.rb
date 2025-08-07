@@ -14,22 +14,22 @@ class Status
 
   def get_info(namespace)
     service_name = namespace.gsub("#{prefix}-", '')
-    find_image_stream = OKD::ImageStream.find_from_list(image_stream_list, service_name, namespace)
     {
       'common_name' => service_name,
       'common_service_status' => common_service_status(namespace, service_name),
-      'common_service_installed' => find_image_stream ? true : false,
+      'common_service_installed' => common_service_installed(namespace, service_name),
       'common_service_deleted' => common_service_deleted(namespace, service_name),
       'common_data_deleted' => common_data_deleted(namespace, service_name),
-      'common_backup_deleted' => common_backup_deleted(namespace, service_name)
+      'common_backup_deleted' => common_backup_deleted(namespace, service_name),
+      'services' => services_statuses(namespace)
     }
   end
 
   private
 
   def common_service_status(namespace, service_name)
-    service_dcs = OkdClient.select_service_dcs(deployment_config_list, namespace, service_name)
-    states = service_apps_statuses(service_dcs).uniq
+    @service_dcs = OkdClient.select_service_dcs(deployment_config_list, namespace, service_name)
+    states = service_apps_statuses.uniq
     return states.first if states.count == 1
 
     priority = %w[Pending Running Deleting Undefined Error Failed Complete]
@@ -39,16 +39,15 @@ class Status
     nil
   end
 
-  def service_apps_statuses(service_dcs)
-    service_dcs.map do |dc|
-      app_name = dc.dig('metadata', 'name')
-      revision = dc.dig('status', 'latestVersion')
+  def common_service_installed(namespace, name)
+    OKD::ImageStream.find_from_list(image_stream_list, name, namespace) ? true : false
+  end
+
+  def service_apps_statuses
+    @service_dcs.map do |dc|
+      dc_name = dc.dig('metadata', 'name')
       namespace = dc.dig('metadata', 'namespace')
-      if revision.positive?
-        OkdClient.find_replication_controller(replication_controller_list, app_name, revision, namespace)
-      else
-        'Error'
-      end
+      service_dc_status(dc, namespace, dc_name)
     end
   end
 
@@ -62,5 +61,26 @@ class Status
 
   def common_backup_deleted(namespace, service_name)
     OkdClient.select_service_pvc_by_type(persistent_volume_claim_list, namespace, service_name, 'backup').empty?
+  end
+
+  def services_statuses(namespace)
+    @service_dcs.map do |service_dc|
+      dc_name = service_dc.dig('metadata', 'name')
+      {
+        dc_name => {
+          'service_installed' => common_service_installed(namespace, dc_name),
+          'service_status' => service_dc_status(service_dc, namespace, dc_name)
+        }
+      }
+    end
+  end
+
+  def service_dc_status(service_dc, namespace, dc_name)
+    revision = service_dc.dig('status', 'latestVersion')
+    if revision.positive?
+      OkdClient.find_replication_controller(replication_controller_list, dc_name, revision, namespace)
+    else
+      'Error'
+    end
   end
 end
