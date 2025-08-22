@@ -41,7 +41,9 @@ module OKD
       tags = image_stream.dig('spec', 'tags')
       current_version = tags.find { |tag| tag['name'] == 'latest' }&.dig('from', 'name')
       versions = tags.map { |tag| tag['name'] if tag['name'] != 'latest' }.compact
-      downgrade_versions = versions.take_while { |version| version != current_version }
+      downgrade_versions = versions.take_while do |version|
+        version != current_version
+      end.sort { |a, b| Gem::Version.new(b) <=> Gem::Version.new(a) }
       current_release_version = current_version.split('.')[0...2].join('.')
       { name:, namespace:, current_version:, versions:, downgrade_versions:, current_release_version: }
     end

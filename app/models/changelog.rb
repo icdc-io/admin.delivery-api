@@ -39,29 +39,17 @@ class Changelog
     releases_list
   end
 
-  def self.last_update_version(service_name, current_version)
-    current_release_version = current_version.split('.')[0...2].join('.')
-    all.dig(service_name, current_release_version)
+  def self.update_versions(service_name, current_version)
+    current_release = current_version.split('.')[0...2].join('.')
+    all.dig(service_name, current_release)
        &.take_while { |version| version['version'] != current_version }
-       &.find { |x| x['tag'].empty? && x['version'] != current_version }
+       &.sort_by { |version| Gem::Version.new(version['version']) }&.reverse
   end
 
-  def self.last_upgrade_version(service_name, current_release_version)
-    releases_list = all
-    release_version = releases_list[service_name].keys&.max_by { |release| Gem::Version.new(release) }
-    upgrade_version = releases_list.dig(service_name, release_version)&.max_by do |version|
-      Gem::Version.new(version['version'])
-    end
-    return 'release is actual' unless upgrade_version
-
-    if Gem::Version.new(current_release_version) >= Gem::Version.new(upgrade_version['release'])
-      upgrade_version = 'release is actual'
-    end
-    upgrade_version
-  end
-
-  def self.versions_from_release(service_name, release_version)
-    all.dig(service_name, release_version)
+  def self.upgrade_versions(service_name, current_release)
+    all[service_name].select do |release, _versions|
+      Gem::Version.new(release) > Gem::Version.new(current_release)
+    end.values.flatten.sort_by { |version| Gem::Version.new(version['version']) }.reverse
   end
 
   def self.find_version(service_name, version)

@@ -2,7 +2,7 @@
 
 class Service
   attr_accessor :image_stream, :name, :namespace, :release, :current_version, :downgrade_versions,
-                :update_version, :upgrade_version
+                :update_versions, :upgrade_versions
 
   def initialize(name, image_stream = nil)
     image_stream ||= OKD::ImageStream.get(name)
@@ -13,8 +13,8 @@ class Service
     @release = image_stream.current_release_version
     @current_version = image_stream.current_version
     @downgrade_versions = image_stream.downgrade_versions
-    @update_version = Changelog.last_update_version(name, current_version)
-    @upgrade_version = Changelog.last_upgrade_version(name, release)
+    @update_versions = Changelog.update_versions(name, current_version)
+    @upgrade_versions = Changelog.upgrade_versions(name, release)
   end
 
   def self.all

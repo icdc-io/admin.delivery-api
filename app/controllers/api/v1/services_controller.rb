@@ -122,7 +122,9 @@ module Api
 
       def create
         version = Changelog.find_version(params[:service_name], params[:version])
-        return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found unless version
+        unless version['tag'] == 'latest'
+          return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found
+        end
 
         Service.install(params[:service_name], params[:version])
         render json: Service.find_by(name: params[:service_name]), status: :ok
@@ -141,7 +143,7 @@ module Api
       end
 
       def update
-        @service.update(version: @service.update_version)
+        @service.update(version: @update_version)
         render json: Service.find_by(name: @service_name), status: :ok
       end
 
@@ -167,9 +169,7 @@ module Api
 
       def check_upgrade_version
         @upgrade_version = Changelog.find_version(@service_name, params[:version])
-        current_release = @service.release
-        new_relese = params[:version].split('.')[0...2].join('.')
-        if (Gem::Version.new(new_relese) <= Gem::Version.new(current_release)) || @upgrade_version.nil?
+        unless @service.upgrade_versions.include?(@upgrade_version)
           return render json: { message: 'Bad request, version for upgrade is incorrect', code: 400 },
                         status: :bad_request
         end
@@ -182,11 +182,10 @@ module Api
       end
 
       def check_update_version
-        versions_from_release = Changelog.versions_from_release(@service_name, @service.release)
-        if (Gem::Version.new(params[:version]) <= Gem::Version.new(@service.current_version)) ||
-           !versions_from_release.map { |v| v['version'] }.include?(params[:version])
-          render json: { message: 'Bad request, version for update is incorrect', code: 400 }, status: :bad_request
-        end
+        @update_version = Changelog.find_version(@service_name, params[:version])
+        return if @service.update_versions.include?(@update_version)
+
+        render json: { message: 'Bad request, version for update is incorrect', code: 400 }, status: :bad_request
       end
 
       def invalidate_cache
