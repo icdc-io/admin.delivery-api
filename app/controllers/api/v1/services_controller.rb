@@ -122,7 +122,7 @@ module Api
 
       def create
         version = Changelog.find_version(params[:service_name], params[:version])
-        unless version['tag'] == 'latest'
+        unless version&.dig('tag') == 'latest'
           return render json: { message: 'Bad request, version not found', code: 404 }, status: :not_found
         end
 
