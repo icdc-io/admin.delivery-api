@@ -686,10 +686,14 @@ components:
           type: array
           items:
             example: 1.2.0, 1.1.0
-        update_version:
-          $ref: '#/components/schemas/UpdateVersion'
-        upgrade_version:
-          $ref: '#/components/schemas/UpgradeVersion'
+        update_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpdateVersion'
+        upgrade_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpgradeVersion'
     Services:
       description: >
         List of services
