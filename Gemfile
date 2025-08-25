@@ -26,7 +26,7 @@ gem 'rack-cors'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug', platforms: %i[mri mingw x64_mingw]
+  gem 'byebug', platforms: %i[mri windows]
   gem 'rspec-rails'
 end
 
@@ -50,3 +50,5 @@ gem 'redis', '~> 5.3'
 gem 'redis-mutex', '~> 4.0'
 
 gem 'rubocop', '~> 1.75'
+
+gem "concurrent-ruby", "= 1.3.4"
