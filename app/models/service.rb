@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Service
-  attr_accessor :image_stream, :name, :namespace, :release, :current_version, :downgrade_versions,
+  attr_accessor :image_stream, :name, :namespace, :release, :current_version, :platform_version, :downgrade_versions,
                 :update_versions, :upgrade_versions
 
   def initialize(name, image_stream = nil)
@@ -12,6 +12,7 @@ class Service
     @namespace = image_stream.namespace
     @release = image_stream.current_release_version
     @current_version = image_stream.current_version
+    @platform_version = Changelog.platform_version(name, current_version)
     @downgrade_versions = image_stream.downgrade_versions
     @update_versions = Changelog.update_versions(name, current_version)
     @upgrade_versions = Changelog.upgrade_versions(name, release)
