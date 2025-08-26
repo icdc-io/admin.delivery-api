@@ -39,6 +39,13 @@ class Changelog
     releases_list
   end
 
+  def self.platform_version(service_name, current_version)
+    current_release = current_version.split('.')[0...2].join('.')
+    all.dig(service_name, current_release)&.find do |changelog|
+      changelog['version'] == current_version
+    end&.dig('platform_version')
+  end
+
   def self.update_versions(service_name, current_version)
     current_release = current_version.split('.')[0...2].join('.')
     all.dig(service_name, current_release)
