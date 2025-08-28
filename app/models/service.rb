@@ -21,7 +21,7 @@ class Service
   def self.all
     OKD::ImageStream.all.map do |image_stream|
       new(image_stream.name, image_stream)
-    end
+    end.sort_by! { |service| service.current_version.nil? ? 1 : 0 }
   end
 
   def self.find_by(name:)
