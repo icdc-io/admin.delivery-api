@@ -12,25 +12,22 @@ class Service
     @namespace = image_stream.namespace
     @release = image_stream.current_release_version
     @current_version = image_stream.current_version
-    @platform_version = Changelog.platform_version(name, current_version)
+    @platform_version = Changelog.platform_version(name, current_version, release)
     @downgrade_versions = image_stream.downgrade_versions
-    @update_versions = Changelog.update_versions(name, current_version)
+    @update_versions = Changelog.update_versions(name, current_version, release)
     @upgrade_versions = Changelog.upgrade_versions(name, release)
   end
 
   def self.all
     OKD::ImageStream.all.map do |image_stream|
-      next unless image_stream
-
       new(image_stream.name, image_stream)
     end
   end
 
   def self.find_by(name:)
-    service = new(name)
-    return if service.instance_variables.empty?
+    return unless Changelog.all[name]
 
-    service
+    new(name)
   end
 
   def self.install(service_name, version)
