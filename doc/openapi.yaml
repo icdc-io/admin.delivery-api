@@ -682,6 +682,9 @@ components:
         current_version:
           type: string
           example: 1.3.0
+        platform_version:
+          type: string
+          example: 4.04
         downgrade_versions:
           type: array
           items:
@@ -715,6 +718,9 @@ components:
         date:
           type: string
           example: 2024-07-10
+        platform_version:
+          type: string
+          example: 4.04
         required:
           type: array
           items:
@@ -738,6 +744,9 @@ components:
         date:
           type: string
           example: 2024-07-10
+        platform_version:
+          type: string
+          example: 4.05
         required:
           type: array
           items:

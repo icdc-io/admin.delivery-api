@@ -20,9 +20,12 @@ module OKD
         image_stream = image_stream_list['items'].find do |item|
           item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == namespace
         end
-        next unless image_stream
-
-        new(service_data(image_stream, service_name, namespace))
+        if image_stream
+          new(service_data(image_stream, service_name, namespace))
+        else
+          new({ name: service_name, namespace:, current_version: nil, versions: nil, downgrade_versions: nil,
+                current_release_version: nil })
+        end
       end.compact
     end
 
@@ -32,9 +35,12 @@ module OKD
       image_stream = image_stream_list['items'].find do |item|
         item.dig('metadata', 'name') == service_name && item.dig('metadata', 'namespace') == namespace
       end
-      return unless image_stream
-
-      new(service_data(image_stream, service_name, namespace))
+      if image_stream
+        new(service_data(image_stream, service_name, namespace))
+      else
+        new({ name: service_name, namespace:, current_version: nil, versions: nil, downgrade_versions: nil,
+              current_release_version: nil })
+      end
     end
 
     def self.service_data(image_stream, name, namespace)

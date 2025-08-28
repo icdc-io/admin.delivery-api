@@ -39,24 +39,24 @@ class Changelog
     releases_list
   end
 
-  def self.platform_version(service_name, current_version)
-    current_release = current_version.split('.')[0...2].join('.')
+  def self.platform_version(service_name, current_version, current_release)
     all.dig(service_name, current_release)&.find do |changelog|
       changelog['version'] == current_version
     end&.dig('platform_version')
   end
 
-  def self.update_versions(service_name, current_version)
-    current_release = current_version.split('.')[0...2].join('.')
+  def self.update_versions(service_name, current_version, current_release)
     all.dig(service_name, current_release)
        &.take_while { |version| version['version'] != current_version }
        &.sort_by { |version| Gem::Version.new(version['version']) }&.reverse
   end
 
   def self.upgrade_versions(service_name, current_release)
-    all[service_name].select do |release, _versions|
+    versions = all[service_name].select do |release, _versions|
       Gem::Version.new(release) > Gem::Version.new(current_release)
     end.values.flatten.sort_by { |version| Gem::Version.new(version['version']) }.reverse
+    versions = versions.select { |version| version['tag'] == 'latest' } unless current_release
+    versions
   end
 
   def self.find_version(service_name, version)
