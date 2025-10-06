@@ -1,3 +1,4 @@
+# TODO: Remove
 module ImageHelper
   include OsHelper
 
@@ -34,3 +35,4 @@ module ImageHelper
   end
 
 end
+# end TODO

@@ -1,3 +1,4 @@
+# TODO: Remove
 module OsDeleteHelper
   include OsCommonHelper
 
@@ -108,3 +109,4 @@ module OsDeleteHelper
     delete_request_api_os("apis/batch/v1/namespaces/#{get_os_namespace(service_name)}/cronjobs?labelSelector=service=#{service_name}")
   end 
 end
+# end TODO  

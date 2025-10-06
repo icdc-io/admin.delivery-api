@@ -1,0 +1,330 @@
+[
+    {
+        "title": "Outrun Cloud",
+        "name": "outrun-cloud",
+        "label": "",
+        "apps": [
+            {
+                "name": "instances",
+                "title": "Instances",
+                "roles": ""
+            }
+        ],
+        "description": "Provides necessary resources for developing and deploying microservices applications.",
+        "position": 1,
+        "display_name": "Outrun Cloud",
+        "path": "/outrun-cloud",
+        "url": ""
+    },
+    {
+        "title": "Database",
+        "name": "database",
+        "label": "",
+        "apps": [
+            {
+                "name": "instances",
+                "title": "Instances",
+                "roles": ""
+            },
+            {
+                "name": "logs",
+                "title": "Logs",
+                "roles": ""
+            },
+            {
+                "name": "parameters",
+                "title": "Parameters",
+                "roles": ""
+            },
+            {
+                "name": "snapshots",
+                "title": "Snapshots",
+                "roles": ""
+            }
+        ],
+        "description": "A service that simplifies the setup, operation and scaling of databases in a cloud environment.",
+        "position": 2,
+        "display_name": "Database",
+        "path": "/database",
+        "url": ""
+    },
+    {
+        "title": "Compute",
+        "name": "compute",
+        "label": "",
+        "description": "Order cloud services directly from the catalog: virtual machines, application images, and network access.",
+        "position": 3,
+        "display_name": "Compute",
+        "path": "",
+        "url": "https://compute.dcz.lab.icdc.io"
+    },
+    {
+        "title": "Networking",
+        "name": "networking",
+        "label": "",
+        "apps": [
+            {
+                "name": "vpc",
+                "title": "VPC Networks",
+                "roles": ""
+            },
+            {
+                "name": "firewall",
+                "title": "Firewall",
+                "roles": ""
+            },
+            {
+                "name": "portforward",
+                "title": "Port Forward",
+                "roles": ""
+            },
+            {
+                "name": "alb",
+                "title": "Load Balancer",
+                "roles": ""
+            },
+            {
+                "name": "dns",
+                "title": "DNS",
+                "roles": ""
+            },
+            {
+                "name": "vpn",
+                "title": "VPN",
+                "roles": ""
+            },
+            {
+                "name": "gateways",
+                "title": "Gateways",
+                "roles": ""
+            }
+        ],
+        "description": "An isolated part of the Cloud that provides a cloud network for resource management in a protected environment.",
+        "position": 4,
+        "display_name": "Networking",
+        "path": "/networking",
+        "url": ""
+    },
+    {
+        "title": "Storage",
+        "name": "storage",
+        "label": "",
+        "apps": [
+            {
+                "name": "objects",
+                "title": "S3 Object Storage"
+            },
+            {
+                "name": "iscsi",
+                "title": "iSCSI Block Storage"
+            }
+        ],
+        "description": "A reliable distributed storage system with the object, file system, and block device interfaces.",
+        "position": 5,
+        "display_name": "Storage",
+        "path": "/storage",
+        "url": ""
+    },
+    {
+        "title": "Disk",
+        "name": "disk",
+        "label": "",
+        "description": "Easy file storage and sharing for your team.",
+        "position": 6,
+        "display_name": "Disk",
+        "path": "",
+        "url": "https://disk.dcz.lab.icdc.io"
+    },
+    {
+        "title": "Code",
+        "name": "code",
+        "label": "",
+        "description": "Collaborate with team members. Build, deploy, and run your applications faster.",
+        "position": 7,
+        "display_name": "Code",
+        "path": "",
+        "url": "https://code.dcz.lab.icdc.io"
+    },
+    {
+        "title": "Artifactory",
+        "name": "artifactory",
+        "label": "",
+        "description": "Convenient repository manager for storing various formats of artifacts.",
+        "position": 8,
+        "display_name": "Artifactory",
+        "path": "",
+        "url": "https://artifactory.dcz.lab.icdc.io"
+    },
+    {
+        "title": "Account Settings",
+        "name": "account",
+        "label": "",
+        "apps": [
+            {
+                "name": "info",
+                "title": "Account",
+                "roles": ""
+            },
+            {
+                "name": "users",
+                "title": "Users",
+                "roles": ""
+            },
+            {
+                "name": "billing",
+                "title": "Billing",
+                "roles": "operator,owner"
+            },
+            {
+                "name": "reports",
+                "title": "Reports",
+                "roles": "operator.owner"
+            }
+
+        ],
+        "description": "Manage account settings, users and billing.",
+        "position": 9,
+        "display_name": "Account",
+        "path": "/account",
+        "url": ""
+    },
+    {
+        "title": "Location Admin",
+        "name": "admin",
+        "label": "",
+        "roles": "operator",
+        "apps": [
+            {
+                "name": "general",
+                "title": "General"
+            },
+            {
+                "name": "accounts",
+                "title": "Accounts"
+            },
+            {
+                "name": "delivery",
+                "title": "Service Delivery"
+            },
+            {
+                "name": "consoles",
+                "title": "Admin Consoles"
+            }
+
+        ],
+        "description": "Securely create and manage accounts, services, clusters, and locations.",
+        "position": 10,
+        "display_name": "Location Admin",
+        "path": "/admin",
+        "url": ""
+    },
+    {
+        "title": "Billing",
+        "name": "billing",
+        "label": "",
+        "roles": "operator",
+        "apps": [
+            {
+                "name": "billing",
+                "title": "Billing Settings"
+            },
+            {
+                "name": "payments",
+                "title": "Payment Systems"
+            },
+            {
+                "name": "invoices",
+                "title": "Invoices"
+            },
+            {
+                "name": "reports",
+                "title": "Reports"
+            }
+
+        ],
+        "description": "Managed invoices, reports and payments for all accounts.",
+        "position": 11,
+        "display_name": "Billing",
+        "path": "/billing",
+        "url": ""
+    },
+    {
+        "title": "Support",
+        "name": "support",
+        "label": "",
+        "apps": [
+            {
+                "name": "helpdesk",
+                "title": "HelpDesk"
+            },
+            {
+                "name": "contacts",
+                "title": "Contacts"
+            }
+        ],
+        "description": "",
+        "position": 13,
+        "display_name": "Support",
+        "path": "/support",
+        "url": ""
+    },
+    {
+        "title": "Compliance",
+        "name": "compliance",
+        "label": "",
+        "description": "",
+        "position": 12,
+        "display_name": "Compliance",
+        "path": "",
+        "url": "https://compliance.dcz.lab.icdc.io"
+    },
+    {
+        "title": "Message Queue",
+        "name": "mq",
+        "label": "",
+        "apps": [
+            {
+                "name": "brokers",
+                "title": "Brokers",
+                "roles": ""
+            },
+            {
+                "name": "configurations",
+                "title": "Configurations",
+                "roles": ""
+            }
+        ],
+        "description": "A service that simplifies the setup, operation and scaling of brokers in a cloud environment.",
+        "position": 14,
+        "display_name": "Message Queue",
+        "path": "/mq",
+        "url": ""
+    },
+    {
+        "title": "Telemetry",
+        "name": "telemetry",
+        "label": "",
+        "apps": [
+            {
+                "name": "events",
+                "title": "Events",
+                "roles": ""
+            },
+            {
+                "name": "notifications",
+                "title": "Notifications",
+                "roles": ""
+            },
+            {
+                "name": "notification-settings",
+                "title": "Notification Settings",
+                "roles": ""
+            }
+        ],
+        "description": "A service that simplifies the setup, operation and scaling of databases in a cloud environment.",
+        "position": 15,
+        "display_name": "Telemetry",
+        "path": "/telemetry",
+        "url": ""
+    }
+]

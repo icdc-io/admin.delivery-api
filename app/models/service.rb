@@ -1,0 +1,55 @@
+# frozen_string_literal: true
+
+class Service
+  attr_accessor :image_stream, :name, :namespace, :release, :current_version, :platform_version, :downgrade_versions,
+                :update_versions, :upgrade_versions
+
+  def initialize(name, image_stream = nil)
+    image_stream ||= OKD::ImageStream.get(name)
+    return unless image_stream
+
+    @name = image_stream.name
+    @namespace = image_stream.namespace
+    @release = image_stream.current_release_version
+    @current_version = image_stream.current_version
+    @platform_version = Changelog.platform_version(name, current_version, release)
+    @downgrade_versions = image_stream.downgrade_versions
+    @update_versions = Changelog.update_versions(name, current_version, release)
+    @upgrade_versions = Changelog.upgrade_versions(name, release)
+  end
+
+  def self.all
+    OKD::ImageStream.all.map do |image_stream|
+      new(image_stream.name, image_stream)
+    end.sort_by! { |service| service.current_version.nil? ? 1 : 0 }
+  end
+
+  def self.find_by(name:)
+    return unless Changelog.all[name]
+
+    new(name)
+  end
+
+  def self.install(service_name, version)
+    version = Changelog.find_version(service_name, version)
+    Template.deploy(service_name, version)
+    Service.find_by(name: service_name).update(version:)
+  end
+
+  def update(version:)
+    service_repository = "#{GithubClient.registry_server(name)}/#{namespace}"
+    version['applications'].compact.map do |app|
+      OkdClient.create_image_stream_tag(self, app['name'], app['tag'], service_repository)
+      image_stream_tag_name = "#{name}-#{app['name']}"
+      OkdClient.set_latest_tag_version(image_stream_tag_name, app['tag'], namespace)
+    end
+    OkdClient.create_image_stream_service_tag(name, version['version'], namespace)
+    OkdClient.set_latest_tag_version(name, version['version'], namespace)
+  end
+
+  def delete(delete_pvc_data, delete_pvc_backup)
+    OkdClient.delete_service_objects(name, namespace, delete_pvc_data, delete_pvc_backup)
+    template = Template.find_by(service_name: name)
+    DNS.delete_records(template)
+  end
+end

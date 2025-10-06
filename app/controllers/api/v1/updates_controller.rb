@@ -1,3 +1,4 @@
+# TODO Remove:
 class Api::V1::UpdatesController < ApplicationController
   include SystemServices
   # before_action :login
@@ -30,3 +31,4 @@ private
     image_stream_by_service(params[:service_name])
   end
 end
+# end TODO
