@@ -52,3 +52,5 @@ gem 'redis-mutex', '~> 4.0'
 gem 'rubocop', '~> 1.75'
 
 gem "concurrent-ruby", "= 1.3.4"
+
+gem "simpleidn", "~> 0.2.3"

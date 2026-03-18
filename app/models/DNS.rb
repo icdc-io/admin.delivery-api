@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 class DNS
-  attr_reader :location_domain, :account, :dns_ttl, :dns_owner
+  attr_reader :location_domain, :account, :dns_ttl, :dns_owner, :coredns
 
   def initialize
     @location_domain = ENV.fetch('LOCATION_DOMAIN')
     @account = ENV.fetch('DNS_ACCOUNT', ENV.fetch('LOCATION_ADMIN_NAME'))
     @dns_ttl = ENV.fetch('DNS_TTL', 3600)
     @dns_owner = ENV.fetch('DNS_OWNER', "admin@#{location_domain}")
+    @coredns = CoreDns::Etcd.new(ENV.fetch('DNS_SERVER'))
   end
 
   def self.create_records(template)
@@ -23,23 +24,24 @@ class DNS
   def self.delete_records(template)
     hostname_params(template).each do |dns_param|
       hostname = dns_param['value']
-      DNS.delete_record(hostname)
+      DNS.new.delete_record(hostname)
     end
   end
 
   def create_record(hostname, dns_host)
-    coredns = CoreDns::Etcd.new(ENV.fetch('DNS_SERVER'))
-    return unless coredns.domain("#{hostname}.#{location_domain}").list.empty?
+    zone_name = normalize("#{hostname}.#{location_domain}")
+    return unless coredns.domain(zone_name).list.empty?
 
-    coredns.domain("#{hostname}.#{location_domain}")
+    coredns.domain(zone_name)
            .add('ttl' => dns_ttl, 'metadata' => { 'account' => account, 'owner' => dns_owner },
-                'group' => "#{hostname}.#{location_domain}", 'host' => Resolv.getaddress(dns_host))
+                'group' => zone_name, 'host' => Resolv.getaddress(dns_host))
   end
 
-  def self.delete_record(hostname)
-    domain = coredns.domain("#{hostname}.#{ENV.fetch('LOCATION_DOMAIN')}")
-    Rails.logger.info { "#{domain.list_all}" }
-    domain.list_all.each { |record| domain.delete('name' => record['name']) }
+  def delete_record(hostname)
+    zone_name = normalize("#{hostname}.#{location_domain}")
+    domain = coredns.domain(zone_name)
+    Rails.logger.info { domain.list_all.to_s }
+    domain.list_all.each { |record| domain.delete('name' => normalize(record['name'])) }
   end
 
   def self.host(dns_param)
@@ -57,5 +59,9 @@ class DNS
 
   def self.hostname_params(template)
     template['parameters'].select { |param| param['name'].include?('HOSTNAME') }
+  end
+
+  def normalize(name)
+    name.ascii_only? ? name : SimpleIDN.to_ascii(name)
   end
 end

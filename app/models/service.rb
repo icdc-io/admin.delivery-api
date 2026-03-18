@@ -6,7 +6,6 @@ class Service
 
   def initialize(name, image_stream = nil)
     image_stream ||= OKD::ImageStream.get(name)
-    return unless image_stream
 
     @name = image_stream.name
     @namespace = image_stream.namespace
@@ -21,7 +20,7 @@ class Service
   def self.all
     OKD::ImageStream.all.map do |image_stream|
       new(image_stream.name, image_stream)
-    end.sort_by! { |service| service.current_version.nil? ? 1 : 0 }
+    end.sort_by { |service| service.current_version.nil? ? 1 : 0 }
   end
 
   def self.find_by(name:)
