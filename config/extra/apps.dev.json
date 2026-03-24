@@ -52,11 +52,23 @@
         "title": "Compute",
         "name": "compute",
         "label": "",
+        "apps": [
+            {
+                "name": "instances",
+                "title": "Instances",
+                "roles": ""
+            },
+            {
+                "name": "instance-groups",
+                "title": "Instance groups",
+                "roles": ""
+            }
+        ],
         "description": "Order cloud services directly from the catalog: virtual machines, application images, and network access.",
         "position": 3,
         "display_name": "Compute",
-        "path": "",
-        "url": "https://compute.dcz.lab.icdc.io"
+        "path": "/compute",
+        "url": ""
     },
     {
         "title": "Networking",
@@ -180,7 +192,6 @@
                 "title": "Reports",
                 "roles": "operator.owner"
             }
-
         ],
         "description": "Manage account settings, users and billing.",
         "position": 9,
@@ -210,7 +221,6 @@
                 "name": "consoles",
                 "title": "Admin Consoles"
             }
-
         ],
         "description": "Securely create and manage accounts, services, clusters, and locations.",
         "position": 10,
@@ -240,7 +250,6 @@
                 "name": "reports",
                 "title": "Reports"
             }
-
         ],
         "description": "Managed invoices, reports and payments for all accounts.",
         "position": 11,
