@@ -71,7 +71,8 @@ GEM
     coderay (1.1.3)
     concurrent-ruby (1.3.4)
     connection_pool (2.5.3)
-    coredns (1.2.4)
+    coredns (1.2.7)
+      simpleidn (~> 0.2.3)
     crass (1.0.6)
     date (3.4.1)
     diff-lcs (1.6.2)
@@ -261,6 +262,7 @@ GEM
       parser (>= 3.3.7.2)
       prism (~> 1.4)
     ruby-progressbar (1.13.0)
+    simpleidn (0.2.3)
     spring (4.2.1)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
@@ -315,6 +317,7 @@ DEPENDENCIES
   rest-client
   rspec-rails
   rubocop (~> 1.75)
+  simpleidn (~> 0.2.3)
   spring (~> 4.2.1)
   tzinfo-data
 
@@ -340,7 +343,7 @@ CHECKSUMS
   coderay (1.1.3) sha256=dc530018a4684512f8f38143cd2a096c9f02a1fc2459edcfe534787a7fc77d4b
   concurrent-ruby (1.3.4) sha256=d4aa926339b0a86b5b5054a0a8c580163e6f5dcbdfd0f4bb916b1a2570731c32
   connection_pool (2.5.3) sha256=cfd74a82b9b094d1ce30c4f1a346da23ee19dc8a062a16a85f58eab1ced4305b
-  coredns (1.2.4) sha256=1ffd44798ac806bf4cd0890babff733459920b82f2812a5eb03454fe26a1fa1a
+  coredns (1.2.7) sha256=4b3f232323499c8feb879953a7a50547665a272625e49a7d21db91d5625ab12e
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   date (3.4.1) sha256=bf268e14ef7158009bfeaec40b5fa3c7271906e88b196d958a89d4b408abe64f
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
@@ -426,6 +429,7 @@ CHECKSUMS
   rubocop (1.80.0) sha256=a728e4098feba683f37c6825fe5f611782611ec8c50efbae53bdb3a48bff73a8
   rubocop-ast (1.46.0) sha256=0da7f6ad5b98614f89b74f11873c191059c823eae07d6ffd40a42a3338f2232b
   ruby-progressbar (1.13.0) sha256=80fc9c47a9b640d6834e0dc7b3c94c9df37f08cb072b7761e4a71e22cff29b33
+  simpleidn (0.2.3) sha256=08ce96f03fa1605286be22651ba0fc9c0b2d6272c9b27a260bc88be05b0d2c29
   spring (4.2.1) sha256=8517a24d7ac966c8e051b63a67c68cbfc026c74cc0742e19f0fba472ebe0a5ae
   sprockets (4.2.2) sha256=761e5a49f1c288704763f73139763564c845a8f856d52fba013458f8af1b59b1
   sprockets-rails (3.5.2) sha256=a9e88e6ce9f8c912d349aa5401509165ec42326baf9e942a85de4b76dbc4119e
