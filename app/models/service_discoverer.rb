@@ -63,53 +63,38 @@ class ServiceDiscoverer
     build_services_versions
   end
 
-  def build_services_versions
-    services_list.filter_map do |service|
-      version = installed_version_for(service)
-      next unless version
-
-      service_details(service, version)
-    end.compact + central_location_services.to_a
+  def external_services()
+    @external_services ||= ENV.fetch('EXTERNAL_SERVICES', 'disk,code').split(',')
   end
 
-  def service_details(service, version)
-    info = service_info(service, version)&.detect { _1['version'] == version }
-    location_service = location_services.detect { _1['name'] == service }
+  def build_services_versions
+    (central_services + location_services).filter_map do |entitled_service|
+      service_name = entitled_service['name']
+      if external_services().include?(service_name)
+        # For external services (like code, disk, account) entitlement means => installed
+        Rails.logger.info("[ServiceDiscoverer#build_services_versions] Entitled service is externally managed: #{service_name}")
+        # TODO: may be pull version from CRM specification (need to add new field and track it)
+        version = null
+      else
+        version = installed_version_for(service_name) # e.g. "1.7.0"
+        Rails.logger.info("[ServiceDiscoverer#build_services_versions] Installed version of the entitled service: #{service_name}:#{version}")
+        next unless version
+      end
+      service_details(entitled_service, version)
+    end.compact
+  end
 
-    return unless info && location_service
-
-    info.merge(
-      description: location_service['description'],
-      position: location_service['position'],
-      display_name: location_service['display_name'],
-      path: location_service['path'],
-      url: location_service['url']
-    )
+  def central_services
+    return [
+      { "name": "core" },
+      { "name": "account" }
+    ]
   end
 
   def location_services
     @location_services ||= JSON.parse(location_response.body)['locations'].detect do |loc|
       loc['name'] == ENV.fetch('LOCATION_NAME')
     end['services']
-  end
-
-  def central_location_services
-    services_names = GithubClient.get_resource('applications/_central').map { _1['name'].gsub('.json', '') }
-
-    services_names.filter_map do |service|
-      info = service_info(service)
-      location_service = location_services.detect { _1['name'] == service }
-
-      next unless info && location_service
-
-      info.merge(
-        description: location_service['description'],
-        position: location_service['position'],
-        display_name: location_service['display_name'],
-        path: location_service['path'],
-        url: location_service['url']
-      )
-    end
   end
 
   def location_response
@@ -126,28 +111,34 @@ class ServiceDiscoverer
     }
   end
 
-  def service_info(service, version = nil)
-    Rails.logger.info { "[ServiceDiscoverer] fetching #{service}: #{version} info" }
-    content = fetch_service_content(service, version)
-    decode_content(content) unless content.empty?
+  def service_details(service, version)
+    # Fetch versioned service information altogether with UI apps versions from Github specification file
+    info = fetch_service_spec(service, version) || {}
+    info.merge(
+      description: location_service['description'],
+      position: location_service['position'],
+      display_name: location_service['display_name'],
+      path: location_service['path'],
+      url: location_service['url']
+    )
   end
 
-  def fetch_service_content(service, version = nil)
-    url = 'applications'
-
-    url += if version
-             "/#{service}/#{release_filename(version)}"
-           else
-             "/_central/#{service}.json"
-           end
-
-    GithubClient.get_resource(url)
+  def fetch_service_spec(service, version)
+    Rails.logger.info { "[ServiceDiscoverer] fetching #{service} apps specification: #{version} info" }
+    content = GithubClient.get_resource("applications/#{service}/#{release_filename(version)}")
+    decode_content(content).detect { _1['version'] == version } unless content.empty?
   end
 
   def installed_version_for(service)
     image_stream = OkdClient.get_service_imagestream(service)
-    get_resource("apis/image.openshift.io/v1/namespaces/#{OkdClient.namespace(service)}/imagestreams/#{service}")
-    return if image_stream == '404'
+    namespace = OkdClient.namespace(service)
+    namespace = "core" if ["core", "account"].include?(service)
+    get_resource("apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams/#{service}")
+    if image_stream == '404'
+      # TODO: release-5.3 backward-compatibility for locations which is missing imagestreams in core namespace
+      return "1.0.0" if namespace == "core"
+      return
+    end
 
     image_stream.dig('spec', 'tags')&.detect { _1['name'] == 'latest' }&.dig('from', 'name')
   end

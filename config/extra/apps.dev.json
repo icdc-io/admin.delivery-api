@@ -1,5 +1,27 @@
 [
     {
+        "title": "Core frontend modules",
+        "name": "core",
+        "label": "",
+        "apps": [
+            {
+                "name": "chrome",
+                "title": "Chrome",
+                "roles": ""
+            },
+            {
+                "name": "home",
+                "title": "Home",
+                "roles": ""
+            }
+        ],
+        "description": "Versioned core frontend modules which are pre-loaded before any other applications",
+        "position": 0,
+        "display_name": "Core",
+        "path": "/",
+        "url": ""
+    },
+    {
         "title": "Outrun Cloud",
         "name": "outrun-cloud",
         "label": "",
