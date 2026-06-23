@@ -36,6 +36,18 @@ class GithubClient
     releases
   end
 
+  def self.get_yaml_resource(path)
+    content = self.get_resource(path)
+    return content if content.empty?
+    YAML.load(Base64.decode64(content['content']))
+  end
+
+  def self.get_json_resource(path)
+    content = self.get_resource(path)
+    return content if content.empty?
+    JSON.parse(Base64.decode64(content['content']))
+  end
+
   def self.get_resource(resource)
     github_client = GithubClient.new
     url = "#{github_client.api_url}/repos/#{github_client.account}/#{github_client.repo}/contents/#{resource}?ref=#{github_client.ref}"
