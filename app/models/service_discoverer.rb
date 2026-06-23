@@ -69,12 +69,12 @@ class ServiceDiscoverer
 
   def build_services_versions
     (central_services + location_services).filter_map do |entitled_service|
-      service_name = entitled_service['name']
+      service_name = entitled_service[:name]
       if external_services().include?(service_name)
         # For external services (like code, disk, account) entitlement means => installed
         Rails.logger.info("[ServiceDiscoverer#build_services_versions] Entitled service is externally managed: #{service_name}")
         # TODO: may be pull version from CRM specification (need to add new field and track it)
-        version = null
+        version = "0.0.0"
       else
         version = installed_version_for(service_name) # e.g. "1.7.0"
         Rails.logger.info("[ServiceDiscoverer#build_services_versions] Installed version of the entitled service: #{service_name}:#{version}")
@@ -86,15 +86,16 @@ class ServiceDiscoverer
 
   def central_services
     return [
-      { "name": "core" },
-      { "name": "account" }
+      { name: "core" }, # Special non-visible service for chrome and home apps versioning
+      { name: "account" }
     ]
   end
 
+  # NOTE: return symbolized keys
   def location_services
     @location_services ||= JSON.parse(location_response.body)['locations'].detect do |loc|
       loc['name'] == ENV.fetch('LOCATION_NAME')
-    end['services']
+    end['services'].map(&:deep_symbolize_keys)
   end
 
   def location_response
@@ -113,25 +114,32 @@ class ServiceDiscoverer
 
   def service_details(service, version)
     # Fetch versioned service information altogether with UI apps versions from Github specification file
-    info = fetch_service_spec(service, version) || {}
-    info.merge(
-      description: location_service['description'],
-      position: location_service['position'],
-      display_name: location_service['display_name'],
-      path: location_service['path'],
-      url: location_service['url']
+    spec = fetch_service_spec(service[:name], version) || {}
+    # Enrich service apps spec with entitled service info
+    spec.merge(
+      title: service.fetch(:display_name, spec[:title]),
+      position: service[:position],
+      description: service[:description],
+      path: service[:path],
+      url: service[:url]
     )
   end
 
-  def fetch_service_spec(service, version)
-    Rails.logger.info { "[ServiceDiscoverer] fetching #{service} apps specification: #{version} info" }
-    content = GithubClient.get_resource("applications/#{service}/#{release_filename(version)}")
-    decode_content(content).detect { _1['version'] == version } unless content.empty?
+  def fetch_service_spec(service_name, version)
+    Rails.logger.info { "[ServiceDiscoverer] fetching #{service_name} apps specification: #{version} info" }
+    # Try to load YAML specification first
+    specs = GithubClient.get_yaml_resource("specs/#{service_name}.yml")
+    if specs.empty?
+      # Fallback to obsolete per-release JSON specifications
+      specs = GithubClient.get_json_resource("applications/#{service_name}/#{release_filename(version)}")
+    end
+    specs.detect{ _1['version'] == version }&.deep_symbolize_keys unless specs.empty?
   end
 
   def installed_version_for(service)
     image_stream = OkdClient.get_service_imagestream(service)
     namespace = OkdClient.namespace(service)
+    # Store central apps ImageStreams in core namespace
     namespace = "core" if ["core", "account"].include?(service)
     get_resource("apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams/#{service}")
     if image_stream == '404'
@@ -158,9 +166,5 @@ class ServiceDiscoverer
 
   def release_filename(version)
     version.split('.')[0..1].join('.') + '.json'
-  end
-
-  def decode_content(content)
-    JSON.parse(Base64.decode64(content['content']))
   end
 end
