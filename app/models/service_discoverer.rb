@@ -116,8 +116,9 @@ class ServiceDiscoverer
     # Fetch versioned service information altogether with UI apps versions from Github specification file
     spec = fetch_service_spec(service[:name], version) || {}
     # Enrich service apps spec with entitled service info
+    spec[:title] = service[:display_name] unless service[:display_name].empty?
     spec.merge(
-      title: service.fetch(:display_name, spec[:title]),
+      display_name: service[:display_name], # used by Home app, TODO: remove when title used instead in UI
       position: service[:position],
       description: service[:description],
       path: service[:path],
