@@ -72,6 +72,8 @@ class ServiceDiscoverer
     # Release-5.3 backward-compatibility for locations which are missing imagestreams for regional services
     version = installed_version_for("core") || "1.0.0"
     meta_core = fetch_service_spec("core", version)
+    # Downstream version from meta-package to central services
+    meta_core[:services].map{|svc| svc[:version] = version}
     meta_core_services = meta_core[:services].group_by{|svc| svc[:name]}
     # Process entitled services via CRM
     location_services.filter_map do |entitled_service|
