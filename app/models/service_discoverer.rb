@@ -68,27 +68,38 @@ class ServiceDiscoverer
   end
 
   def build_services_versions
-    (central_services + location_services).filter_map do |entitled_service|
+    # Process meta-package specification "core", it's used to provide version for all central apps.
+    # Release-5.3 backward-compatibility for locations which are missing imagestreams for regional services
+    version = installed_version_for("core") || "1.0.0"
+    meta_core = fetch_service_spec("core", version)
+    meta_core_services = meta_core[:services].group_by{|svc| svc[:name]}
+    # Process entitled services via CRM
+    location_services.filter_map do |entitled_service|
       service_name = entitled_service[:name]
       if external_services().include?(service_name)
         # For external services (like code, disk, account) entitlement means => installed
         Rails.logger.info("[ServiceDiscoverer#build_services_versions] Entitled service is externally managed: #{service_name}")
         # TODO: may be pull version from CRM specification (need to add new field and track it)
-        version = "0.0.0"
+        spec = {name: service_name}
+      elsif meta_core_services.include?(service_name)
+        spec = meta_core_services.delete(service_name)[0]
       else
         version = installed_version_for(service_name) # e.g. "1.7.0"
         Rails.logger.info("[ServiceDiscoverer#build_services_versions] Installed version of the entitled service: #{service_name}:#{version}")
         next unless version
+        # Fetch versioned service information altogether with UI apps versions from Github specification file
+        spec = fetch_service_spec(service_name, version) || {}
       end
-      service_details(entitled_service, version)
-    end.compact
-  end
-
-  def central_services
-    return [
-      { name: "core" }, # Special non-visible service for chrome and home apps versioning
-      { name: "account" }
-    ]
+      service_details(spec, entitled_service)
+    end.compact + 
+    # Add all meta-core package services without CRM overrides
+    meta_core_services.map do |_, group|
+       spec = group[0]
+       # NOTE: we do not duplicate dispay_name and url is always empty
+       spec[:display_name] = spec[:title] in specification
+       spec[:url] = ""
+       spec
+    end
   end
 
   # NOTE: return symbolized keys
@@ -112,11 +123,9 @@ class ServiceDiscoverer
     }
   end
 
-  def service_details(service, version)
-    # Fetch versioned service information altogether with UI apps versions from Github specification file
-    spec = fetch_service_spec(service[:name], version) || {}
+  def service_details(spec, service)
     # Enrich service apps spec with entitled service info
-    spec[:title] = service[:display_name] unless service[:display_name].empty?
+    spec[:title] = service[:display_name] if service[:display_name]
     spec.merge(
       display_name: service[:display_name], # used by Home app, TODO: remove when title used instead in UI
       position: service[:position],
@@ -127,28 +136,21 @@ class ServiceDiscoverer
   end
 
   def fetch_service_spec(service_name, version)
-    Rails.logger.info { "[ServiceDiscoverer] fetching #{service_name} apps specification: #{version} info" }
+    Rails.logger.info("[ServiceDiscoverer] fetching #{service_name} apps specification: #{version} info")
     # Try to load YAML specification first
     specs = GithubClient.get_yaml_resource("specs/#{service_name}.yml")
     if specs.empty?
+      Rails.logger.warn("[ServiceDiscoverer] fetching #{service_name} apps specification: #{version} info")
       # Fallback to obsolete per-release JSON specifications
       specs = GithubClient.get_json_resource("applications/#{service_name}/#{release_filename(version)}")
     end
     specs.detect{ _1['version'] == version }&.deep_symbolize_keys unless specs.empty?
   end
 
-  def installed_version_for(service)
-    image_stream = OkdClient.get_service_imagestream(service)
-    namespace = OkdClient.namespace(service)
-    # Store central apps ImageStreams in core namespace
-    namespace = "core" if ["core", "account"].include?(service)
-    get_resource("apis/image.openshift.io/v1/namespaces/#{namespace}/imagestreams/#{service}")
-    if image_stream == '404'
-      # TODO: release-5.3 backward-compatibility for locations which is missing imagestreams in core namespace
-      return "1.0.0" if namespace == "core"
-      return
-    end
-
+  def installed_version_for(service_name)
+    image_stream = OkdClient.get_service_imagestream(service_name)
+    # If imagestream not found it return symbolized keys: {:message=>"404 Not Found", :code=>404}
+    return if image_stream.dig(:code) == 404
     image_stream.dig('spec', 'tags')&.detect { _1['name'] == 'latest' }&.dig('from', 'name')
   end
 
